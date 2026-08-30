@@ -2,6 +2,8 @@
 // Link: <url>
 // Pattern: <e.g. two pointers, sliding window, DFS>
 // Time: O(?)  Space: O(?)
+//
+// <problem statement, folded in as a comment>
 
 #include <iostream>
 #include <vector>
@@ -19,3 +21,9 @@ int main() {
     cout << "all tests passed\n";
     return 0;
 }
+
+// Recall Trail
+// Approach: <one-line core approach>
+// Decision points:
+// - <key decision point and its resolution>
+

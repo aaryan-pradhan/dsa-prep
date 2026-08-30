@@ -50,3 +50,10 @@ signed main() {
     cout << dp[0][x] << '\n';
     return 0;
 }
+
+// Recall Trail
+// Approach: dp[left] = number of ways to make sum `left` using coins from
+// index i onward (order doesn't matter -> outer loop over coins, inner
+// over sums), rolling 2-row array on i parity: dp[i][left] = ways using
+// coin i (stay on i, left -= coins[i]) + ways skipping coin i
+// (dp[i+1][left]). Base case dp[left=0] = 1 for every i.

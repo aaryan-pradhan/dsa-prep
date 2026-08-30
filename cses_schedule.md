@@ -24,20 +24,20 @@
 ## Day 1 — Fri Aug 29: Sorting & Searching Part 1 (14) + Sliding Window (5) → 19 problems
 
 **Sorting & Searching:**
-- [ ] 1. Distinct Numbers
-- [ ] 2. Apartments
-- [ ] 3. Ferris Wheel
+- [x] 1. [Distinct Numbers](arrays/Distinct_Values.cpp)
+- [x] 2. [Apartments](arrays/Apartments.cpp)
+- [x] 3. [Ferris Wheel](arrays/Ferris_Wheel.cpp)
 - [ ] 4. Concert Tickets
-- [ ] 5. Restaurant Customers
+- [x] 5. [Restaurant Customers](arrays/Restaurant_Customers.cpp)
 - [ ] 6. Movie Festival
 - [ ] 7. Sum of Two Values
-- [ ] 8. Maximum Subarray Sum
-- [ ] 9. Stick Lengths
-- [ ] 10. Missing Coin Sum
-- [ ] 11. Collecting Numbers
-- [ ] 12. Collecting Numbers II
-- [ ] 13. Playlist
-- [ ] 14. Towers
+- [x] 8. [Maximum Subarray Sum](arrays/Maximum_Subarray_Sum.cpp)
+- [x] 9. [Stick Lengths](arrays/Stick_Lengths.cpp)
+- [x] 10. [Missing Coin Sum](arrays/Missing_Coin_Sum.cpp)
+- [x] 11. [Collecting Numbers](arrays/Collecting_Numbers.cpp)
+- [x] 12. [Collecting Numbers II](arrays/Collecting_Numbers_II.cpp)
+- [x] 13. [Playlist](arrays/Playlist.cpp)
+- [x] 14. [Towers](arrays/Tower_Of_Cubes.cpp)
 
 **Sliding Window (first 5):**
 - [ ] 15. Sliding Window Sum
@@ -51,9 +51,9 @@
 ## Day 2 — Sat Aug 30: Sorting & Searching Part 2 (14) + Sliding Window (4) → 18 problems
 
 **Sorting & Searching (remaining):**
-- [ ] 1. Traffic Lights
-- [ ] 2. Distinct Values Subarrays
-- [ ] 3. Distinct Values Subsequences
+- [x] 1. [Traffic Lights](arrays/Traffic_Lights.cpp)
+- [x] 2. [Distinct Values Subarrays](arrays/Distinct_Subarrays.cpp)
+- [x] 3. [Distinct Values Subsequences](arrays/Distinct_Subsequences.cpp)
 - [ ] 4. Josephus Problem I
 - [ ] 5. Nested Ranges Check
 - [ ] 6. Nested Ranges Count
@@ -76,14 +76,14 @@
 
 ## Day 3 — Sun Aug 31: Dynamic Programming (19 problems)
 
-- [ ] 1. Dice Combinations
-- [ ] 2. Minimizing Coins
-- [ ] 3. Coin Combinations I
-- [ ] 4. Coin Combinations II
-- [ ] 5. Removing Digits
-- [ ] 6. Grid Paths I
-- [ ] 7. Book Shop
-- [ ] 8. Array Description
+- [x] 1. [Dice Combinations](dp/Dice_Combinations.cpp)
+- [x] 2. [Minimizing Coins](dp/Minimizing_Coins.cpp)
+- [x] 3. [Coin Combinations I](dp/Coin_Combinations_I.cpp)
+- [x] 4. [Coin Combinations II](dp/Coin_Combinations_II.cpp)
+- [x] 5. [Removing Digits](dp/Removing_Digits.cpp)
+- [x] 6. [Grid Paths I](dp/Grid_Paths_I.cpp)
+- [x] 7. [Book Shop](dp/Book_Shop.cpp)
+- [x] 8. [Array Description](dp/Array_Description.cpp)
 - [ ] 9. Counting Towers
 - [ ] 10. Edit Distance
 - [ ] 11. Longest Common Subsequence
@@ -138,10 +138,10 @@ Heavy day — graphs are king. Start early.
 - [ ] 8. Mail Delivery
 
 **Range Queries (first 12):**
-- [ ] 9. Static Range Sum Queries
-- [ ] 10. Static Range Minimum Queries
-- [ ] 11. Dynamic Range Sum Queries
-- [ ] 12. Dynamic Range Minimum Queries
+- [x] 9. [Static Range Sum Queries](arrays/Static_Range_Sum_Queries.cpp)
+- [x] 10. [Static Range Minimum Queries](arrays/Static_Range_Minimum_Queries.cpp)
+- [x] 11. [Dynamic Range Sum Queries](arrays/Dynamic_Range_Sum_Queries.cpp)
+- [x] 12. [Dynamic Range Minimum Queries](arrays/Dynamic_Range_Minimum_Queries.cpp)
 - [ ] 13. Range Xor Queries
 - [ ] 14. Range Update Queries
 - [ ] 15. Forest Queries
@@ -195,7 +195,7 @@ Heavy day — graphs are king. Start early.
 - [ ] 8. Xor Pyramid Diagonal
 
 **Mathematics (first 10):**
-- [ ] 9. Josephus Queries
+- [x] 9. [Josephus Queries](arrays/Josephus_Queries.cpp)
 - [ ] 10. Exponentiation
 - [ ] 11. Exponentiation II
 - [ ] 12. Counting Divisors

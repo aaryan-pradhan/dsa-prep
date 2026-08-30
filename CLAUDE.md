@@ -8,40 +8,71 @@ DSA practice repo for placement interviews. Not a library or application — eve
 
 ## Layout
 
-Each problem lives in its own folder under its topic: `topic/NN_problem_slug/`, e.g. `arrays/03_two_sum/`.
+Every problem is ONE flat file directly under its topic: `topic/Title_Case_Name.cpp`,
+e.g. `arrays/Distinct_Values.cpp`, `dp/Book_Shop.cpp`. No per-problem folder,
+no separate `problem.md` — assert-based (or CSES-stdin-based) `main()`, no
+Python unless explicitly asked for.
 
-- `problem.md` — statement/link, pattern, complexity target
-- `solution.cpp` — assert-based `main()`, no Python unless explicitly asked for
+Each file is self-contained, top to bottom:
+
+- Header comment: `// Problem:` / `// Link:` (when a real URL/ID exists) /
+  `// Pattern:` / `// Time:` / `// Space:`.
+- Problem statement folded in as a comment block right under the header —
+  the full pasted statement for CSES/CPH-sourced problems, a condensed
+  paraphrase for problems written directly through dsa-buddy.
+- The code.
+- `// Recall Trail` comment block at the very bottom — pattern name, key
+  decision points condensed, one-line core approach. Scannable in ~10
+  seconds; this is what spaced revision reads, in place of the old
+  `problem.md`'s `## Recall Trail` section.
+
+CSES-sourced files (solved via the CPH VS Code extension, dropped in
+directly) additionally keep `#include <bits/stdc++.h>` plus the full
+13-line macro block (`ll`/`endl`/`fr`/`sc`/`MOD`/`MOD1`/`INF`/`mp`/`PI`/
+`py`/`pn`/`pll`) verbatim even where unused — that's the standing shape
+for that source, not something to trim per file.
 
 `<bits/stdc++.h>` is fine to use. macOS's `g++` is clang under the hood and
 doesn't ship that header natively, but this machine has a shim at
 `~/.local/include/bits/stdc++.h` on `CPATH` (set in `~/.zshrc`), so plain
 `g++ ... solution.cpp` resolves it from any directory without extra flags.
+(Non-interactive shells that don't load `~/.zshrc` need `-I ~/.local/include`
+explicitly.)
 
 Topics: `arrays`, `backtracking`, `dp`, `graphs`, `heaps`, `linked_list`,
 `math`, `stacks_queues`, `strings`, `trees`. New topics get created
 on-demand as problems don't fit existing ones — no fixed list.
 
-Use `templates/solution_template.py` and `templates/solution_template.cpp` as the starting point for every new solution file — keep the header comment format (`Problem` / `Link` / `Pattern` / `Time` / `Space`) consistent.
+Use `templates/solution_template.cpp` as the starting point for every new
+solution file — keep the header comment format (`Problem` / `Link` /
+`Pattern` / `Time` / `Space`) and the statement/Recall-Trail comment
+placement consistent.
+
+`cses_schedule.md` at the repo root is the daily-scan CSES index: a
+per-day checklist of the CSES problem set. A solved problem's checkbox is
+checked and linked to its flat file (`- [x] N. [Name](topic/File.cpp)`) —
+scan a day there to jump straight to its Recall Trail for revision.
+`*.bin` (CPH-compiled binaries) and `.cph/` (CPH metadata) are
+gitignored — CPH-extension artifacts, not source.
 
 ## Commands
 
 ```bash
 # compile + run a C++ solution
-g++ -O2 -std=c++17 -o /tmp/a.out topic/problem_slug/solution.cpp && /tmp/a.out
+g++ -O2 -std=c++17 -o /tmp/a.out topic/Problem_Name.cpp && /tmp/a.out
 
 # same, with debug() / debugArr() macros available (templates/algodebug.h)
-g++ -O2 -std=c++17 -Itemplates -o /tmp/a.out topic/problem_slug/solution.cpp && /tmp/a.out
+g++ -O2 -std=c++17 -Itemplates -o /tmp/a.out topic/Problem_Name.cpp && /tmp/a.out
 ```
 
 There is no repo-wide build/lint config — each problem is self-contained.
 
-`templates/algodebug.h` provides `debug(...)` / `debugArr(...)` macros (compiled out under `-DONLINE_JUDGE`). Because solutions live nested under `topic/NN_slug/`, not flat, `#include "algodebug.h"` needs `-Itemplates` on the compile line to resolve — plain quote-include won't find it otherwise.
+`templates/algodebug.h` provides `debug(...)` / `debugArr(...)` macros (compiled out under `-DONLINE_JUDGE`). Because solutions live nested under `topic/`, not at repo root, `#include "algodebug.h"` needs `-Itemplates` on the compile line to resolve — plain quote-include won't find it otherwise.
 
 ## Workflow
 
 Governed by the `dsa-buddy` skill (`~/.claude/skills/dsa-buddy/SKILL.md`) — don't reproduce its process here. Repo-specific notes only:
 
-- New problem: create the topic-numbered folder first; dsa-buddy fills in `problem.md`/`solution.*`/`test_solution.py` as its last step, not before.
-- Reopening an old folder is spaced recall, not a fresh request — check for an existing solution + Recall Trail before rewriting.
+- New problem: dsa-buddy writes the single `topic/Title_Case_Name.cpp` file as its last step, not before — no folder to create up front.
+- Reopening an existing file is spaced recall, not a fresh request — check for an existing solution + Recall Trail (bottom-of-file comment) before rewriting.
 - Style comes only from what's shared in this repo, never outside directories; `patterns.md` at the repo root tracks it.
