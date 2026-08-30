@@ -1,6 +1,6 @@
 # dsa-prep
 
-DSA practice for placement interviews. Fast-lane / deep-lane recall system — see workflow below.
+DSA practice for placement interviews, driven by the `dsa-buddy` Claude Code skill — see workflow below.
 
 ## Layout
 
@@ -12,11 +12,9 @@ Each problem is a folder under its topic: `topic/NN_problem_slug/`
 
 ## Workflow
 
-**Fast lane** (most problems, breadth): paste problem + old C++ solution → state approach in 1-2 lines before writing code → code only the core function, no boilerplate, ~8-10 min timebox → verify immediately (pytest or compiled asserts).
+Paste a problem + a correct solution → short one-at-a-time chat questions converge to the full approach → code written and verified once, at the end → a `## Recall Trail` appended to `problem.md` for revision.
 
-**Deep lane** (new problems, or fast-lane misses): full untimed solve, no reference shown.
-
-Old problems get resurfaced later, unannounced, for spaced recall.
+Old problems resurface later, unannounced, for spaced recall. `patterns.md` at the repo root accumulates per-pattern style notes as they come up.
 
 ## Run tests
 

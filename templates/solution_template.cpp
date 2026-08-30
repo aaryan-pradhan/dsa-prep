@@ -3,7 +3,12 @@
 // Pattern: <e.g. two pointers, sliding window, DFS>
 // Time: O(?)  Space: O(?)
 
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
+#include <climits>
 using namespace std;
 
 /* solve(...) goes here */
