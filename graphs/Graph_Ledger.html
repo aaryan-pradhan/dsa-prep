@@ -1,0 +1,1074 @@
+<title>The Graph Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F5F6F8;
+    --surface:#EBEEF2;
+    --surface-2:#E1E5EB;
+    --line:#CBD2DC;
+    --ink:#1B1F2A;
+    --ink-soft:#4B5568;
+    --ink-faint:#7A8496;
+    --accent:#2F5D8A;
+    --accent-ink:#FFFFFF;
+    --gotcha:#8A6A0E;
+    --gotcha-bg:#FBF1D9;
+    --gotcha-line:#E3CC8E;
+    --trigger:#2E6B4A;
+    --trigger-bg:#E3F1E8;
+    --trigger-line:#A9CFB9;
+    --f1:#2F5D8A; --f1-bg:#E4ECF4;
+    --f2:#6B4C7A; --f2-bg:#EEE5F1;
+    --f3:#2E7D6B; --f3-bg:#E1F0EB;
+    --f4:#8A5A2F; --f4-bg:#F3E7D9;
+    --f5:#8A3A4A; --f5-bg:#F3E1E5;
+    --f6:#4A5A8A; --f6-bg:#E5E7F3;
+    --f7:#5A6270; --f7-bg:#E7E9ED;
+    --f8:#2F7A4A; --f8-bg:#DFF0E4;
+    --f9:#9A3F63; --f9-bg:#F5E1E9;
+    --f10:#8A7A2F; --f10-bg:#F3EFD9;
+    --shadow: 0 1px 2px rgba(27,31,42,0.06), 0 4px 14px rgba(27,31,42,0.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14171C;
+      --surface:#1C2129;
+      --surface-2:#242B35;
+      --line:#333B48;
+      --ink:#E7E9EE;
+      --ink-soft:#A7AFC0;
+      --ink-faint:#7A8496;
+      --accent:#8FB8E0;
+      --accent-ink:#0E1520;
+      --gotcha:#E7C567;
+      --gotcha-bg:#332C16;
+      --gotcha-line:#5C4E22;
+      --trigger:#8FD1AA;
+      --trigger-bg:#173325;
+      --trigger-line:#2E5A41;
+      --f1:#8FB8E0; --f1-bg:#1E2A38;
+      --f2:#C79BD6; --f2-bg:#2A2032;
+      --f3:#7FCBB8; --f3-bg:#182E29;
+      --f4:#D6A868; --f4-bg:#31271A;
+      --f5:#D68A98; --f5-bg:#301E23;
+      --f6:#A0ACD6; --f6-bg:#20243A;
+      --f7:#9AA2B0; --f7-bg:#232730;
+      --f8:#7FD19E; --f8-bg:#173324;
+      --f9:#D693AE; --f9-bg:#301C27;
+      --f10:#D6C468; --f10-bg:#312D1A;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14171C;
+    --surface:#1C2129;
+    --surface-2:#242B35;
+    --line:#333B48;
+    --ink:#E7E9EE;
+    --ink-soft:#A7AFC0;
+    --ink-faint:#7A8496;
+    --accent:#8FB8E0;
+    --accent-ink:#0E1520;
+    --gotcha:#E7C567;
+    --gotcha-bg:#332C16;
+    --gotcha-line:#5C4E22;
+    --trigger:#8FD1AA;
+    --trigger-bg:#173325;
+    --trigger-line:#2E5A41;
+    --f1:#8FB8E0; --f1-bg:#1E2A38;
+    --f2:#C79BD6; --f2-bg:#2A2032;
+    --f3:#7FCBB8; --f3-bg:#182E29;
+    --f4:#D6A868; --f4-bg:#31271A;
+    --f5:#D68A98; --f5-bg:#301E23;
+    --f6:#A0ACD6; --f6-bg:#20243A;
+    --f7:#9AA2B0; --f7-bg:#232730;
+    --f8:#7FD19E; --f8-bg:#173324;
+    --f9:#D693AE; --f9-bg:#301C27;
+    --f10:#D6C468; --f10-bg:#312D1A;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    line-height:1.55;
+  }
+  h1,h2,h3{
+    font-family:'IBM Plex Serif', Georgia, serif;
+    font-weight:600;
+    color:var(--ink);
+    text-wrap:balance;
+    margin:0;
+  }
+  code, pre, .mono, .badge, .toc a, .rule-code{
+    font-family:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+  .num{ font-variant-numeric:tabular-nums; }
+
+  a{ color:var(--accent); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+  a:focus-visible, button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .masthead{
+    max-width:1200px;
+    margin:0 auto;
+    padding:3rem 1.5rem 2rem;
+  }
+  .kicker{
+    font-family:'IBM Plex Mono';
+    font-size:0.78rem;
+    letter-spacing:0.11em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:0.9rem;
+  }
+  h1{ font-size:clamp(2rem, 4vw, 2.85rem); letter-spacing:-0.01em; }
+  .dek{
+    max-width:62ch;
+    color:var(--ink-soft);
+    font-size:1.08rem;
+    margin:0.9rem 0 1.1rem;
+  }
+  .stats{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.5rem 1.4rem;
+    font-family:'IBM Plex Mono';
+    font-size:0.82rem;
+    color:var(--ink-faint);
+  }
+  .stats b{ color:var(--ink); font-weight:600; }
+
+  .layout{
+    display:grid;
+    grid-template-columns:224px minmax(0,1fr);
+    gap:2.2rem;
+    max-width:1200px;
+    margin:0 auto;
+    padding:0 1.5rem 5rem;
+    align-items:start;
+  }
+  nav.toc{
+    position:sticky;
+    top:1.25rem;
+    max-height:calc(100vh - 2.5rem);
+    overflow-y:auto;
+    padding-right:0.5rem;
+    border-right:1px solid var(--line);
+  }
+  .toc-title{
+    font-family:'IBM Plex Mono';
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--ink-faint);
+    margin-bottom:0.7rem;
+  }
+  .toc a{
+    display:block;
+    font-size:0.86rem;
+    color:var(--ink-soft);
+    padding:0.32rem 0;
+    border-left:2px solid transparent;
+    padding-left:0.7rem;
+    margin-left:-0.02rem;
+  }
+  .toc a:hover{ color:var(--ink); text-decoration:none; border-left-color:var(--line); }
+  .toc .toc-fam{ margin-top:0.85rem; }
+  .toc .toc-fam a{ color:var(--ink); font-weight:500; }
+
+  main{ min-width:0; display:flex; flex-direction:column; gap:3.4rem; }
+  section{ scroll-margin-top:1.25rem; }
+  .section-head{ margin-bottom:1.1rem; }
+  .section-head h2{ font-size:1.5rem; }
+  .section-head p{ color:var(--ink-soft); margin:0.4rem 0 0; max-width:68ch; font-size:0.96rem; }
+
+  /* master table */
+  .table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); }
+  table.master{ width:100%; border-collapse:collapse; font-size:0.84rem; min-width:860px; }
+  table.master thead th{
+    position:sticky; top:0;
+    background:var(--surface-2);
+    text-align:left;
+    font-family:'IBM Plex Mono';
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    font-size:0.68rem;
+    color:var(--ink-faint);
+    padding:0.7rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.master td{
+    padding:0.62rem 0.9rem;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  table.master tbody tr:hover{ background:var(--surface); }
+  table.master tbody tr:last-child td{ border-bottom:none; }
+  table.master .pname a{ color:var(--ink); font-weight:500; }
+  table.master .pname a:hover{ color:var(--accent); }
+  .fam-tag{
+    display:inline-block;
+    font-size:0.68rem;
+    font-family:'IBM Plex Mono';
+    padding:0.16rem 0.5rem;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .rec-cell{ color:var(--ink-soft); font-family:'IBM Plex Mono'; font-size:0.78rem; }
+  .time-cell{ font-family:'IBM Plex Mono'; font-size:0.78rem; white-space:nowrap; }
+
+  /* recognition rules */
+  .rules{ display:flex; flex-direction:column; gap:0.9rem; }
+  .rule{
+    display:grid;
+    grid-template-columns:2.1rem 1fr;
+    gap:0.9rem;
+    padding:0.9rem 1rem;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+  }
+  .rule .n{
+    font-family:'IBM Plex Mono';
+    color:var(--accent);
+    font-weight:600;
+    font-size:0.95rem;
+  }
+  .rule p{ margin:0; font-size:0.92rem; color:var(--ink); }
+  .rule .rule-code{ color:var(--accent); font-size:0.87rem; }
+
+  .toolkit{
+    margin-top:0.3rem;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:var(--surface);
+    padding:0.9rem 1rem;
+    overflow-x:auto;
+  }
+  .toolkit table{ border-collapse:collapse; font-size:0.82rem; width:100%; min-width:560px; }
+  .toolkit td{ padding:0.3rem 0.8rem 0.3rem 0; white-space:nowrap; }
+  .toolkit td.fn{ color:var(--accent); font-family:'IBM Plex Mono'; }
+  .toolkit td.desc{ color:var(--ink-soft); white-space:normal; }
+
+  /* family + entries */
+  .family{ display:flex; flex-direction:column; gap:1.3rem; }
+  .family-head{
+    display:flex;
+    align-items:baseline;
+    gap:0.7rem;
+    flex-wrap:wrap;
+  }
+  .family-head h2{ font-size:1.4rem; }
+  .family-note{ color:var(--ink-soft); font-size:0.92rem; max-width:70ch; margin:0.3rem 0 0.2rem; }
+
+  .entry{
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--surface);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    scroll-margin-top:1.25rem;
+  }
+  .entry-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.8rem;
+    padding:0.95rem 1.15rem 0.2rem;
+  }
+  .entry-head h3{ font-size:1.12rem; }
+  .badge{
+    font-size:0.72rem;
+    color:var(--ink-faint);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:0.14rem 0.45rem;
+  }
+  .idea{
+    padding:0.35rem 1.15rem 0.9rem;
+    color:var(--ink-soft);
+    font-size:0.95rem;
+    max-width:80ch;
+  }
+  .entry-body{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1px;
+    background:var(--line);
+  }
+  @media (max-width:760px){
+    .entry-body{ grid-template-columns:1fr; }
+  }
+  .state-block{
+    background:
+      repeating-linear-gradient(var(--surface-2) 0 1.55rem, transparent 1.55rem 1.6rem);
+    background-color:var(--surface);
+    padding:0.95rem 1.15rem 1.05rem;
+  }
+  .label{
+    font-family:'IBM Plex Mono';
+    font-size:0.68rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-faint);
+    margin:0.55rem 0 0.15rem;
+  }
+  .label:first-child{ margin-top:0; }
+  .state-block .mono{ font-size:0.85rem; color:var(--ink); }
+  .snippet{
+    margin:0;
+    background:var(--surface);
+    padding:0.95rem 1.15rem;
+    overflow-x:auto;
+    font-size:0.79rem;
+    line-height:1.6;
+    color:var(--ink);
+  }
+  .snippet code{ white-space:pre; }
+  .callout{
+    margin:0 1.15rem 1.05rem;
+    padding:0.65rem 0.85rem;
+    border-radius:8px;
+    font-size:0.87rem;
+    border:1px solid;
+  }
+  .callout:first-of-type{ margin-top:1.05rem; }
+  .callout strong{
+    font-family:'IBM Plex Mono';
+    font-size:0.7rem;
+    text-transform:uppercase;
+    letter-spacing:0.07em;
+    display:block;
+    margin-bottom:0.25rem;
+  }
+  .callout.gotcha{ background:var(--gotcha-bg); border-color:var(--gotcha-line); color:var(--ink); }
+  .callout.gotcha strong{ color:var(--gotcha); }
+  .callout.trigger{ background:var(--trigger-bg); border-color:var(--trigger-line); color:var(--ink); }
+  .callout.trigger strong{ color:var(--trigger); }
+
+  footer{
+    max-width:1200px;
+    margin:0 auto;
+    padding:0 1.5rem 3.5rem;
+    color:var(--ink-faint);
+    font-size:0.82rem;
+    border-top:1px solid var(--line);
+    padding-top:1.4rem;
+  }
+  footer p{ margin:0.4rem 0; }
+
+  @media (max-width:900px){
+    .layout{ grid-template-columns:1fr; }
+    nav.toc{
+      position:sticky; top:0;
+      max-height:none;
+      display:flex;
+      gap:0.3rem 1rem;
+      overflow-x:auto;
+      white-space:nowrap;
+      border-right:none;
+      border-bottom:1px solid var(--line);
+      background:var(--bg);
+      padding:0.7rem 0.2rem;
+      z-index:5;
+    }
+    nav.toc .toc-title{ display:none; }
+    .toc a{ padding:0.2rem 0; border-left:none; margin-left:0; }
+    .toc .toc-fam{ margin-top:0; }
+  }
+</style>
+
+<header class="masthead">
+  <div class="kicker">CSES &middot; Graphs</div>
+  <h1>The Graph Ledger</h1>
+  <p class="dek">Every graph problem solved in <code>graphs/</code>, the traversal/state and the trick behind each &mdash; built to be recalled cold and coded live in front of an interviewer, not just recognized.</p>
+  <div class="stats">
+    <span><b class="num">23</b> problems</span>
+    <span><b class="num">10</b> pattern families</span>
+    <span><b>DSU</b> toolkit</span>
+    <span>source: <b>dsa-prep/graphs</b></span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="Sections">
+    <div class="toc-title">Jump to</div>
+    <a href="#master">Master table</a>
+    <a href="#recognition">Recognition rules</a>
+    <div class="toc-fam"><a href="#f1">1&nbsp;&middot; Flood-fill &amp; unweighted BFS</a></div>
+    <div class="toc-fam"><a href="#f2">2&nbsp;&middot; Bipartite &amp; reachability</a></div>
+    <div class="toc-fam"><a href="#f3">3&nbsp;&middot; Cycle detection (DFS)</a></div>
+    <div class="toc-fam"><a href="#f4">4&nbsp;&middot; Topo sort &amp; DAG DP</a></div>
+    <div class="toc-fam"><a href="#f5">5&nbsp;&middot; Dijkstra family</a></div>
+    <div class="toc-fam"><a href="#f6">6&nbsp;&middot; Bellman-Ford &amp; neg. cycles</a></div>
+    <div class="toc-fam"><a href="#f7">7&nbsp;&middot; Floyd-Warshall APSP</a></div>
+    <div class="toc-fam"><a href="#f8">8&nbsp;&middot; DSU toolkit</a></div>
+    <div class="toc-fam"><a href="#f9">9&nbsp;&middot; Functional graph lifting</a></div>
+    <div class="toc-fam"><a href="#f10">10&nbsp;&middot; Monotonic-reach sweep</a></div>
+  </nav>
+
+  <main>
+
+    <section id="master">
+      <div class="section-head">
+        <h2>Master table</h2>
+        <p>60-second scan before the call. Full detail for each row is below.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="master">
+          <thead>
+            <tr><th>Problem</th><th>Family</th><th>Invariant / algorithm</th><th>Time</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="pname"><a href="#counting-rooms">Counting Rooms</a></td><td><span class="fam-tag" style="background:var(--f1-bg);color:var(--f1)">Flood-fill BFS</span></td><td class="rec-cell">grid DFS, new stamp per component</td><td class="time-cell num">O(nm)</td></tr>
+            <tr><td class="pname"><a href="#building-roads">Building Roads</a></td><td><span class="fam-tag" style="background:var(--f1-bg);color:var(--f1)">Flood-fill BFS</span></td><td class="rec-cell">DFS components, chain one rep/comp</td><td class="time-cell num">O(n+m)</td></tr>
+            <tr><td class="pname"><a href="#labyrinth">Labyrinth</a></td><td><span class="fam-tag" style="background:var(--f1-bg);color:var(--f1)">Flood-fill BFS</span></td><td class="rec-cell">grid BFS + parent-pointer path</td><td class="time-cell num">O(nm)</td></tr>
+            <tr><td class="pname"><a href="#message-route">Message Route</a></td><td><span class="fam-tag" style="background:var(--f1-bg);color:var(--f1)">Flood-fill BFS</span></td><td class="rec-cell">BFS + parent-pointer path</td><td class="time-cell num">O(n+m)</td></tr>
+            <tr><td class="pname"><a href="#monsters">Monsters</a></td><td><span class="fam-tag" style="background:var(--f1-bg);color:var(--f1)">Flood-fill BFS</span></td><td class="rec-cell">multi-source BFS vs. single-source BFS</td><td class="time-cell num">O(nm)</td></tr>
+            <tr><td class="pname"><a href="#building-teams">Building Teams</a></td><td><span class="fam-tag" style="background:var(--f2-bg);color:var(--f2)">Bipartite/reach</span></td><td class="rec-cell">DFS 2-color, conflict&rarr;IMPOSSIBLE</td><td class="time-cell num">O(n+m)</td></tr>
+            <tr><td class="pname"><a href="#flight-routes-check">Flight Routes Check</a></td><td><span class="fam-tag" style="background:var(--f2-bg);color:var(--f2)">Bipartite/reach</span></td><td class="rec-cell">BFS from hub + BFS on reverse graph</td><td class="time-cell num">O(n+m)</td></tr>
+            <tr><td class="pname"><a href="#round-trip">Round Trip</a></td><td><span class="fam-tag" style="background:var(--f3-bg);color:var(--f3)">Cycle (DFS)</span></td><td class="rec-cell">3-color DFS, back-edge&rarr;gray node</td><td class="time-cell num">O(n+m)</td></tr>
+            <tr><td class="pname"><a href="#round-trip-ii">Round Trip II</a></td><td><span class="fam-tag" style="background:var(--f3-bg);color:var(--f3)">Cycle (DFS)</span></td><td class="rec-cell">same + skip edge back to parent</td><td class="time-cell num">O(n+m)</td></tr>
+            <tr><td class="pname"><a href="#course-schedule">Course Schedule</a></td><td><span class="fam-tag" style="background:var(--f4-bg);color:var(--f4)">Topo + DAG DP</span></td><td class="rec-cell">Kahn's BFS, size&ne;n&rarr;cycle</td><td class="time-cell num">O(n+m)</td></tr>
+            <tr><td class="pname"><a href="#game-routes">Game Routes</a></td><td><span class="fam-tag" style="background:var(--f4-bg);color:var(--f4)">Topo + DAG DP</span></td><td class="rec-cell">dp[v]=&sum;dp[child], reverse topo</td><td class="time-cell num">O(n+m)</td></tr>
+            <tr><td class="pname"><a href="#longest-flight-route">Longest Flight Route</a></td><td><span class="fam-tag" style="background:var(--f4-bg);color:var(--f4)">Topo + DAG DP</span></td><td class="rec-cell">dp[v]=max(dp[child])+1, reverse topo</td><td class="time-cell num">O(n+m)</td></tr>
+            <tr><td class="pname"><a href="#shortest-routes-i">Shortest Routes I</a></td><td><span class="fam-tag" style="background:var(--f5-bg);color:var(--f5)">Dijkstra</span></td><td class="rec-cell">lazy-deletion min-heap relax</td><td class="time-cell num">O((n+m) log n)</td></tr>
+            <tr><td class="pname"><a href="#flight-discount">Flight Discount</a></td><td><span class="fam-tag" style="background:var(--f5-bg);color:var(--f5)">Dijkstra</span></td><td class="rec-cell">state=(node,couponUsed), layered graph</td><td class="time-cell num">O((n+m) log n)</td></tr>
+            <tr><td class="pname"><a href="#investigation">Investigation</a></td><td><span class="fam-tag" style="background:var(--f5-bg);color:var(--f5)">Dijkstra</span></td><td class="rec-cell">relax + tie-branch aggregates</td><td class="time-cell num">O((n+m) log n)</td></tr>
+            <tr><td class="pname"><a href="#flight-routes">Flight Routes</a></td><td><span class="fam-tag" style="background:var(--f5-bg);color:var(--f5)">Dijkstra</span></td><td class="rec-cell">pop each node up to k times</td><td class="time-cell num">O(km log(kn))</td></tr>
+            <tr><td class="pname"><a href="#cycle-finding">Cycle Finding</a></td><td><span class="fam-tag" style="background:var(--f6-bg);color:var(--f6)">Bellman-Ford</span></td><td class="rec-cell">dist[]=0 &forall;, n rounds, walk par&times;n</td><td class="time-cell num">O(nm)</td></tr>
+            <tr><td class="pname"><a href="#high-score">High Score</a></td><td><span class="fam-tag" style="background:var(--f6-bg);color:var(--f6)">Bellman-Ford</span></td><td class="rec-cell">negate weights, gate by reach-to-n</td><td class="time-cell num">O(nm)</td></tr>
+            <tr><td class="pname"><a href="#shortest-routes-ii">Shortest Routes II</a></td><td><span class="fam-tag" style="background:var(--f7-bg);color:var(--f7)">Floyd-Warshall</span></td><td class="rec-cell">g[i][j]=min(g[i][j], g[i][k]+g[k][j])</td><td class="time-cell num">O(n&sup3;)</td></tr>
+            <tr><td class="pname"><a href="#road-reparation">Road Reparation</a></td><td><span class="fam-tag" style="background:var(--f8-bg);color:var(--f8)">DSU</span></td><td class="rec-cell">Kruskal: sort edges, union if disconnected</td><td class="time-cell num">O(m log m)</td></tr>
+            <tr><td class="pname"><a href="#road-construction">Road Construction</a></td><td><span class="fam-tag" style="background:var(--f8-bg);color:var(--f8)">DSU</span></td><td class="rec-cell">merge + running (sets, maxsz) query</td><td class="time-cell num">O(m&alpha;(n))</td></tr>
+            <tr><td class="pname"><a href="#planets-queries-i">Planets Queries I</a></td><td><span class="fam-tag" style="background:var(--f9-bg);color:var(--f9)">Binary lifting</span></td><td class="rec-cell">up[j][v]=up[j&minus;1][up[j&minus;1][v]]</td><td class="time-cell num">O((n+q) log k)</td></tr>
+            <tr><td class="pname"><a href="#frog-minimum-jumps">Frog Minimum Jumps</a></td><td><span class="fam-tag" style="background:var(--f10-bg);color:var(--f10)">Sweep</span></td><td class="rec-cell">curEnd/farthest boundary sweep</td><td class="time-cell num">O(N+Q)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="recognition">
+      <div class="section-head">
+        <h2>Recognition rules</h2>
+        <p>The cross-cutting judgment calls that separate one family from another &mdash; these are the actual bugs the problems above were built to catch.</p>
+      </div>
+      <div class="rules">
+        <div class="rule">
+          <div class="n num">01</div>
+          <p>Unweighted "fewest steps" wants <strong>BFS layer order</strong>, not DFS &mdash; DFS finds <em>a</em> path, BFS guarantees the <em>shortest</em>. Message Route and Labyrinth both need BFS for that reason; Round Trip and Round Trip II deliberately use DFS instead, because they need ancestor-coloring for cycle detection, not shortest distance.</p>
+        </div>
+        <div class="rule">
+          <div class="n num">02</div>
+          <p>Lazy-deletion Dijkstra (push duplicates, skip stale entries via a <span class="rule-code">vis[]</span> check on <em>pop</em>, not on push) generalizes cleanly: to k-times-per-node (Flight Routes), and to a per-node state key wider than just the node id (Flight Discount's <span class="rule-code">(node,couponUsed)</span> encoding, Investigation's tie-branch aggregates).</p>
+        </div>
+        <div class="rule">
+          <div class="n num">03</div>
+          <p>Any per-node "extra dimension" &mdash; coupon used, k-th visit, previous move &mdash; belongs in the <strong>state key itself</strong>, not bolted onto the relax step afterward. Flight Discount doubles every node into <span class="rule-code">encode(node, coupon)</span>; Flight Routes swaps a boolean visited-flag for a counter capped at k. Same underlying move: widen the state, keep Dijkstra unchanged.</p>
+        </div>
+        <div class="rule">
+          <div class="n num">04</div>
+          <p>Topological-DP direction follows the dependency arrow: <strong>reverse</strong> topo order when <span class="rule-code">dp[node]</span> depends on <span class="rule-code">dp[child]</span> (Game Routes sums over children, Longest Flight Route maxes over children) &mdash; forward topo order is for problems where the ordering itself <em>is</em> the answer (Course Schedule), not for DP.</p>
+        </div>
+        <div class="rule">
+          <div class="n num">05</div>
+          <p><strong>3-state DFS coloring</strong> (unvisited / on-stack / fully done) is required whenever "already visited" must be split into "still an ancestor" vs. "finished, irrelevant." Round Trip and Round Trip II both need it &mdash; a 2-state visited array would false-positive a cycle on any DAG-shaped diamond where two paths reconverge on an already-finished node.</p>
+        </div>
+        <div class="rule">
+          <div class="n num">06</div>
+          <p><strong>DSU</strong> beats BFS/DFS specifically when connectivity must be queried or updated <em>incrementally as edges are added over time</em> (Road Construction, Road Reparation). BFS/DFS recomputes a component from scratch each time and is the right tool only for a static, one-shot graph (Counting Rooms, Building Roads).</p>
+        </div>
+        <div class="rule">
+          <div class="n num">07</div>
+          <p>Bellman-Ford's <span class="rule-code">dist[]</span> seeding controls the question being asked: all-INF-except-source finds shortest paths <em>from that source</em>; all-zero everywhere (Cycle Finding) finds a negative cycle <em>anywhere</em> in the graph, by treating every node as its own free source simultaneously.</p>
+        </div>
+        <div class="rule">
+          <div class="n num">08</div>
+          <p><span class="rule-code">n &le; ~500</span> with dense edges is the Floyd-Warshall signal (Shortest Routes II) &mdash; O(n&sup3;) preprocessing beats running Dijkstra from every node when m is large relative to n. Anything with n in the thousands needs single-source Dijkstra/Bellman-Ford per query instead; O(n&sup3;) stops being affordable well before n reaches four digits.</p>
+        </div>
+      </div>
+
+      <div class="toolkit" role="table" aria-label="DSU toolkit">
+        <table>
+          <tbody>
+            <tr><td class="fn">find(x)</td><td class="desc">path-compressed root lookup &mdash; <span class="mono">parent[x] = find(parent[x])</span> on the way back up flattens the tree for every future call</td></tr>
+            <tr><td class="fn">merge(x, y)</td><td class="desc">union by rank/size &mdash; always attach the smaller root under the larger to keep tree height low; no-op if already connected</td></tr>
+            <tr><td class="fn">connected(x, y)</td><td class="desc"><span class="mono">find(x) == find(y)</span> &mdash; the cycle-free check Kruskal relies on, with no explicit cycle detection code anywhere</td></tr>
+            <tr><td class="fn">size(x)</td><td class="desc"><span class="mono">rank[find(x)]</span> &mdash; current size of x's component, valid immediately after any merge touching it</td></tr>
+            <tr><td class="fn">sets()</td><td class="desc">running count of disjoint components &mdash; decremented once per <em>real</em> merge, untouched by no-op merges</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="f1" class="family">
+      <div class="family-head">
+        <h2>1&nbsp;&middot; Flood-fill &amp; unweighted BFS/DFS</h2>
+      </div>
+      <p class="family-note">Grids and plain graphs where every edge costs exactly 1. DFS is enough for pure connectivity (Counting Rooms, Building Roads); the moment you need an actual shortest distance or path, it has to be BFS (Labyrinth, Message Route, Monsters).</p>
+
+      <article class="entry" id="counting-rooms">
+        <div class="entry-head"><h3>Counting Rooms</h3><span class="badge num">O(nm)</span></div>
+        <p class="idea">Grid of floor/wall cells &mdash; count the number of 4-directionally connected floor regions.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">vis[i][j] = room id (0 = unvisited)</div>
+            <div class="label">algorithm</div>
+            <div class="mono">for each unvisited floor cell: c++; DFS-stamp the whole region with c</div>
+          </div>
+          <pre class="snippet"><code>void dfs(ll x, ll y, ll n, ll m) {
+  vis[x][y] = c;
+  for (ll i = 0; i &lt; 4; i++) {
+    ll nx = x+dx[i], ny = y+dy[i];
+    if (nx&gt;=0 && nx&lt;n && ny&gt;=0 && ny&lt;m
+        && !vis[nx][ny] && v[nx][ny]=='.')
+      dfs(nx, ny, n, m);
+  }
+}
+// main: if (!vis[i][j] && v[i][j]=='.') { c++; dfs(i,j,n,m); }</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>recursive DFS on a grid up to 1000&times;1000 = 10&#8310; cells risks stack overflow on an adversarial snake-shaped room &mdash; an iterative stack or a BFS queue is the safer version to have ready under a strict limit.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"count connected floor regions in a grid, 4-directional" &rarr; grid flood-fill DFS/BFS, one traversal per unvisited cell.</div>
+      </article>
+
+      <article class="entry" id="building-roads">
+        <div class="entry-head"><h3>Building Roads</h3><span class="badge num">O(n+m)</span></div>
+        <p class="idea">n cities, some already connected by roads &mdash; find the minimum extra roads to make the whole graph one component, and print which ones.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">vis[node] = component id via DFS</div>
+            <div class="label">algorithm</div>
+            <div class="mono">answer = col&minus;1 edges, linking comp[i][0]&harr;comp[i+1][0]</div>
+          </div>
+          <pre class="snippet"><code>for (ll i = 1; i &lt;= n; i++)
+  if (!vis[i]) { col++; dfs(i); }
+cout &lt;&lt; col - 1 &lt;&lt; endl;
+for (ll i = 1; i &lt; col; i++)
+  cout &lt;&lt; comp[i][0] &lt;&lt; " " &lt;&lt; comp[i+1][0] &lt;&lt; endl;</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>any representative node from each component works as the linking endpoint &mdash; it doesn't need to be a DSU root, since the full membership of each component is already known from the DFS coloring; a simple linear chain of representatives is enough, no star topology needed.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"minimum edges to make the whole graph connected, print which ones" &rarr; enumerate components once, then chain one representative from each pair together.</div>
+      </article>
+
+      <article class="entry" id="labyrinth">
+        <div class="entry-head"><h3>Labyrinth</h3><span class="badge num">O(nm)</span></div>
+        <p class="idea">Grid maze with a start (A) and end (B) &mdash; find the shortest path length and print it as a direction string.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dist[i][j], par[i][j] via single BFS from A</div>
+            <div class="label">reconstruct</div>
+            <div class="mono">walk par[] back from B to A, diff coords &rarr; L/R/U/D</div>
+          </div>
+          <pre class="snippet"><code>while (a[cx][cy] != 'A') {
+  auto [px, py] = par[cx][cy];
+  if (px == cx) ans += (py &lt; cy) ? 'R' : 'L';
+  else          ans += (px &lt; cx) ? 'D' : 'U';
+  cx = px; cy = py;
+}
+reverse(ans.begin(), ans.end());</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the direction letter encodes the move <em>from parent to current</em> cell, so get the comparison backward (e.g. compare current-to-parent instead) and the whole printed string comes out reversed in meaning, not just in order. <span class="mono">dist</span> is sentinel-filled with <span class="mono">-INF</span>, not <span class="mono">-1</span> &mdash; check against that exact sentinel.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"shortest path with the actual path printed" &rarr; BFS + parent-pointer array, backtrack from target and translate coordinate deltas to direction characters.</div>
+      </article>
+
+      <article class="entry" id="message-route">
+        <div class="entry-head"><h3>Message Route</h3><span class="badge num">O(n+m)</span></div>
+        <p class="idea">Unweighted graph &mdash; find the fewest computers on a route from 1 to n, and print the route.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">vis[], par[] via plain BFS from node 1</div>
+            <div class="label">reconstruct</div>
+            <div class="mono">walk par[] from n back to 1 (sentinel par[1]=&minus;1), reverse</div>
+          </div>
+          <pre class="snippet"><code>vector&lt;ll&gt; ans;
+ll node = n;
+while (node != -1) { ans.push_back(node); node = par[node]; }
+reverse(ans.begin(), ans.end());
+cout &lt;&lt; ans.size() &lt;&lt; endl;</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong><span class="mono">par[1] = -1</span> doubles as both "node 1's parent" and the loop's own termination sentinel &mdash; the same one-array-does-double-duty pattern is worth reusing for any "reconstruct path via parent array" BFS.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"fewest edges plus the actual path" on an unweighted graph &rarr; plain BFS with a parent array, backtrack from the target.</div>
+      </article>
+
+      <article class="entry" id="monsters">
+        <div class="entry-head"><h3>Monsters</h3><span class="badge num">O(nm)</span></div>
+        <p class="idea">Escape a grid to any boundary cell strictly before any monster could reach that same cell, moving simultaneously each step.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">distM[][] = multi-source BFS from every 'M'<br>distA[][] = single-source BFS from 'A'</div>
+            <div class="label">answer</div>
+            <div class="mono">any boundary cell with distA &lt; distM (or distM unreachable)</div>
+          </div>
+          <pre class="snippet"><code>for (auto& [i,j] : monsterCells) { distM[i][j]=0; qm.push({i,j}); }
+// one BFS drains qm — all monsters expand in lockstep
+while (!qm.empty()) { /* standard 4-dir BFS on distM */ }</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>correctness requires seeding <em>every</em> monster cell into the queue before the BFS starts draining it &mdash; that's what makes each BFS layer represent one real simultaneous time step across all monsters at once; seeding them one at a time would compute the wrong "nearest monster" distance field entirely.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"you and adversaries move simultaneously, can you reach safety first" &rarr; multi-source BFS for the adversary arrival-time field, compare cell-by-cell against your own single-source BFS.</div>
+      </article>
+    </section>
+
+    <section id="f2" class="family">
+      <div class="family-head">
+        <h2>2&nbsp;&middot; Bipartiteness &amp; reachability checks</h2>
+      </div>
+      <p class="family-note">Whole-graph structural yes/no questions answered with one or two cheap traversals instead of anything combinatorial.</p>
+
+      <article class="entry" id="building-teams">
+        <div class="entry-head"><h3>Building Teams</h3><span class="badge num">O(n+m)</span></div>
+        <p class="idea">Split pupils into two teams so no two friends land on the same team &mdash; a bipartiteness check.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">vis[node] &isin; {0=unvisited, 1, 2}</div>
+            <div class="label">algorithm</div>
+            <div class="mono">DFS, color child 3&minus;col; same-color neighbor &rarr; IMPOSSIBLE</div>
+          </div>
+          <pre class="snippet"><code>void dfs(ll node, ll col) {
+  vis[node] = col;
+  for (auto child : g[node]) {
+    if (!vis[child]) dfs(child, 3 - col);
+    else if (vis[child] == col) { pn; exit(0); }
+  }
+}</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the conflict check must compare <span class="mono">vis[child]==col</span> (same color), never just "already visited" &mdash; a visited neighbor with the <em>opposite</em> color is exactly the expected, valid alternation, not a contradiction.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"split into two groups with no same-group edge" &rarr; BFS/DFS 2-coloring; a contradiction means an odd cycle exists, so no split is possible.</div>
+      </article>
+
+      <article class="entry" id="flight-routes-check">
+        <div class="entry-head"><h3>Flight Routes Check</h3><span class="badge num">O(n+m)</span></div>
+        <p class="idea">Directed graph of flights &mdash; check whether every city can reach every other city (strong connectivity); if not, print a failing pair.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">vis[] = BFS(1) on g; rvis[] = BFS(1) on reverse(g)</div>
+            <div class="label">claim</div>
+            <div class="mono">strongly connected &hArr; R={1..n} &amp;&amp; B={1..n}</div>
+          </div>
+          <pre class="snippet"><code>bfs(1, g, vis);           // R: everything reachable from 1
+bfs(1, rg, rvis);         // B: everything that can reach 1
+for (i = 1..n) if (!vis[i])  print "NO", 1, i;
+for (i = 1..n) if (!rvis[i]) print "NO", i, 1;</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>node 1 isn't structurally special &mdash; any fixed hub node works as the pivot, since the proof only needs a path <span class="mono">u&rarr;hub&rarr;v</span> to exist for every pair. That's what collapses an apparent O(n(n+m)) all-pairs check down to exactly 2 BFS passes.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"check a whole directed graph is strongly connected, in O(n+m) not O(n&sup2;)" &rarr; forward BFS + reverse-graph BFS from one arbitrary hub node.</div>
+      </article>
+    </section>
+
+    <section id="f3" class="family">
+      <div class="family-head">
+        <h2>3&nbsp;&middot; Cycle detection via 3-color DFS</h2>
+      </div>
+      <p class="family-note">"Find any cycle and print it" for a directed and an undirected graph &mdash; nearly identical DFS scaffolding, differing in exactly one guard clause.</p>
+
+      <article class="entry" id="round-trip">
+        <div class="entry-head"><h3>Round Trip</h3><span class="badge num">O(n+m)</span></div>
+        <p class="idea">Directed graph &mdash; find any cycle (2+ distinct cities) and print it, or IMPOSSIBLE.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">vis[node] &isin; {0=white, 1=gray/on-stack, 2=black/done}</div>
+            <div class="label">algorithm</div>
+            <div class="mono">back edge to a gray node &rarr; walk par[] to reconstruct the cycle</div>
+          </div>
+          <pre class="snippet"><code>if (!vis[child]) dfs(child, node);
+else if (vis[child] == 1) {          // back edge onto the stack
+  vector&lt;ll&gt; ans = {child};
+  for (ll t = node; t != child; t = par[t]) ans.push_back(t);
+  ans.push_back(child); reverse(ans.begin(), ans.end());
+}
+// ... vis[node] = 2;   set AFTER exploring all children</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the third state (black/fully-done) is what distinguishes a genuine back-edge (&rarr; real cycle) from a cross-edge into an already-finished branch &mdash; a 2-state visited array alone would falsely report a cycle on any DAG where two paths reconverge on the same node.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"directed graph, find any cycle and print it" &rarr; 3-color DFS (white/gray/black), back-edge onto a gray node reconstructs the cycle via parent pointers.</div>
+      </article>
+
+      <article class="entry" id="round-trip-ii">
+        <div class="entry-head"><h3>Round Trip II</h3><span class="badge num">O(n+m)</span></div>
+        <p class="idea">Undirected graph &mdash; find any cycle of length &ge;3 and print it, or IMPOSSIBLE.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">same 3-color scheme, plus explicit parent-edge skip</div>
+            <div class="label">algorithm</div>
+            <div class="mono">skip child==parent; else identical to Round Trip</div>
+          </div>
+          <pre class="snippet"><code>void dfs(ll node, ll parent) {
+  vis[node] = 1; par[node] = parent;
+  for (auto child : g[node]) {
+    if (child == parent) continue;      // the one extra guard
+    if (!vis[child]) dfs(child, node);
+    else if (vis[child] == 1) { /* reconstruct cycle */ }
+  }
+  vis[node] = 2;
+}</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>undirected edges are stored both directions (a&rarr;b and b&rarr;a) &mdash; without the <span class="mono">child==parent</span> skip, walking straight back over the edge you just arrived on gets misreported as a 2-node cycle. That guard is the single line separating this from the directed version above.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"undirected graph, find any cycle" &rarr; same 3-color ancestor-check DFS as the directed case, plus one guard against re-walking the arrival edge.</div>
+      </article>
+    </section>
+
+    <section id="f4" class="family">
+      <div class="family-head">
+        <h2>4&nbsp;&middot; Topological sort &amp; DAG DP</h2>
+      </div>
+      <p class="family-note">A DAG's topological order is either the answer itself (Course Schedule) or the safe processing order for a DP whose transitions run along edges (Game Routes, Longest Flight Route).</p>
+
+      <article class="entry" id="course-schedule">
+        <div class="entry-head"><h3>Course Schedule</h3><span class="badge num">O(n+m)</span></div>
+        <p class="idea">n courses with "a before b" prerequisites &mdash; print a valid completion order, or IMPOSSIBLE.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">indeg[node]; Kahn's BFS queue of zero-indegree nodes</div>
+            <div class="label">check</div>
+            <div class="mono">topo.size() != n &rArr; a cycle exists</div>
+          </div>
+          <pre class="snippet"><code>queue&lt;ll&gt; q;
+for (i=1..n) if (!indeg[i]) q.push(i);
+while (!q.empty()) {
+  ll v = q.front(); q.pop(); topo.push_back(v);
+  for (auto u : g[v]) if (--indeg[u] == 0) q.push(u);
+}
+if (topo.size() != n) cout &lt;&lt; "IMPOSSIBLE";</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the only check needed for "no valid order" is <span class="mono">topo.size() != n</span> &mdash; a cycle simply means some nodes never reach indegree 0 and never get enqueued, so no separate cycle-detection pass is needed on top of Kahn's algorithm itself.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"valid ordering respecting before-constraints" &rarr; Kahn's BFS topological sort; an incomplete topo order is itself the proof of a cycle.</div>
+      </article>
+
+      <article class="entry" id="game-routes">
+        <div class="entry-head"><h3>Game Routes</h3><span class="badge num">O(n+m)</span></div>
+        <p class="idea">DAG of teleporters &mdash; count the number of distinct paths from level 1 to level n, mod 10&#8313;+7.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[node] = # ways from node to n</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[node] = &sum;<sub>child</sub> dp[child], processed in reverse topo order</div>
+          </div>
+          <pre class="snippet"><code>reverse(topo.begin(), topo.end());
+for (auto node : topo) {
+  if (node == n) { dp[node] = 1; continue; }
+  ll ans = 0;
+  for (auto child : g[node]) ans = madd(ans, dp[child]);
+  dp[node] = ans;
+}</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>processing must go sink-to-source (reverse topo) since <span class="mono">dp[node]</span> depends on <span class="mono">dp[child]</span> &mdash; running it forward would sum uncomputed (zero-initialized) child values, silently zeroing out every count.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"count paths in a DAG" &rarr; topo sort, then DP in reverse topological order summing over out-edges.</div>
+      </article>
+
+      <article class="entry" id="longest-flight-route">
+        <div class="entry-head"><h3>Longest Flight Route</h3><span class="badge num">O(n+m)</span></div>
+        <p class="idea">DAG of flights &mdash; find the route from 1 to n visiting the maximum number of cities, and print it.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[node] = max cities to n (0 if unreachable)</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[node] = max over child with dp[child]&ne;0 of dp[child]+1</div>
+          </div>
+          <pre class="snippet"><code>for (auto node : topo /* reversed */) {
+  if (node == n) { dp[node] = 1; continue; }
+  ll ans = 0;
+  for (auto child : g[node])
+    if (dp[child] != 0) ans = max(ans, dp[child] + 1);
+  dp[node] = ans;
+}</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong><span class="mono">dp[node]==0</span> must mean "cannot reach n at all," not "reaches n in 0 more steps" &mdash; the explicit <span class="mono">dp[child]!=0</span> guard before taking the max is what keeps an unreachable child from being silently treated as a valid, free transition.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"longest path / most nodes visited in a DAG" &rarr; same reverse-topo DP shape as counting paths, swap the sum for a max, and explicitly exclude dp=0 (unreachable) transitions.</div>
+      </article>
+    </section>
+
+    <section id="f5" class="family">
+      <div class="family-head">
+        <h2>5&nbsp;&middot; Dijkstra family</h2>
+      </div>
+      <p class="family-note">One min-heap relaxation loop, reused four ways: plain shortest paths, an augmented state key, augmented per-node aggregates, and a relaxed "visit more than once" rule.</p>
+
+      <article class="entry" id="shortest-routes-i">
+        <div class="entry-head"><h3>Shortest Routes I</h3><span class="badge num">O((n+m) log n)</span></div>
+        <p class="idea">Directed weighted graph &mdash; print the shortest distance from city 1 to every other city.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dist[], vis[] (finalized flag)</div>
+            <div class="label">algorithm</div>
+            <div class="mono">lazy-deletion Dijkstra: skip a popped node if already vis</div>
+          </div>
+          <pre class="snippet"><code>pq.push({0, 1}); dist[1] = 0;
+while (!pq.empty()) {
+  auto [d, node] = pq.top(); pq.pop();
+  if (vis[node]) continue;
+  vis[node] = 1;
+  for (auto [w, child] : g[node])
+    if (dist[child] &gt; d + w) { dist[child] = d+w; pq.push({dist[child], child}); }
+}</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>correctness of lazy-deletion Dijkstra hinges on checking <span class="mono">vis[node]</span> right after popping, not before pushing &mdash; the same node can sit in the heap multiple times with different, increasingly stale distances.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"single-source shortest paths, all weights &ge; 0" &rarr; textbook Dijkstra with a min-heap.</div>
+      </article>
+
+      <article class="entry" id="flight-discount">
+        <div class="entry-head"><h3>Flight Discount</h3><span class="badge num">O((n+m) log n)</span></div>
+        <p class="idea">Cheapest route from 1 to n, with one optional coupon that halves the price of exactly one flight along the way.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">encode(node, couponUsed) = node*2 + couponUsed &mdash; doubled graph</div>
+            <div class="label">edges</div>
+            <div class="mono">(a,0)&rarr;(b,0) full; (a,0)&rarr;(b,1) half; (a,1)&rarr;(b,1) full</div>
+          </div>
+          <pre class="snippet"><code>g[encode(a,0)].push_back({c,     encode(b,0)});
+g[encode(a,0)].push_back({c / 2, encode(b,1)});  // spend the coupon here
+g[encode(a,1)].push_back({c,     encode(b,1)});
+// answer: dist[encode(n, 1)]</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the answer is always read from the "coupon used" layer, even when the discount doesn't help &mdash; since discounting can never raise the price, the shortest path in the doubled graph will always end up at least as good in layer 1 as staying in layer 0 forever, so the layer-1 read is safe unconditionally.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"shortest path plus a single-use power-up along the way" &rarr; double/layer the graph by the extra state dimension, run one Dijkstra over the product graph.</div>
+      </article>
+
+      <article class="entry" id="investigation">
+        <div class="entry-head"><h3>Investigation</h3><span class="badge num">O((n+m) log n)</span></div>
+        <p class="idea">Shortest price from 1 to n, plus: how many minimum-price routes, and their minimum and maximum flight counts.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dist[], ways[] (mod), min_flights[], max_flights[]</div>
+            <div class="label">relax</div>
+            <div class="mono">strictly better &rarr; overwrite all four; tie &rarr; merge into all four</div>
+          </div>
+          <pre class="snippet"><code>if (d + wt == dist[child]) {
+  ways[child] = madd(ways[child], ways[node]);
+  min_flights[child] = min(min_flights[child], min_flights[node]+1);
+  max_flights[child] = max(max_flights[child], max_flights[node]+1);
+} else if (d + wt &lt; dist[child]) {
+  dist[child]=d+wt; ways[child]=ways[node];
+  min_flights[child]=min_flights[node]+1; max_flights[child]=max_flights[node]+1;
+  q.push({dist[child], child});
+}</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the tie branch never re-pushes onto the heap &mdash; child's distance hasn't changed, so its existing heap entry is still valid &mdash; but it must still merge into <span class="mono">ways</span>/<span class="mono">min_flights</span>/<span class="mono">max_flights</span>, or every tied route silently vanishes from the aggregates.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"shortest path plus count/min-hops/max-hops among all shortest paths" &rarr; augment Dijkstra's relax step with per-node aggregates, branching on strictly-less vs. equal-to-current-best.</div>
+      </article>
+
+      <article class="entry" id="flight-routes">
+        <div class="entry-head"><h3>Flight Routes</h3><span class="badge num">O(km log(kn))</span></div>
+        <p class="idea">Find the k cheapest routes from 1 to n; routes may revisit cities, and equal-price routes all count separately.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">vis[node] = times node has been finalized so far, capped at k</div>
+            <div class="label">algorithm</div>
+            <div class="mono">let each node pop up to k times instead of once</div>
+          </div>
+          <pre class="snippet"><code>if (vis[node] == k) continue;
+vis[node]++;
+if (node == n) { ans.push_back(d); if (ans.size()==k) break; }
+for (auto& [wt, child] : g[node])
+  if (vis[child] &lt; k) pq.push({d + wt, child});</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>this only works because it explicitly permits revisiting a node &mdash; a plain visited-once Dijkstra structurally cannot enumerate k distinct routes to the same node, since standard Dijkstra intentionally discards everything except the single best distance per node.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"k best/shortest paths, revisits allowed" &rarr; let each node expand up to k times instead of once inside the Dijkstra loop.</div>
+      </article>
+    </section>
+
+    <section id="f6" class="family">
+      <div class="family-head">
+        <h2>6&nbsp;&middot; Bellman-Ford &amp; negative cycles</h2>
+      </div>
+      <p class="family-note">Once edge weights can be negative, Dijkstra's greedy finalize-and-forget breaks; both problems here repurpose Bellman-Ford's relax-n-times structure toward a cycle question rather than a plain shortest-path one.</p>
+
+      <article class="entry" id="cycle-finding">
+        <div class="entry-head"><h3>Cycle Finding</h3><span class="badge num">O(nm)</span></div>
+        <p class="idea">Directed graph, arbitrary weights &mdash; detect whether a negative cycle exists anywhere, and print one if so.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dist[node] = 0 for every node (not INF!), par[]</div>
+            <div class="label">algorithm</div>
+            <div class="mono">n full relax rounds; nth round still relaxing &rArr; negative cycle at x</div>
+          </div>
+          <pre class="snippet"><code>vector&lt;ll&gt; dist(n+1, 0);   // every node is its own free source
+ll x = 0;
+for (ll round = 1; round &lt;= n; round++) {
+  x = 0;
+  for (auto& [wt, from, to] : edges)
+    if (dist[from] + wt &lt; dist[to]) { dist[to]=dist[from]+wt; par[to]=from; x=to; }
+}
+for (ll i = 1; i &lt;= n && x; i++) x = par[x];   // walk n times to land inside the cycle</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>seeding <span class="mono">dist[]</span> at 0 everywhere (instead of INF-except-source) is the whole trick &mdash; it detects a negative cycle <em>anywhere</em> in the graph in one Bellman-Ford run, not only ones reachable from a fixed source. Walking <span class="mono">par[]</span> exactly n times before recording the start is required to guarantee landing inside the cycle, not merely upstream of it.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"detect any negative cycle in the whole graph, not from one source" &rarr; seed Bellman-Ford's dist array at 0 for every node, run n rounds instead of n&minus;1.</div>
+      </article>
+
+      <article class="entry" id="high-score">
+        <div class="entry-head"><h3>High Score</h3><span class="badge num">O(nm)</span></div>
+        <p class="idea">Maximize total score walking from room 1 to room n (edge weights can be negative); print -1 if the score is unbounded.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">negate weights &rarr; min-cost; vis[] = reverse-BFS(n): "can reach n"</div>
+            <div class="label">algorithm</div>
+            <div class="mono">n-round relax, gated by vis[child]; extra round still relaxing a reach-n node &rArr; -1</div>
+          </div>
+          <pre class="snippet"><code>bfs(n, reverseGraph, vis);           // who can even reach n
+for (ll round = 1; round &lt;= n; round++)
+  for (ll node = 1; node &lt;= n; node++)
+    for (auto& [negW, child] : g[node])
+      if (dist[node]+negW &lt; dist[child] && vis[child])
+        dist[child] = dist[node] + negW;   // round n relaxing here ⇒ unbounded</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>a negative-cost cycle (a positive-score cycle in the real graph) only breaks the answer if it actually lies on some route from 1 to n &mdash; the <span class="mono">vis[]</span> reachable-to-n gate on every relaxation is what stops an irrelevant off-path cycle from wrongly forcing a "-1" answer.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"maximize a walk's score / detect if it's unbounded" &rarr; negate weights to reuse min-cost machinery, but gate any relaxation by "is this actually on a path to the target."</div>
+      </article>
+    </section>
+
+    <section id="f7" class="family">
+      <div class="family-head">
+        <h2>7&nbsp;&middot; Floyd-Warshall APSP</h2>
+      </div>
+      <p class="family-note">Kept as its own single-problem family &mdash; the only place in this set where n is small enough (&le;500) that precomputing every pair at once beats running single-source Dijkstra per query.</p>
+
+      <article class="entry" id="shortest-routes-ii">
+        <div class="entry-head"><h3>Shortest Routes II</h3><span class="badge num">O(n&sup3;)</span></div>
+        <p class="idea">n&le;500 cities, weighted undirected roads, up to 10&#8309; distance queries &mdash; answer every (a,b) pair.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">g[i][j] = direct edge weight (min over duplicates), g[i][i]=0</div>
+            <div class="label">recurrence</div>
+            <div class="mono">g[i][j] = min(g[i][j], g[i][k] + g[k][j])</div>
+          </div>
+          <pre class="snippet"><code>for (ll k = 1; k &lt;= n; k++)          // k MUST be outermost
+  for (ll i = 1; i &lt;= n; i++)
+    for (ll j = 1; j &lt;= n; j++)
+      g[i][j] = min(g[i][j], g[i][k] + g[k][j]);</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>loop order is non-negotiable &mdash; k (the intermediate node) has to be the outermost loop, since the algorithm's invariant is "after processing intermediate k, g[i][j] is optimal using only intermediates &le;k." Swapping k inward silently breaks that invariant and produces wrong distances.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"n is small (&le;~500) and you need many all-pairs queries" &rarr; Floyd-Warshall O(n&sup3;) preprocessing beats a Dijkstra per source when the graph is dense.</div>
+      </article>
+    </section>
+
+    <section id="f8" class="family">
+      <div class="family-head">
+        <h2>8&nbsp;&middot; DSU &mdash; MST &amp; dynamic connectivity</h2>
+      </div>
+      <p class="family-note">Both problems share the near-identical union-by-rank/path-compression DSU class (see the toolkit above); what differs is what gets read off it &mdash; a running MST cost vs. a running (component count, largest size) pair.</p>
+
+      <article class="entry" id="road-reparation">
+        <div class="entry-head"><h3>Road Reparation</h3><span class="badge num">O(m log m)</span></div>
+        <p class="idea">n cities, m candidate roads each with a repair cost &mdash; minimum total cost to make every city reachable from every other (MST).</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">DSU + edges sorted ascending by cost</div>
+            <div class="label">algorithm</div>
+            <div class="mono">Kruskal: union if not already connected, add cost</div>
+          </div>
+          <pre class="snippet"><code>sort(edges.begin(), edges.end(), byCostAscending);
+for (auto& [a, b, c] : edges)
+  if (!uf.connected(a, b)) { uf.merge(a, b); ans += c; }
+if (uf.sets() &gt; 1) cout &lt;&lt; "IMPOSSIBLE";</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the greedy is only correct because edges are pre-sorted ascending &mdash; the <span class="mono">connected()</span> check before each union is what enforces the "no cycles" MST property, entirely implicitly, without any explicit cycle-detection code.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"minimum cost to connect everything" / "minimum spanning tree" &rarr; sort edges by weight, DSU-guarded greedy union &mdash; Kruskal's.</div>
+      </article>
+
+      <article class="entry" id="road-construction">
+        <div class="entry-head"><h3>Road Construction</h3><span class="badge num">O(m&alpha;(n))</span></div>
+        <p class="idea">Roads are added one at a time &mdash; after each, report the current number of components and the size of the largest one.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">DSU with side-counters setsz (live count) and maxsz (running max)</div>
+            <div class="label">algorithm</div>
+            <div class="mono">merge(a,b); print(sets(), max_size()) &mdash; every single day</div>
+          </div>
+          <pre class="snippet"><code>void merge(ll x, ll y) {
+  x = find(x); y = find(y);
+  if (x == y) return;                       // no-op, stats unchanged
+  if (rank[x] &lt; rank[y]) swap(x, y);
+  parent[y] = x; rank[x] += rank[y];
+  maxsz = max(maxsz, rank[x]); setsz--;
+}</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong><span class="mono">maxsz</span> is a monotonic running maximum, updated only inside a successful merge and never decreased &mdash; correct only because components can merely grow here (edges are never removed), which avoids ever having to rescan every set's size after a query.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"components merge one edge at a time, query live stats after each step" &rarr; DSU with incremental side-counters updated inside merge, no full rescan.</div>
+      </article>
+    </section>
+
+    <section id="f9" class="family">
+      <div class="family-head">
+        <h2>9&nbsp;&middot; Functional-graph binary lifting</h2>
+      </div>
+      <p class="family-note">Kept as its own single-problem family: every node here has exactly one outgoing edge (a "functional graph"), which is what makes precomputing powers of the successor function pay off for huge-k queries.</p>
+
+      <article class="entry" id="planets-queries-i">
+        <div class="entry-head"><h3>Planets Queries I</h3><span class="badge num">O((n+q) log k)</span></div>
+        <p class="idea">Each planet has exactly one outgoing teleporter &mdash; answer q queries of "start at x, take k teleports, where do you land," with k up to 10&#8309;.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">up[j][node] = the 2^j-th successor of node</div>
+            <div class="label">query</div>
+            <div class="mono">walk k in binary, high bit to low, jumping by up[j] on each set bit</div>
+          </div>
+          <pre class="snippet"><code>for (ll k = 1; k &lt; LOG; k++)
+  for (ll node = 1; node &lt;= n; node++)
+    up[k][node] = up[k-1][up[k-1][node]];
+for (ll j = LOG - 1; j &gt;= 0; j--)      // NOT "j = LOG" — see gotcha
+  if ((k &gt;&gt; j) & 1) node = up[j][node];</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>as committed, the query loop actually starts at <span class="mono">j = LOG</span> (30) while <span class="mono">up</span> only has rows <span class="mono">0..LOG-1</span> (29) &mdash; reading <span class="mono">up[30][...]</span> is one row past the vector's allocated bound, undefined behavior. It happened to still produce the correct sample output here, but the loop bound belongs at <span class="mono">LOG&minus;1</span>, not <span class="mono">LOG</span> &mdash; don't reproduce the off-by-one live.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"each node has exactly one outgoing edge, answer huge-k reachability queries" &rarr; binary lifting / sparse ancestor table, walk k bit-by-bit from the high bit down.</div>
+      </article>
+    </section>
+
+    <section id="f10" class="family">
+      <div class="family-head">
+        <h2>10&nbsp;&middot; Monotonic-reach sweep</h2>
+      </div>
+      <p class="family-note">A genuine BFS-shaped problem (minimum jumps = minimum edges in an implicit graph) solved without ever building a graph or running a queue, because reachable ranges here only ever extend to the right.</p>
+
+      <article class="entry" id="frog-minimum-jumps">
+        <div class="entry-head"><h3>Frog Minimum Jumps</h3><span class="badge num">O(N+Q)</span></div>
+        <p class="idea">N stones, each with a jump power p[i] allowing a jump to any stone in [i+1, i+p[i]] &mdash; answer Q queries for the minimum jumps from stone 1 to a target.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">curEnd = edge of current jump count; farthest = edge being built for the next</div>
+            <div class="label">algorithm</div>
+            <div class="mono">i &gt; curEnd &rArr; jumps++; curEnd = farthest (one more jump was needed)</div>
+          </div>
+          <pre class="snippet"><code>int jumps = 0, curEnd = 1, farthest = 1;
+for (int i = 1; i &lt;= n; i++) {
+  if (i &gt; curEnd) { jumps++; curEnd = farthest; }
+  dp[i] = jumps;
+  farthest = max(farthest, i + power[i]);
+}</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong><span class="mono">dp[i]</span> is not built from stone i's own power looking backward &mdash; what actually lets you reach i is some earlier stone j's power (<span class="mono">j+power[j]&ge;i</span>), so the lookback set isn't fixed by i itself; the boundary-sweep sidesteps needing that lookback at all.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"reachable ranges only ever extend forward, every edge costs 1, need min-jumps to every target" &rarr; collapse BFS-by-queue into a single left-to-right boundary sweep (curEnd / farthest), same shape as LeetCode "Jump Game II".</div>
+      </article>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>Source: <code>graphs/*.cpp</code> in dsa-prep, cross-checked against <code>patterns.md</code>.</p>
+  <p>Excluded &mdash; misplaced, not graph algorithms: <code>Sum_of_Two_Values.cpp</code> (two-pointer sum, duplicate of an arrays-topic problem), <code>Movie_Festival.cpp</code> (interval-scheduling greedy), <code>Nested_Ranges_Count.cpp</code> (sweep-line/sorting; a copy already lives in <code>arrays/</code>), <code>Concert_Tickets.cpp</code> (multiset price-matching greedy, no graph structure).</p>
+  <p>Excluded &mdash; unimplemented/broken: <code>Planets_Cycles.cpp</code> (compiles, but <code>solve()</code> is entirely empty &mdash; reads no input, computes nothing). <code>Planets_Queries_II.cpp</code> (fails to compile &mdash; <code>LOG</code> is never defined in this file, and the query loop body is empty).</p>
+  <p>Flagged but included &mdash; <code>Planets_Queries_I.cpp</code> compiles and matches the sample output, but its query loop reads one row past the binary-lifting table's allocated bound (see its Gotcha above); reproduce the corrected bound live, not the committed off-by-one.</p>
+</footer>
