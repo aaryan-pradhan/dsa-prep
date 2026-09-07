@@ -1,0 +1,1013 @@
+<title>The DP Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F5F6F8;
+    --surface:#EBEEF2;
+    --surface-2:#E1E5EB;
+    --line:#CBD2DC;
+    --ink:#1B1F2A;
+    --ink-soft:#4B5568;
+    --ink-faint:#7A8496;
+    --accent:#2F5D8A;
+    --accent-ink:#FFFFFF;
+    --gotcha:#8A6A0E;
+    --gotcha-bg:#FBF1D9;
+    --gotcha-line:#E3CC8E;
+    --trigger:#2E6B4A;
+    --trigger-bg:#E3F1E8;
+    --trigger-line:#A9CFB9;
+    --f1:#2F5D8A; --f1-bg:#E4ECF4;
+    --f2:#6B4C7A; --f2-bg:#EEE5F1;
+    --f3:#2E7D6B; --f3-bg:#E1F0EB;
+    --f4:#8A5A2F; --f4-bg:#F3E7D9;
+    --f5:#8A3A4A; --f5-bg:#F3E1E5;
+    --f6:#4A5A8A; --f6-bg:#E5E7F3;
+    --f7:#5A6270; --f7-bg:#E7E9ED;
+    --shadow: 0 1px 2px rgba(27,31,42,0.06), 0 4px 14px rgba(27,31,42,0.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14171C;
+      --surface:#1C2129;
+      --surface-2:#242B35;
+      --line:#333B48;
+      --ink:#E7E9EE;
+      --ink-soft:#A7AFC0;
+      --ink-faint:#7A8496;
+      --accent:#8FB8E0;
+      --accent-ink:#0E1520;
+      --gotcha:#E7C567;
+      --gotcha-bg:#332C16;
+      --gotcha-line:#5C4E22;
+      --trigger:#8FD1AA;
+      --trigger-bg:#173325;
+      --trigger-line:#2E5A41;
+      --f1:#8FB8E0; --f1-bg:#1E2A38;
+      --f2:#C79BD6; --f2-bg:#2A2032;
+      --f3:#7FCBB8; --f3-bg:#182E29;
+      --f4:#D6A868; --f4-bg:#31271A;
+      --f5:#D68A98; --f5-bg:#301E23;
+      --f6:#A0ACD6; --f6-bg:#20243A;
+      --f7:#9AA2B0; --f7-bg:#232730;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14171C;
+    --surface:#1C2129;
+    --surface-2:#242B35;
+    --line:#333B48;
+    --ink:#E7E9EE;
+    --ink-soft:#A7AFC0;
+    --ink-faint:#7A8496;
+    --accent:#8FB8E0;
+    --accent-ink:#0E1520;
+    --gotcha:#E7C567;
+    --gotcha-bg:#332C16;
+    --gotcha-line:#5C4E22;
+    --trigger:#8FD1AA;
+    --trigger-bg:#173325;
+    --trigger-line:#2E5A41;
+    --f1:#8FB8E0; --f1-bg:#1E2A38;
+    --f2:#C79BD6; --f2-bg:#2A2032;
+    --f3:#7FCBB8; --f3-bg:#182E29;
+    --f4:#D6A868; --f4-bg:#31271A;
+    --f5:#D68A98; --f5-bg:#301E23;
+    --f6:#A0ACD6; --f6-bg:#20243A;
+    --f7:#9AA2B0; --f7-bg:#232730;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    line-height:1.55;
+  }
+  h1,h2,h3{
+    font-family:'IBM Plex Serif', Georgia, serif;
+    font-weight:600;
+    color:var(--ink);
+    text-wrap:balance;
+    margin:0;
+  }
+  code, pre, .mono, .badge, .toc a, .rule-code{
+    font-family:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+  .num{ font-variant-numeric:tabular-nums; }
+
+  a{ color:var(--accent); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+  a:focus-visible, button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .masthead{
+    max-width:1200px;
+    margin:0 auto;
+    padding:3rem 1.5rem 2rem;
+  }
+  .kicker{
+    font-family:'IBM Plex Mono';
+    font-size:0.78rem;
+    letter-spacing:0.11em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:0.9rem;
+  }
+  h1{ font-size:clamp(2rem, 4vw, 2.85rem); letter-spacing:-0.01em; }
+  .dek{
+    max-width:62ch;
+    color:var(--ink-soft);
+    font-size:1.08rem;
+    margin:0.9rem 0 1.1rem;
+  }
+  .stats{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.5rem 1.4rem;
+    font-family:'IBM Plex Mono';
+    font-size:0.82rem;
+    color:var(--ink-faint);
+  }
+  .stats b{ color:var(--ink); font-weight:600; }
+
+  .layout{
+    display:grid;
+    grid-template-columns:216px minmax(0,1fr);
+    gap:2.2rem;
+    max-width:1200px;
+    margin:0 auto;
+    padding:0 1.5rem 5rem;
+    align-items:start;
+  }
+  nav.toc{
+    position:sticky;
+    top:1.25rem;
+    max-height:calc(100vh - 2.5rem);
+    overflow-y:auto;
+    padding-right:0.5rem;
+    border-right:1px solid var(--line);
+  }
+  .toc-title{
+    font-family:'IBM Plex Mono';
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--ink-faint);
+    margin-bottom:0.7rem;
+  }
+  .toc a{
+    display:block;
+    font-size:0.86rem;
+    color:var(--ink-soft);
+    padding:0.32rem 0;
+    border-left:2px solid transparent;
+    padding-left:0.7rem;
+    margin-left:-0.02rem;
+  }
+  .toc a:hover{ color:var(--ink); text-decoration:none; border-left-color:var(--line); }
+  .toc .toc-fam{ margin-top:0.85rem; }
+  .toc .toc-fam a{ color:var(--ink); font-weight:500; }
+
+  main{ min-width:0; display:flex; flex-direction:column; gap:3.4rem; }
+  section{ scroll-margin-top:1.25rem; }
+  .section-head{ margin-bottom:1.1rem; }
+  .section-head h2{ font-size:1.5rem; }
+  .section-head p{ color:var(--ink-soft); margin:0.4rem 0 0; max-width:68ch; font-size:0.96rem; }
+
+  /* master table */
+  .table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); }
+  table.master{ width:100%; border-collapse:collapse; font-size:0.84rem; min-width:820px; }
+  table.master thead th{
+    position:sticky; top:0;
+    background:var(--surface-2);
+    text-align:left;
+    font-family:'IBM Plex Mono';
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    font-size:0.68rem;
+    color:var(--ink-faint);
+    padding:0.7rem 0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.master td{
+    padding:0.62rem 0.9rem;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  table.master tbody tr:hover{ background:var(--surface); }
+  table.master tbody tr:last-child td{ border-bottom:none; }
+  table.master .pname a{ color:var(--ink); font-weight:500; }
+  table.master .pname a:hover{ color:var(--accent); }
+  .fam-tag{
+    display:inline-block;
+    font-size:0.68rem;
+    font-family:'IBM Plex Mono';
+    padding:0.16rem 0.5rem;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .rec-cell{ color:var(--ink-soft); font-family:'IBM Plex Mono'; font-size:0.78rem; }
+  .time-cell{ font-family:'IBM Plex Mono'; font-size:0.78rem; white-space:nowrap; }
+
+  /* recognition rules */
+  .rules{ display:flex; flex-direction:column; gap:0.9rem; }
+  .rule{
+    display:grid;
+    grid-template-columns:2.1rem 1fr;
+    gap:0.9rem;
+    padding:0.9rem 1rem;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+  }
+  .rule .n{
+    font-family:'IBM Plex Mono';
+    color:var(--accent);
+    font-weight:600;
+    font-size:0.95rem;
+  }
+  .rule p{ margin:0; font-size:0.92rem; color:var(--ink); }
+  .rule .rule-code{ color:var(--accent); font-size:0.87rem; }
+
+  .toolkit{
+    margin-top:0.3rem;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:var(--surface);
+    padding:0.9rem 1rem;
+    overflow-x:auto;
+  }
+  .toolkit table{ border-collapse:collapse; font-size:0.82rem; width:100%; min-width:520px; }
+  .toolkit td{ padding:0.3rem 0.8rem 0.3rem 0; white-space:nowrap; }
+  .toolkit td.fn{ color:var(--accent); font-family:'IBM Plex Mono'; }
+  .toolkit td.desc{ color:var(--ink-soft); white-space:normal; }
+
+  /* family + entries */
+  .family{ display:flex; flex-direction:column; gap:1.3rem; }
+  .family-head{
+    display:flex;
+    align-items:baseline;
+    gap:0.7rem;
+    flex-wrap:wrap;
+  }
+  .family-head h2{ font-size:1.4rem; }
+  .family-note{ color:var(--ink-soft); font-size:0.92rem; max-width:70ch; margin:0.3rem 0 0.2rem; }
+
+  .entry{
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--surface);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    scroll-margin-top:1.25rem;
+  }
+  .entry-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.8rem;
+    padding:0.95rem 1.15rem 0.2rem;
+  }
+  .entry-head h3{ font-size:1.12rem; }
+  .badge{
+    font-size:0.72rem;
+    color:var(--ink-faint);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:0.14rem 0.45rem;
+  }
+  .idea{
+    padding:0.35rem 1.15rem 0.9rem;
+    color:var(--ink-soft);
+    font-size:0.95rem;
+    max-width:80ch;
+  }
+  .entry-body{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1px;
+    background:var(--line);
+  }
+  @media (max-width:760px){
+    .entry-body{ grid-template-columns:1fr; }
+  }
+  .state-block{
+    background:
+      repeating-linear-gradient(var(--surface-2) 0 1.55rem, transparent 1.55rem 1.6rem);
+    background-color:var(--surface);
+    padding:0.95rem 1.15rem 1.05rem;
+  }
+  .label{
+    font-family:'IBM Plex Mono';
+    font-size:0.68rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-faint);
+    margin:0.55rem 0 0.15rem;
+  }
+  .label:first-child{ margin-top:0; }
+  .state-block .mono{ font-size:0.85rem; color:var(--ink); }
+  .snippet{
+    margin:0;
+    background:var(--surface);
+    padding:0.95rem 1.15rem;
+    overflow-x:auto;
+    font-size:0.79rem;
+    line-height:1.6;
+    color:var(--ink);
+  }
+  .snippet code{ white-space:pre; }
+  .callout{
+    margin:0 1.15rem 1.05rem;
+    padding:0.65rem 0.85rem;
+    border-radius:8px;
+    font-size:0.87rem;
+    border:1px solid;
+  }
+  .callout:first-of-type{ margin-top:1.05rem; }
+  .callout strong{
+    font-family:'IBM Plex Mono';
+    font-size:0.7rem;
+    text-transform:uppercase;
+    letter-spacing:0.07em;
+    display:block;
+    margin-bottom:0.25rem;
+  }
+  .callout.gotcha{ background:var(--gotcha-bg); border-color:var(--gotcha-line); color:var(--ink); }
+  .callout.gotcha strong{ color:var(--gotcha); }
+  .callout.trigger{ background:var(--trigger-bg); border-color:var(--trigger-line); color:var(--ink); }
+  .callout.trigger strong{ color:var(--trigger); }
+
+  footer{
+    max-width:1200px;
+    margin:0 auto;
+    padding:0 1.5rem 3.5rem;
+    color:var(--ink-faint);
+    font-size:0.82rem;
+    border-top:1px solid var(--line);
+    padding-top:1.4rem;
+  }
+
+  @media (max-width:900px){
+    .layout{ grid-template-columns:1fr; }
+    nav.toc{
+      position:sticky; top:0;
+      max-height:none;
+      display:flex;
+      gap:0.3rem 1rem;
+      overflow-x:auto;
+      white-space:nowrap;
+      border-right:none;
+      border-bottom:1px solid var(--line);
+      background:var(--bg);
+      padding:0.7rem 0.2rem;
+      z-index:5;
+    }
+    nav.toc .toc-title{ display:none; }
+    .toc a{ padding:0.2rem 0; border-left:none; margin-left:0; }
+    .toc .toc-fam{ margin-top:0; }
+  }
+</style>
+
+<header class="masthead">
+  <div class="kicker">CSES &middot; Dynamic Programming</div>
+  <h1>The DP Ledger</h1>
+  <p class="dek">Every DP problem solved in <code>dp/</code>, the recurrence and the trick behind each — built to be recalled cold and coded live in front of an interviewer, not just recognized.</p>
+  <div class="stats">
+    <span><b class="num">19</b> problems</span>
+    <span><b class="num">7</b> pattern families</span>
+    <span><b>madd/mmul/mpow</b> toolkit</span>
+    <span>source: <b>dsa-prep/dp</b></span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="Sections">
+    <div class="toc-title">Jump to</div>
+    <a href="#master">Master table</a>
+    <a href="#recognition">Recognition rules</a>
+    <div class="toc-fam"><a href="#f1">1&nbsp;&middot; 1D sequential</a></div>
+    <div class="toc-fam"><a href="#f2">2&nbsp;&middot; 0/1 knapsack</a></div>
+    <div class="toc-fam"><a href="#f3">3&nbsp;&middot; Grid-path</a></div>
+    <div class="toc-fam"><a href="#f4">4&nbsp;&middot; Sequence-matching</a></div>
+    <div class="toc-fam"><a href="#f5">5&nbsp;&middot; Interval &amp; game</a></div>
+    <div class="toc-fam"><a href="#f6">6&nbsp;&middot; Exponential-state</a></div>
+    <div class="toc-fam"><a href="#f7">7&nbsp;&middot; D&amp;C + segtree</a></div>
+  </nav>
+
+  <main>
+
+    <section id="master">
+      <div class="section-head">
+        <h2>Master table</h2>
+        <p>60-second scan before the call. Full detail for each row is below.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="master">
+          <thead>
+            <tr><th>Problem</th><th>Family</th><th>Recurrence</th><th>Time</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="pname"><a href="#dice-combinations">Dice Combinations</a></td><td><span class="fam-tag" style="background:var(--f1-bg);color:var(--f1)">1D sequential</span></td><td class="rec-cell">dp[i]=&sum;dp[i&minus;k], k=1..6</td><td class="time-cell num">O(6n)</td></tr>
+            <tr><td class="pname"><a href="#minimizing-coins">Minimizing Coins</a></td><td><span class="fam-tag" style="background:var(--f1-bg);color:var(--f1)">1D sequential</span></td><td class="rec-cell">dp[left]=min dp[left&minus;c]+1</td><td class="time-cell num">O(n&middot;x)</td></tr>
+            <tr><td class="pname"><a href="#coin-combinations-i">Coin Combinations I</a></td><td><span class="fam-tag" style="background:var(--f1-bg);color:var(--f1)">1D sequential</span></td><td class="rec-cell">dp[sum]=&sum;dp[sum&minus;c] (sum outer)</td><td class="time-cell num">O(n&middot;x)</td></tr>
+            <tr><td class="pname"><a href="#coin-combinations-ii">Coin Combinations II</a></td><td><span class="fam-tag" style="background:var(--f1-bg);color:var(--f1)">1D sequential</span></td><td class="rec-cell">dp[sum]&plus;=dp[sum&minus;c] (coin outer)</td><td class="time-cell num">O(n&middot;x)</td></tr>
+            <tr><td class="pname"><a href="#removing-digits">Removing Digits</a></td><td><span class="fam-tag" style="background:var(--f1-bg);color:var(--f1)">1D sequential</span></td><td class="rec-cell">dp[i]=min over digit d of dp[i&minus;d]+1</td><td class="time-cell num">O(n log n)</td></tr>
+            <tr><td class="pname"><a href="#array-description">Array Description</a></td><td><span class="fam-tag" style="background:var(--f1-bg);color:var(--f1)">1D sequential</span></td><td class="rec-cell">dp[i][p]=&sum;dp[i+1][p&minus;1..p+1]</td><td class="time-cell num">O(n&middot;m)</td></tr>
+            <tr><td class="pname"><a href="#book-shop">Book Shop</a></td><td><span class="fam-tag" style="background:var(--f2-bg);color:var(--f2)">0/1 knapsack</span></td><td class="rec-cell">dp[left]=max(skip, take+s<sub>i</sub>)</td><td class="time-cell num">O(n&middot;x)</td></tr>
+            <tr><td class="pname"><a href="#money-sums">Money Sums</a></td><td><span class="fam-tag" style="background:var(--f2-bg);color:var(--f2)">0/1 knapsack</span></td><td class="rec-cell">dp[i][s]=dp[i+1][s] || dp[i+1][s&minus;x<sub>i</sub>]</td><td class="time-cell num">O(n&middot;&Sigma;x)</td></tr>
+            <tr><td class="pname"><a href="#two-sets-ii">Two Sets II</a></td><td><span class="fam-tag" style="background:var(--f2-bg);color:var(--f2)">0/1 knapsack</span></td><td class="rec-cell">dp[i][s]=dp[i&minus;1][s&minus;i]+dp[i&minus;1][s]</td><td class="time-cell num">O(n&sup2;)</td></tr>
+            <tr><td class="pname"><a href="#grid-paths-i">Grid Paths I</a></td><td><span class="fam-tag" style="background:var(--f3-bg);color:var(--f3)">Grid-path</span></td><td class="rec-cell">dp[i][j]=dp[i+1][j]+dp[i][j+1]</td><td class="time-cell num">O(n&sup2;)</td></tr>
+            <tr><td class="pname"><a href="#minimal-grid-path">Minimal Grid Path</a></td><td><span class="fam-tag" style="background:var(--f3-bg);color:var(--f3)">Grid-path</span></td><td class="rec-cell">dp[i][j]=min(dp[i&minus;1][j],dp[i][j&minus;1])+g</td><td class="time-cell num">O(n&sup3;)*</td></tr>
+            <tr><td class="pname"><a href="#lcs">Longest Common Subsequence</a></td><td><span class="fam-tag" style="background:var(--f4-bg);color:var(--f4)">Sequence-matching</span></td><td class="rec-cell">match: 1+dp[i&minus;1][j&minus;1]; else max</td><td class="time-cell num">O(n&middot;m)</td></tr>
+            <tr><td class="pname"><a href="#edit-distance">Edit Distance</a></td><td><span class="fam-tag" style="background:var(--f4-bg);color:var(--f4)">Sequence-matching</span></td><td class="rec-cell">1+min(add,del,replace)</td><td class="time-cell num">O(n&middot;m)</td></tr>
+            <tr><td class="pname"><a href="#lis">Increasing Subsequence</a></td><td><span class="fam-tag" style="background:var(--f4-bg);color:var(--f4)">Sequence-matching</span></td><td class="rec-cell">tails[] via lower_bound</td><td class="time-cell num">O(n log n)</td></tr>
+            <tr><td class="pname"><a href="#removal-game">Removal Game</a></td><td><span class="fam-tag" style="background:var(--f5-bg);color:var(--f5)">Interval &amp; game</span></td><td class="rec-cell">turn-parity max/min over [l,r]</td><td class="time-cell num">O(n&sup2;)</td></tr>
+            <tr><td class="pname"><a href="#rectangle-cutting">Rectangle Cutting</a></td><td><span class="fam-tag" style="background:var(--f5-bg);color:var(--f5)">Interval &amp; game</span></td><td class="rec-cell">min over every split point k</td><td class="time-cell num">O(a&sup2;b+ab&sup2;)</td></tr>
+            <tr><td class="pname"><a href="#elevator-rides">Elevator Rides</a></td><td><span class="fam-tag" style="background:var(--f6-bg);color:var(--f6)">Exponential-state</span></td><td class="rec-cell">dp[mask]=(rides,lastWeight)</td><td class="time-cell num">O(2&#8319;&middot;n)</td></tr>
+            <tr><td class="pname"><a href="#projects">Projects</a></td><td><span class="fam-tag" style="background:var(--f6-bg);color:var(--f6)">Exponential-state</span></td><td class="rec-cell">dp[i]=max(skip, p<sub>i</sub>+dp[next[i]])</td><td class="time-cell num">O(n log n)</td></tr>
+            <tr><td class="pname"><a href="#mountain-range">Mountain Range</a></td><td><span class="fam-tag" style="background:var(--f7-bg);color:var(--f7)">D&amp;C + segtree</span></td><td class="rec-cell">split at range-max, recurse both sides</td><td class="time-cell num">O(n log n)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="recognition">
+      <div class="section-head">
+        <h2>Recognition rules</h2>
+        <p>The cross-cutting judgment calls that separate one family from another — these are the actual bugs the problems above were built to catch.</p>
+      </div>
+      <div class="rules">
+        <div class="rule">
+          <div class="n num">01</div>
+          <p><span class="rule-code">sum outer, choice inner</span> counts <strong>permutations</strong> (order matters — Dice Combinations, Coin Combinations I). <span class="rule-code">choice outer, sum inner</span> counts <strong>combinations</strong> (order doesn't matter — Coin Combinations II). Same recurrence, opposite loop nesting, opposite answer.</p>
+        </div>
+        <div class="rule">
+          <div class="n num">02</div>
+          <p>An index/item dimension is only load-bearing when supply is <strong>limited</strong> (0/1 knapsack: Book Shop, Money Sums, Two Sets II, Coin Combinations II). It collapses into one loop over all choices per state when every choice is legal at every state regardless of history (unbounded reuse: Minimizing Coins, Coin Combinations I, Dice Combinations).</p>
+        </div>
+        <div class="rule">
+          <div class="n num">03</div>
+          <p>A "whose turn / which phase" flag doesn't always need its own DP dimension — if it's a deterministic function of another state value already being tracked, derive it instead of storing it. Removal Game gets <span class="rule-code">turn = (n &minus; segment length) % 2</span> for free from <span class="rule-code">(l, r)</span> alone.</p>
+        </div>
+        <div class="rule">
+          <div class="n num">04</div>
+          <p>Roll the array down to 2 rows (<span class="rule-code">i&amp;1</span>) whenever only the final scalar answer is needed. Keep the full table when you must reconstruct an actual sequence afterward — LCS keeps it to walk the path back; Edit Distance, Book Shop, Array Description and Coin Combinations II all roll because none of them print a reconstruction.</p>
+        </div>
+        <div class="rule">
+          <div class="n num">05</div>
+          <p>An O(n&sup2;) DP that scans every earlier index for a valid predecessor often drops to O(n log n) by replacing that scan with a binary search — over a monotonic proxy array (LIS's <span class="rule-code">tails[]</span>) or a precomputed transition target (Projects' <span class="rule-code">next[i]</span>). Recognize the O(n&sup2;) shape, then jump straight to the search-based transition.</p>
+        </div>
+        <div class="rule">
+          <div class="n num">06</div>
+          <p><span class="rule-code">n &le; ~20</span> in the constraints is the signal for bitmask DP over 2&#8319; subset states (Elevator Rides). Nothing else in this set has a constraint range that supports an exponential state space — don't reach for a mask when n is in the thousands.</p>
+        </div>
+        <div class="rule">
+          <div class="n num">07</div>
+          <p>Division under a prime modulus is never <span class="rule-code">/</span> — it's multiply by the modular inverse (Fermat: <span class="rule-code">a<sup>&minus;1</sup> = a<sup>MOD&minus;2</sup> mod MOD</span>). Two Sets II divides a count by 2 this way; any future combinatorics-mod-prime problem needs the same move.</p>
+        </div>
+      </div>
+
+      <div class="toolkit" role="table" aria-label="Modular arithmetic toolkit">
+        <table>
+          <tbody>
+            <tr><td class="fn">madd(a,b)</td><td class="desc">(a + b) % MOD</td></tr>
+            <tr><td class="fn">mmul(a,b)</td><td class="desc">(a * b) % MOD</td></tr>
+            <tr><td class="fn">msub(a,b)</td><td class="desc">(a &minus; b + MOD) % MOD &mdash; guards against a negative left side</td></tr>
+            <tr><td class="fn">mpow(a,b)</td><td class="desc">fast exponentiation, O(log b), the base every other helper is built on</td></tr>
+            <tr><td class="fn">minv(a)</td><td class="desc">mpow(a, MOD&minus;2) &mdash; only valid when MOD is prime (it is: 1e9+7)</td></tr>
+            <tr><td class="fn">mdiv(a,b)</td><td class="desc">mmul(a, minv(b)) &mdash; the only correct way to "divide" under a modulus</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="f1" class="family">
+      <div class="family-head">
+        <h2>1&nbsp;&middot; 1D sequential DP</h2>
+      </div>
+      <p class="family-note">One index, state built from a sum or min over a small set of prior states. The set of valid "moves" out of each state is either fixed (dice faces, coin values) or regenerated per-state (digits of the current number, the neighbor window around a value).</p>
+
+      <article class="entry" id="dice-combinations">
+        <div class="entry-head"><h3>Dice Combinations</h3><span class="badge num">O(6n)</span></div>
+        <p class="idea">Count the ordered sequences of dice rolls (each 1&ndash;6) that sum to exactly n &mdash; 1+2 and 2+1 count separately.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[i] = ways to reach sum i</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[i] = &sum; dp[i&minus;k], k=1..6, i&minus;k&ge;0</div>
+            <div class="label">base</div>
+            <div class="mono">dp[0] = 1</div>
+          </div>
+          <pre class="snippet"><code>vector&lt;ll&gt; dp(n+1, 0); dp[0] = 1;
+for (int i = 1; i &lt;= n; i++)
+  for (int k = 1; k &lt;= 6; k++)
+    if (i - k &gt;= 0)
+      dp[i] = madd(dp[i], dp[i-k]);</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>dp[0]=1, not 0 &mdash; it's the "empty roll sequence" identity, and seeding it this way means dp[1..6] fall out of the same loop with zero special-casing.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"count ordered sequences summing to a target, moves from a small fixed set" &rarr; sum-over-window 1D DP.</div>
+      </article>
+
+      <article class="entry" id="minimizing-coins">
+        <div class="entry-head"><h3>Minimizing Coins</h3><span class="badge num">O(n&middot;x)</span></div>
+        <p class="idea">Fewest coins (unlimited supply of each denomination) that sum to exactly x; print &minus;1 if impossible.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[left] = min coins to make left</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[left] = min<sub>c&le;left</sub> dp[left&minus;c] + 1</div>
+            <div class="label">base</div>
+            <div class="mono">dp[0]=0, else INF</div>
+          </div>
+          <pre class="snippet"><code>vector&lt;int&gt; dp(x+1, INF); dp[0] = 0;
+for (int left = 1; left &lt;= x; left++)
+  for (int c : coins)
+    if (c &lt;= left &amp;&amp; dp[left-c] != INF)
+      dp[left] = min(dp[left], dp[left-c] + 1);</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>guard <span class="mono">dp[left&minus;c]==INF</span> before adding 1, or an infeasible sub-result silently poisons a real candidate. The coin-index dimension collapses away entirely &mdash; see rule 02.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"unlimited supply, minimize count of picks" &rarr; unbounded-knapsack 1D DP, no index dimension.</div>
+      </article>
+
+      <article class="entry" id="coin-combinations-i">
+        <div class="entry-head"><h3>Coin Combinations I</h3><span class="badge num">O(n&middot;x)</span></div>
+        <p class="idea">Count ordered ways (permutations) to build sum x from reusable coin values &mdash; 2+5+2 and 5+2+2 count separately.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[sum] = ordered ways to reach sum</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[sum] = &sum;<sub>c</sub> dp[sum&minus;c]</div>
+            <div class="label">base</div>
+            <div class="mono">dp[0] = 1</div>
+          </div>
+          <pre class="snippet"><code>vector&lt;ll&gt; dp(x+1, 0); dp[0] = 1;
+for (int sum = 1; sum &lt;= x; sum++)   // sum OUTER
+  for (int c : coins)                // coin INNER
+    if (sum - c &gt;= 0)
+      dp[sum] = madd(dp[sum], dp[sum-c]);</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>same shape as Dice Combinations, arbitrary coin set instead of 1&ndash;6. The <em>sum-outer / coin-inner</em> nesting is what makes it count permutations &mdash; see rule 01.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"order matters + unlimited reuse" &rarr; sum-outer loop.</div>
+      </article>
+
+      <article class="entry" id="coin-combinations-ii">
+        <div class="entry-head"><h3>Coin Combinations II</h3><span class="badge num">O(n&middot;x)</span></div>
+        <p class="idea">Count unordered ways (combinations) to build sum x from reusable coin values &mdash; {2,2,5} counted once regardless of order.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[i][left] = ways using coins[i..n&minus;1]</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[i][left] = dp[i+1][left] + dp[i][left&minus;c<sub>i</sub>]</div>
+            <div class="label">collapsed 1D</div>
+            <div class="mono">for coin: for sum&uarr;: dp[sum]+=dp[sum&minus;c]</div>
+          </div>
+          <pre class="snippet"><code>vector&lt;ll&gt; dp(x+1, 0); dp[0] = 1;
+for (int c : coins)          // coin OUTER
+  for (int sum = c; sum &lt;= x; sum++)  // sum INNER, ascending
+    dp[sum] = madd(dp[sum], dp[sum-c]);</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the <em>coin-outer / sum-inner</em> nesting (opposite of Coin Combinations I) is the entire trick &mdash; identical recurrence, flipped loop order turns permutation-counting into combination-counting. See rule 01.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"order doesn't matter, unlimited reuse" &rarr; coin-outer loop.</div>
+      </article>
+
+      <article class="entry" id="removing-digits">
+        <div class="entry-head"><h3>Removing Digits</h3><span class="badge num">O(n log n)</span></div>
+        <p class="idea">Minimum steps to reduce n to 0, where each step subtracts one nonzero digit currently present in the number.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[i] = min steps to reduce i to 0</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[i] = min over nonzero digit d of i: dp[i&minus;d]+1</div>
+            <div class="label">base</div>
+            <div class="mono">dp[0] = 0</div>
+          </div>
+          <pre class="snippet"><code>vector&lt;ll&gt; dp(n+1, INF); dp[0] = 0;
+for (ll i = 1; i &lt;= n; i++) {
+  ll t = i;
+  while (t &gt; 0) {
+    ll d = t % 10;
+    if (d) dp[i] = min(dp[i], dp[i-d] + 1);
+    t /= 10;
+  }
+}</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the "coin set" here is <em>state-dependent</em> &mdash; only the digits currently present in i, re-extracted every state via <span class="mono">i%10 / i/=10</span> &mdash; not a fixed global set like Minimizing Coins, but the same min-over-choices recurrence shape.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"the next legal move depends on the current number itself" &rarr; per-state generated choice set, still a min-over-choices 1D DP.</div>
+      </article>
+
+      <article class="entry" id="array-description">
+        <div class="entry-head"><h3>Array Description</h3><span class="badge num">O(n&middot;m)</span></div>
+        <p class="idea">Count ways to fill in the unknown (0) entries of an array of size n, values in [1,m], so that any two adjacent values differ by at most 1.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[i][prev] = ways to fill i..n&minus;1 given pos i&minus;1 = prev</div>
+            <div class="label">recurrence</div>
+            <div class="mono">fixed: dp[i][prev]=dp[i+1][arr[i]] if |arr[i]&minus;prev|&le;1<br>unknown: dp[i][prev]=&sum;<sub>j=prev&minus;1..prev+1</sub> dp[i+1][j]</div>
+            <div class="label">base</div>
+            <div class="mono">dp[n][prev] = 1 &forall; prev</div>
+          </div>
+          <pre class="snippet"><code>for (ll i = n; i &gt;= 0; i--)
+  for (ll prev = 1; prev &lt;= m; prev++) {
+    if (i == n) { dp[i&amp;1][prev] = 1; continue; }
+    if (arr[i] != 0) {
+      dp[i&amp;1][prev] = abs(arr[i]-prev)&lt;=1
+        ? dp[(i+1)&amp;1][arr[i]] : 0;
+    } else {
+      ll ans = 0;
+      for (ll j = prev-1; j &lt;= prev+1; j++)
+        if (j &gt;= 1 &amp;&amp; j &lt;= m)
+          ans = madd(ans, dp[(i+1)&amp;1][j]);
+      dp[i&amp;1][prev] = ans;
+    }
+  }</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the answer read-out branches on whether position 0 is itself fixed: direct lookup <span class="mono">dp[0][arr[0]]</span>, or sum <span class="mono">dp[0][j]</span> over all j if it's unknown &mdash; there is no single prev to plug in for a free starting cell.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"adjacency-constrained fill-in-the-blanks counting" &rarr; windowed-sum 1D DP over the previous value.</div>
+      </article>
+    </section>
+
+    <section id="f2" class="family">
+      <div class="family-head">
+        <h2>2&nbsp;&middot; 0/1 knapsack family</h2>
+      </div>
+      <p class="family-note">Each item usable at most once, so unlike family 1 the index dimension cannot collapse away &mdash; the meaning of "used it already" has to survive into the next state.</p>
+
+      <article class="entry" id="book-shop">
+        <div class="entry-head"><h3>Book Shop</h3><span class="badge num">O(n&middot;x)</span></div>
+        <p class="idea">n books, each with a price and a page count, budget x, each book buyable at most once &mdash; maximize total pages.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[left] = max pages with budget left remaining</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[i][left] = max(dp[i+1][left], dp[i+1][left&minus;h<sub>i</sub>]+s<sub>i</sub>)</div>
+            <div class="label">base</div>
+            <div class="mono">dp[n][*] = 0</div>
+          </div>
+          <pre class="snippet"><code>for (int i = n; i &gt;= 0; i--)
+  for (int left = 0; left &lt;= x; left++) {
+    if (i == n) { dp[i%2][left] = 0; continue; }
+    ll ans = dp[(i+1)%2][left];               // skip book i
+    if (left - h[i] &gt;= 0)
+      ans = max(ans, dp[(i+1)%2][left-h[i]] + s[i]);  // take it
+    dp[i%2][left] = ans;
+  }</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>textbook 0/1 knapsack &mdash; the index dimension is load-bearing here (each book once), contrast with Minimizing Coins where the identical-looking loop collapsed to 1D. See rule 02.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"each item usable once, capacity budget, maximize value" &rarr; 0/1 knapsack.</div>
+      </article>
+
+      <article class="entry" id="money-sums">
+        <div class="entry-head"><h3>Money Sums</h3><span class="badge num">O(n&middot;&Sigma;x)</span></div>
+        <p class="idea">n coins (each used at most once) &mdash; list every distinct sum achievable by some subset.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[i][s] = can coins[i..n&minus;1] reach sum s?</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[i][s] = dp[i+1][s] || (s&ge;x<sub>i</sub> &amp;&amp; dp[i+1][s&minus;x<sub>i</sub>])</div>
+            <div class="label">base</div>
+            <div class="mono">dp[n][0]=true, dp[n][s&gt;0]=false</div>
+          </div>
+          <pre class="snippet"><code>for (int i = n; i &gt;= 0; i--)
+  for (int s = 0; s &lt;= maxSum; s++) {
+    if (s == 0) dp[i][s] = true;
+    else if (i == n) dp[i][s] = false;
+    else {
+      bool ans = dp[i+1][s];
+      if (s &gt;= x[i]) ans = ans || dp[i+1][s-x[i]];
+      dp[i][s] = ans;
+    }
+  }</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the sum axis is sized off the problem's own worst case (n&middot;max value = 100&middot;1000 = 100000), hardcoded from the constraints rather than computed from the actual coin sum at runtime &mdash; know the bound before you size the array.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"0/1 subset reachability, list every achievable total" &rarr; boolean knapsack.</div>
+      </article>
+
+      <article class="entry" id="two-sets-ii">
+        <div class="entry-head"><h3>Two Sets II</h3><span class="badge num">O(n&middot;total/2)</span></div>
+        <p class="idea">Count the ways to split {1,&hellip;,n} into two sets of equal sum.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[i][sum] = # subsets of {1..i} summing to sum</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[i][sum] = dp[i&minus;1][sum&minus;i] + dp[i&minus;1][sum]</div>
+            <div class="label">answer</div>
+            <div class="mono">total odd &rarr; 0; else mdiv(dp[n][total/2], 2)</div>
+          </div>
+          <pre class="snippet"><code>ll total = n*(n+1)/2;
+if (total % 2) { cout &lt;&lt; 0; return; }
+ll target = total / 2;
+vector&lt;vector&lt;ll&gt;&gt; dp(n+1, vector&lt;ll&gt;(target+1, 0));
+for (int i = 0; i &lt;= n; i++)
+  for (int s = 0; s &lt;= target; s++) {
+    if (s == 0) dp[i][s] = 1;
+    else if (i == 0) dp[i][s] = 0;
+    else {
+      ll take = (s-i&gt;=0) ? dp[i-1][s-i] : 0;
+      dp[i][s] = madd(take, dp[i-1][s]);
+    }
+  }
+cout &lt;&lt; mdiv(dp[n][target], 2);</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the final <span class="mono">/2</span> is a <em>modular</em> division &mdash; via <span class="mono">mdiv</span> / Fermat's inverse, not integer division &mdash; needed because each valid partition gets counted twice (once as a subset, once as its complement). See rule 07.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"count subset-sum ways" + "split into two equal halves" &rarr; subset-sum DP, halve by symmetry at the end.</div>
+      </article>
+    </section>
+
+    <section id="f3" class="family">
+      <div class="family-head">
+        <h2>3&nbsp;&middot; Grid-path DP</h2>
+      </div>
+      <p class="family-note">Two indices, moves restricted to right/down. Direction of the fill (from the destination backward, here) matters more than in most families because both problems define state as "the best result reachable from this cell onward."</p>
+
+      <article class="entry" id="grid-paths-i">
+        <div class="entry-head"><h3>Grid Paths I</h3><span class="badge num">O(n&sup2;)</span></div>
+        <p class="idea">Count paths from the top-left to the bottom-right of an n&times;n grid (right/down moves only), avoiding trap cells.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[i][j] = # paths from (i,j) to the bottom-right</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[i][j] = 0 if trap; 1 if destination; else dp[i+1][j]+dp[i][j+1]</div>
+          </div>
+          <pre class="snippet"><code>for (int i = n-1; i &gt;= 0; i--)
+  for (int j = n-1; j &gt;= 0; j--) {
+    if (grid[i][j] == '*') dp[i][j] = 0;
+    else if (i==n-1 &amp;&amp; j==n-1) dp[i][j] = 1;
+    else {
+      ll down = (i+1&lt;n) ? dp[i+1][j] : 0;
+      ll right = (j+1&lt;n) ? dp[i][j+1] : 0;
+      dp[i][j] = madd(down, right);
+    }
+  }</code></pre>
+        </div>
+        <div class="callout trigger"><strong>Recognize</strong>"grid path counting with obstacles" &rarr; fill from the destination cell backward, sum the two forward neighbors.</div>
+      </article>
+
+      <article class="entry" id="minimal-grid-path">
+        <div class="entry-head"><h3>Minimal Grid Path</h3><span class="badge num">O(n&sup3;)*</span></div>
+        <p class="idea">Print the lexicographically smallest string readable along a top-left to bottom-right path (right/down moves only).</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[i][j] = lexicographically smallest string reaching (i,j)</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[i][j] = min(dp[i&minus;1][j], dp[i][j&minus;1]) + grid[i][j]</div>
+          </div>
+          <pre class="snippet"><code>string lexi(string a, string b) {
+  if (a=="") return b; if (b=="") return a;
+  return a &lt; b ? a : b;
+}
+// dp[i][j] = lexi(dp[i-1][j], dp[i][j-1]) + grid[i][j]</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>materializing a full string per cell is O(n) length &times; O(n&sup2;) cells &times; O(n) comparison &asymp; O(n&sup3;) time/space &mdash; correct to reason with, but will not survive n=3000 as written. A judge-passing version compares candidates one character at a time and keeps only the winning predecessor per cell instead of building every string. Know this before coding it live under a strict limit.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"lexicographically minimal path" and a purely greedy per-step choice doesn't work (a locally smaller next character can still lose on a later tie) &rarr; DP comparing whole candidate strings.</div>
+      </article>
+    </section>
+
+    <section id="f4" class="family">
+      <div class="family-head">
+        <h2>4&nbsp;&middot; Sequence-matching DP</h2>
+      </div>
+      <p class="family-note">Two-pointer-shaped state over one or two sequences. Whether the full table survives to the end depends entirely on whether you need to reconstruct an actual sequence afterward &mdash; rule 04.</p>
+
+      <article class="entry" id="lcs">
+        <div class="entry-head"><h3>Longest Common Subsequence</h3><span class="badge num">O(n&middot;m)</span></div>
+        <p class="idea">Length of the longest common subsequence of two arrays, plus one example of it.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[i][j] = LCS length of a[0..i&minus;1], b[0..j&minus;1]</div>
+            <div class="label">recurrence</div>
+            <div class="mono">match: dp[i][j]=1+dp[i&minus;1][j&minus;1]<br>else: dp[i][j]=max(dp[i&minus;1][j], dp[i][j&minus;1])</div>
+          </div>
+          <pre class="snippet"><code>// reconstruct by walking back from (n,m):
+void print(int i, int j) {
+  if (!i || !j) return;
+  if (a[i-1]==b[j-1]) {
+    print(i-1,j-1); cout &lt;&lt; a[i-1] &lt;&lt; ' ';
+  } else if (dp[i-1][j] &gt; dp[i][j-1]) print(i-1,j);
+  else print(i,j-1);
+}</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the full O(n&middot;m) table has to be <em>kept</em>, not rolled &mdash; reconstruction walks the whole table backward. Contrast Edit Distance directly below, which only needs the final number and rolls to 2 rows.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"two sequences, longest common subsequence, need to print one" &rarr; full 2D table, no rolling.</div>
+      </article>
+
+      <article class="entry" id="edit-distance">
+        <div class="entry-head"><h3>Edit Distance</h3><span class="badge num">O(n&middot;m)</span></div>
+        <p class="idea">Minimum insert/delete/replace operations to turn string s into string t.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[i][j] = edit distance of s[0..i&minus;1], t[0..j&minus;1]</div>
+            <div class="label">recurrence</div>
+            <div class="mono">match: dp[i][j]=dp[i&minus;1][j&minus;1]<br>else: 1+min(dp[i][j&minus;1], dp[i&minus;1][j], dp[i&minus;1][j&minus;1])</div>
+            <div class="label">base</div>
+            <div class="mono">dp[0][j]=j, dp[i][0]=i</div>
+          </div>
+          <pre class="snippet"><code>for (int i = 0; i &lt;= n; i++)
+  for (int j = 0; j &lt;= m; j++) {
+    if (!i) { dp[i&amp;1][j] = j; continue; }
+    if (!j) { dp[i&amp;1][j] = i; continue; }
+    if (s[i-1]==t[j-1]) dp[i&amp;1][j] = dp[(i-1)&amp;1][j-1];
+    else dp[i&amp;1][j] = 1 + min({dp[i&amp;1][j-1],
+                                  dp[(i-1)&amp;1][j],
+                                  dp[(i-1)&amp;1][j-1]});
+  }</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>only the final number is needed here (no reconstruction), so the 2-row rolling array on <span class="mono">i&amp;1</span> is safe &mdash; unlike LCS above, which needs the full table.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"min edit operations between two strings" &rarr; classic 3-way min recurrence, rollable.</div>
+      </article>
+
+      <article class="entry" id="lis">
+        <div class="entry-head"><h3>Increasing Subsequence</h3><span class="badge num">O(n log n)</span></div>
+        <p class="idea">Length of the longest strictly increasing subsequence of an array (n up to 2&times;10&#8309; &mdash; too large for the naive O(n&sup2;) DP).</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">naive state (infeasible)</div>
+            <div class="mono">dp[i] = LIS length ending at i, O(n&sup2;)</div>
+            <div class="label">actual technique</div>
+            <div class="mono">tails[k] = smallest tail value of an increasing run of length k+1</div>
+          </div>
+          <pre class="snippet"><code>vector&lt;ll&gt; tails;
+for (int i = 0; i &lt; n; i++) {
+  auto it = lower_bound(tails.begin(), tails.end(), a[i]);
+  if (it == tails.end()) tails.push_back(a[i]);
+  else *it = a[i];
+}
+cout &lt;&lt; tails.size();</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong><span class="mono">tails</span> is a greedy proxy, not an actual valid subsequence at the end &mdash; only its <em>length</em> is meaningful. Strictly increasing &rarr; <span class="mono">lower_bound</span>; swap to <span class="mono">upper_bound</span> for the non-decreasing variant.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"n too large for O(n&sup2;) LIS DP" &rarr; collapse to greedy + binary search over tails. See rule 05.</div>
+      </article>
+    </section>
+
+    <section id="f5" class="family">
+      <div class="family-head">
+        <h2>5&nbsp;&middot; Interval &amp; game DP</h2>
+      </div>
+      <p class="family-note">State indexed by a shrinking range [l,r]. Fill order has to respect that dp[l][r] depends only on strictly smaller ranges.</p>
+
+      <article class="entry" id="removal-game">
+        <div class="entry-head"><h3>Removal Game</h3><span class="badge num">O(n&sup2;)</span></div>
+        <p class="idea">Two players alternate removing from either end of a list, each maximizing their own score &mdash; find the first player's best achievable score under optimal play from both.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[l][r] = FIRST player's score over x[l..r]</div>
+            <div class="label">turn (derived, not stored)</div>
+            <div class="mono">turn = (n &minus; (r&minus;l+1)) % 2</div>
+            <div class="label">recurrence</div>
+            <div class="mono">turn=0: max(dp[l+1][r]+x[l], dp[l][r&minus;1]+x[r])<br>turn=1: min(dp[l+1][r], dp[l][r&minus;1])</div>
+          </div>
+          <pre class="snippet"><code>for (int l = n-1; l &gt;= 0; l--)
+  for (int r = l; r &lt; n; r++) {
+    ll turn = (n - (r-l+1)) % 2;
+    if (l == r) { dp[l][r] = turn==0 ? x[l] : 0; continue; }
+    if (turn == 0)
+      dp[l][r] = max(dp[l+1][r]+x[l], dp[l][r-1]+x[r]);
+    else
+      dp[l][r] = min(dp[l+1][r], dp[l][r-1]);
+  }</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>turn is derived from segment-length parity instead of carried as a 3rd dimension &mdash; rule 03. On the opponent's turn <span class="mono">x[l]</span>/<span class="mono">x[r]</span> is <em>not</em> added, because dp only tracks the first player's share; the opponent picks whichever end leaves the least for the first player. The more commonly taught formulation instead tracks a <em>score advantage</em>: <span class="mono">dp[l][r]=max(x[l]&minus;dp[l+1][r], x[r]&minus;dp[l][r&minus;1])</span>, answer = <span class="mono">(total+dp[0][n&minus;1])/2</span> &mdash; be ready to produce either live.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"two optimal players alternate taking from either end" &rarr; interval DP over [l,r], turn from remaining length.</div>
+      </article>
+
+      <article class="entry" id="rectangle-cutting">
+        <div class="entry-head"><h3>Rectangle Cutting</h3><span class="badge num">O(a&sup2;b+ab&sup2;)</span></div>
+        <p class="idea">Cut an a&times;b rectangle down to unit squares, one straight integer-sided cut per move &mdash; minimum number of moves.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[i][j] = min cuts for an i&times;j rectangle</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[i][j] = 0 if i=j, else<br>min<sub>k&lt;i</sub>(1+dp[k][j]+dp[i&minus;k][j]),<br>min<sub>k&lt;j</sub>(1+dp[i][k]+dp[i][j&minus;k])</div>
+          </div>
+          <pre class="snippet"><code>for (int i = 0; i &lt;= a; i++)
+  for (int j = 0; j &lt;= b; j++) {
+    if (i == j) { dp[i][j] = 0; continue; }
+    ll ans = INF;
+    for (int k = 1; k &lt; i; k++)
+      ans = min(ans, 1 + dp[k][j] + dp[i-k][j]);
+    for (int k = 1; k &lt; j; k++)
+      ans = min(ans, 1 + dp[i][k] + dp[i][j-k]);
+    dp[i][j] = ans;
+  }</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>both i and j ascend together (each cell needs only strictly smaller i and strictly smaller j) &mdash; a matrix-chain-style interval-partition DP, try every split point on both axes.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"split into two integer pieces, minimize a cost over the split" &rarr; interval-partition DP trying every split point.</div>
+      </article>
+    </section>
+
+    <section id="f6" class="family">
+      <div class="family-head">
+        <h2>6&nbsp;&middot; Exponential-state &amp; scheduling DP</h2>
+      </div>
+      <p class="family-note">Two very different ways constraints push a DP off the "polynomial table" shape: n small enough for 2&#8319; states, or n large enough that even O(n) per transition needs to shrink to O(log n).</p>
+
+      <article class="entry" id="elevator-rides">
+        <div class="entry-head"><h3>Elevator Rides</h3><span class="badge num">O(2&#8319;&middot;n)</span></div>
+        <p class="idea">n people (n&le;20), each with a weight, elevator capped at x &mdash; minimum number of rides to move everyone.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[mask] = (min rides, weight of last ride) for people in mask</div>
+            <div class="label">recurrence</div>
+            <div class="mono">for i&isin;mask: extend dp[mask^(1&lt;&lt;i)]'s last ride, or start a fresh one</div>
+            <div class="label">base</div>
+            <div class="mono">dp[0] = (1 ride, 0 weight)</div>
+          </div>
+          <pre class="snippet"><code>vector&lt;pll&gt; dp(1&lt;&lt;n, {n+1, 0});
+dp[0] = {1, 0};
+for (int mask = 1; mask &lt; (1&lt;&lt;n); mask++) {
+  pll best = {n+1, 0};
+  for (int i = 0; i &lt; n; i++) if (mask &amp; (1&lt;&lt;i)) {
+    auto [rides, wt] = dp[mask ^ (1&lt;&lt;i)];
+    pll cand = (wt + w[i] &lt;= x)
+      ? make_pair(rides, wt + w[i])
+      : make_pair(rides + 1, w[i]);
+    if (cand &lt; best) best = cand;   // rides asc, then weight asc
+  }
+  dp[mask] = best;
+}
+cout &lt;&lt; dp[(1&lt;&lt;n)-1].first;</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>dp[0]=(1,0) is a "phantom" first ride so the very first person added never needs special-casing. Candidates compare (rides, leftover weight) lexicographically &mdash; packing the current ride as light as possible is what makes greedy-by-leftover-weight correct, since it leaves the most room for whoever's added next.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"n &le; ~20, partition into groups minimizing something" &rarr; bitmask DP over 2&#8319; states. See rule 06.</div>
+      </article>
+
+      <article class="entry" id="projects">
+        <div class="entry-head"><h3>Projects</h3><span class="badge num">O(n log n)</span></div>
+        <p class="idea">n projects, each with a start day, end day and reward, at most one project active per day &mdash; maximize total reward.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">state</div>
+            <div class="mono">dp[i] = max reward from projects[i..n&minus;1] (sorted by start)</div>
+            <div class="label">recurrence</div>
+            <div class="mono">dp[i] = max(dp[i+1], p<sub>i</sub>+dp[next[i]])</div>
+            <div class="label">next[i]</div>
+            <div class="mono">binary search: first project starting after project i ends</div>
+          </div>
+          <pre class="snippet"><code>sort(p.begin(), p.end());  // by start day
+for (int i = n-1; i &gt;= 0; i--)
+  next[i] = firstIndexWithStart_gt(p[i].end);  // binary search
+vector&lt;ll&gt; dp(n+1, 0);
+for (int i = n-1; i &gt;= 0; i--)
+  dp[i] = max(dp[i+1], p[i].reward + dp[next[i]]);
+cout &lt;&lt; dp[0];</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>not interval DP over [l,r] like family 5 &mdash; it's a 1D DP indexed by <em>sorted project order</em>, with binary search standing in for "find the next valid state" instead of a linear scan. Same shape as LIS's O(n log n) upgrade &mdash; rule 05.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"weighted interval scheduling, maximize non-overlapping reward" &rarr; sort by start, 1D dp with a binary-searched next-compatible index.</div>
+      </article>
+    </section>
+
+    <section id="f7" class="family">
+      <div class="family-head">
+        <h2>7&nbsp;&middot; Divide &amp; conquer + segment tree</h2>
+      </div>
+      <p class="family-note">Kept here for practice continuity, but flagged honestly: this is <strong>not</strong> overlapping-subproblem DP. No memo table, because every recursive call operates on a disjoint sub-range &mdash; there's nothing to reuse.</p>
+
+      <article class="entry" id="mountain-range">
+        <div class="entry-head"><h3>Mountain Range</h3><span class="badge num">O(n log n)</span></div>
+        <p class="idea">From any mountain, glide to a farther, strictly shorter mountain that dominates everything between the two &mdash; maximize mountains visited on one route.</p>
+        <div class="entry-body">
+          <div class="state-block">
+            <div class="label">not a dp table</div>
+            <div class="mono">rec(l,r): recurse on disjoint sub-ranges, no memo</div>
+            <div class="label">powered by</div>
+            <div class="mono">segment tree: range-max height + its index, O(log n) per query</div>
+          </div>
+          <pre class="snippet"><code>ll rec(int l, int r) {
+  if (l &gt; r) return 0;
+  auto [maxH, idx] = query(l, r);      // segment tree
+  ll lm = query(l, idx-1).first, rm = query(idx+1, r).first;
+  ll ans = 1;
+  ans = max(ans, (lm==maxH ? 0 : 1) + rec(l, idx-1));
+  ans = max(ans, (rm==maxH ? 0 : 1) + rec(idx+1, r));
+  return ans;
+}</code></pre>
+        </div>
+        <div class="callout gotcha"><strong>Gotcha</strong>the segment tree exists purely to make each "find the max in this range" step O(log n) instead of O(n) &mdash; that's what keeps the whole divide-and-conquer at O(n log n) instead of degrading to O(n&sup2;) on an already-sorted (worst-case) input.</div>
+        <div class="callout trigger"><strong>Recognize</strong>"repeatedly split a range at its max/min and recurse on both sides" &rarr; segment-tree-accelerated divide &amp; conquer &mdash; don't reach for a dp[l][r] table here, there's no overlap to exploit.</div>
+      </article>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  Source: <code>dp/*.cpp</code> in dsa-prep, cross-checked against <code>patterns.md</code>. Counting Towers excluded &mdash; its committed solution doesn't compile and has no working recurrence yet.
+</footer>
