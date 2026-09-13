@@ -70,7 +70,7 @@ void solve()
     {
         ll node , k ; 
         cin >> node >> k ;
-        for(ll j = LOG ; j >= 0 ; j--)
+        for(ll j = 0 ; j < LOG ; j++)
         {
             // if the jth bit of k is set, we will move to the 2^j th ancestor of node
             ll bit = (k >> j) & 1 ;
