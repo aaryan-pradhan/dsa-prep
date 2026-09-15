@@ -40,9 +40,66 @@ Output:
 8
 
 Explanation: An optimal division is [2,4],[7],[3,5] where the sums of the subarrays are 6,7,8. The largest sum is the last sum 8.*/
+ll check(ll mid, const vector < ll > &v, const ll &n, const ll &k)
+{
+    // check if we can divide the array into k such that the maximum sum in a subarray is less than or equal to mid
+    ll sum = 0 , cnt = 1 ;
+    for(ll i = 0 ; i < n ; i++)
+    {
+        if(v[i] > mid)
+        {
+            return false ;
+        }
+        else 
+        {
+            if(sum + v[i] > mid)
+            {
+                cnt++ ;
+                sum = v[i] ;
+            }
+            else
+            {
+                sum += v[i] ;
+            }
+        }
+        
+    }
+    if( cnt <= k)
+    {
+        return true ;
+    }
+    else
+    {
+        return false ;
+    }
+    
+}
 void solve() 
 {
-    ll 
+    ll n , k ; 
+    cin >> n >> k ; 
+    vector < ll > v(n) ;
+    for (ll i = 0 ; i < n ; i++)
+    {
+        cin >> v[i] ;
+    }
+    ll l = 1 , r = 1e18 , ans = 0 ;
+    while(l <= r)
+    {
+        ll mid = l + (r - l) / 2 ;
+        if(check(mid, v, n, k))
+        {
+            ans = mid ;
+            r = mid - 1 ;
+        }
+        else
+        {
+            l = mid + 1 ;
+        }
+
+    }
+    cout << ans << endl ;
+    
    
 
 

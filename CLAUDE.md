@@ -48,10 +48,11 @@ solution file — keep the header comment format (`Problem` / `Link` /
 `Pattern` / `Time` / `Space`) and the statement/Recall-Trail comment
 placement consistent.
 
-`cses_schedule.md` at the repo root is the daily-scan CSES index: a
-per-day checklist of the CSES problem set. A solved problem's checkbox is
-checked and linked to its flat file (`- [x] N. [Name](topic/File.cpp)`) —
-scan a day there to jump straight to its Recall Trail for revision.
+The CSES progress tracker no longer lives here — it moved on 15 Sep 2026 to
+`../timetable/CSES_TRACKER.md` (next to the daily plans). It's a
+section-by-section checklist in priority order; a solved problem is ticked
+and linked back to its flat file here
+(`- [x] [Name](../dsa-prep/topic/File.cpp)`).
 `*.bin` (CPH-compiled binaries) and `.cph/` (CPH metadata) are
 gitignored — CPH-extension artifacts, not source.
 
