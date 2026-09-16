@@ -3,3 +3,12 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Local AI and planning metadata
+CLAUDE.md
+.claude/
+.planning/
+
+# Local machine and editor metadata
+.DS_Store
+.vscode/
