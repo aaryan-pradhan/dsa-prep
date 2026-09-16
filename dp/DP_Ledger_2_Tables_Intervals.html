@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tables, Intervals and Orders &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<body data-base=".." data-slug="dp_2_tables_intervals">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; DP</div>
+  <h1>Tables, Intervals and Orders</h1>
+  <p class="dek">DP whose state is not a single running total: a pair of prefixes, a sub-range, a sorted position, or a subset. The recurrence is short in every case; the work is choosing the state.</p>
+  <p class="stats"><b>9</b> problems &middot; <b>4</b> families</p>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <a href="#recognition">Recognition rules</a>
+  <div class="toc-fam"><a href="#f1">1 &middot; Two-prefix table</a></div>
+  <div class="toc-fam"><a href="#f2">2 &middot; Split into sub-ranges</a></div>
+  <div class="toc-fam"><a href="#f3">3 &middot; Sorted order + binary search</a></div>
+  <div class="toc-fam"><a href="#f4">4 &middot; Bitmask subsets</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recognition">
+    <div class="section-head"><h2>Recognition rules</h2>
+      <p>The judgment calls that separate these problems from each other.</p></div>
+    <div class="rules">
+      <div class="rule"><span class="n">1</span>
+        <p>Two sequences or a right/down grid &rarr; <code>dp[i][j]</code> over prefixes, three neighbours at most: Edit Distance, Longest Common Subsequence, Minimal Grid Path.</p></div>
+      <div class="rule"><span class="n">2</span>
+        <p>An action removes or cuts a contiguous piece and leaves smaller contiguous pieces &rarr; state is the range or the shape, smaller first: Removal Game, Rectangle Cutting, Mountain Range.</p></div>
+      <div class="rule"><span class="n">3</span>
+        <p><code>n ≤ 2·10⁵</code> rules out comparing every pair of earlier states; sort and binary-search the one transition that matters: Increasing Subsequence, Projects.</p></div>
+      <div class="rule"><span class="n">4</span>
+        <p>When one number is not enough to rank partial answers, store the ranking key itself and compare lexicographically: the pair (rides, weight) in Elevator Rides, the prefix string in Minimal Grid Path.</p></div>
+    </div>
+  </section>
+
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1 &middot; Two-prefix table</h2></div>
+    <p class="family-note">State is a prefix of each of two sequences (or the two coordinates of a monotone grid path). Decide by looking at the last element on each side.</p>
+    <article class="entry" id="edit-distance">
+      <div class="entry-head"><h3>Edit Distance</h3><span class="badge num">O(n·m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Fewest single-character inserts, deletes and replaces turning <code>s</code> into <code>t</code>.<div class="formal">dp[i][j] = edit distance between s[0..i) and t[0..j)
+dp[i][0] = i,  dp[0][j] = j</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Look at the last characters. Equal &rArr; they cost nothing, drop both.</li>
+          <li>Unequal &rArr; the last operation was add (<code>j&minus;1</code>), remove (<code>i&minus;1</code>) or replace (both). Take the cheapest + 1.</li>
+          <li>Row <code>i</code> reads only rows <code>i</code> and <code>i&minus;1</code>.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Recurse on the three operations without memo.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(3<sup>n+m</sup>)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>|s|, |t| ≤ 5000</code> &rarr; hopeless; even a full table is 25·10⁶ <code>ll</code> = 200 MB.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Prefix pair state, two rolling rows: <span class="cost">O(n·m)</span> time, <span class="cost">O(m)</span> memory.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 200" role="img" aria-label="Edit distance table LOVE MOVIE"><rect class="s-box" x="70" y="8" width="30" height="22" rx="4"/><text class="s-td" x="85" y="23" text-anchor="middle">ε</text><rect class="s-box" x="104" y="8" width="30" height="22" rx="4"/><text class="s-td" x="119" y="23" text-anchor="middle">M</text><rect class="s-box" x="138" y="8" width="30" height="22" rx="4"/><text class="s-td" x="153" y="23" text-anchor="middle">O</text><rect class="s-box" x="172" y="8" width="30" height="22" rx="4"/><text class="s-td" x="187" y="23" text-anchor="middle">V</text><rect class="s-box" x="206" y="8" width="30" height="22" rx="4"/><text class="s-td" x="221" y="23" text-anchor="middle">I</text><rect class="s-box" x="240" y="8" width="30" height="22" rx="4"/><text class="s-td" x="255" y="23" text-anchor="middle">E</text><text class="s-td" x="52" y="48" text-anchor="end">ε</text><rect class="s-fill" x="70" y="34" width="30" height="24" rx="4"/><text class="s-t" x="85" y="50" text-anchor="middle">0</text><rect class="s-box" x="104" y="34" width="30" height="24" rx="4"/><text class="s-t" x="119" y="50" text-anchor="middle">1</text><rect class="s-box" x="138" y="34" width="30" height="24" rx="4"/><text class="s-t" x="153" y="50" text-anchor="middle">2</text><rect class="s-box" x="172" y="34" width="30" height="24" rx="4"/><text class="s-t" x="187" y="50" text-anchor="middle">3</text><rect class="s-box" x="206" y="34" width="30" height="24" rx="4"/><text class="s-t" x="221" y="50" text-anchor="middle">4</text><rect class="s-box" x="240" y="34" width="30" height="24" rx="4"/><text class="s-t" x="255" y="50" text-anchor="middle">5</text><text class="s-td" x="52" y="78" text-anchor="end">L</text><rect class="s-box" x="70" y="64" width="30" height="24" rx="4"/><text class="s-t" x="85" y="80" text-anchor="middle">1</text><rect class="s-fill" x="104" y="64" width="30" height="24" rx="4"/><text class="s-t" x="119" y="80" text-anchor="middle">1</text><rect class="s-box" x="138" y="64" width="30" height="24" rx="4"/><text class="s-t" x="153" y="80" text-anchor="middle">2</text><rect class="s-box" x="172" y="64" width="30" height="24" rx="4"/><text class="s-t" x="187" y="80" text-anchor="middle">3</text><rect class="s-box" x="206" y="64" width="30" height="24" rx="4"/><text class="s-t" x="221" y="80" text-anchor="middle">4</text><rect class="s-box" x="240" y="64" width="30" height="24" rx="4"/><text class="s-t" x="255" y="80" text-anchor="middle">5</text><text class="s-td" x="52" y="108" text-anchor="end">O</text><rect class="s-box" x="70" y="94" width="30" height="24" rx="4"/><text class="s-t" x="85" y="110" text-anchor="middle">2</text><rect class="s-box" x="104" y="94" width="30" height="24" rx="4"/><text class="s-t" x="119" y="110" text-anchor="middle">2</text><rect class="s-fill" x="138" y="94" width="30" height="24" rx="4"/><text class="s-t" x="153" y="110" text-anchor="middle">1</text><rect class="s-box" x="172" y="94" width="30" height="24" rx="4"/><text class="s-t" x="187" y="110" text-anchor="middle">2</text><rect class="s-box" x="206" y="94" width="30" height="24" rx="4"/><text class="s-t" x="221" y="110" text-anchor="middle">3</text><rect class="s-box" x="240" y="94" width="30" height="24" rx="4"/><text class="s-t" x="255" y="110" text-anchor="middle">4</text><text class="s-td" x="52" y="138" text-anchor="end">V</text><rect class="s-box" x="70" y="124" width="30" height="24" rx="4"/><text class="s-t" x="85" y="140" text-anchor="middle">3</text><rect class="s-box" x="104" y="124" width="30" height="24" rx="4"/><text class="s-t" x="119" y="140" text-anchor="middle">3</text><rect class="s-box" x="138" y="124" width="30" height="24" rx="4"/><text class="s-t" x="153" y="140" text-anchor="middle">2</text><rect class="s-fill" x="172" y="124" width="30" height="24" rx="4"/><text class="s-t" x="187" y="140" text-anchor="middle">1</text><rect class="s-fill" x="206" y="124" width="30" height="24" rx="4"/><text class="s-t" x="221" y="140" text-anchor="middle">2</text><rect class="s-box" x="240" y="124" width="30" height="24" rx="4"/><text class="s-t" x="255" y="140" text-anchor="middle">3</text><text class="s-td" x="52" y="168" text-anchor="end">E</text><rect class="s-box" x="70" y="154" width="30" height="24" rx="4"/><text class="s-t" x="85" y="170" text-anchor="middle">4</text><rect class="s-box" x="104" y="154" width="30" height="24" rx="4"/><text class="s-t" x="119" y="170" text-anchor="middle">4</text><rect class="s-box" x="138" y="154" width="30" height="24" rx="4"/><text class="s-t" x="153" y="170" text-anchor="middle">3</text><rect class="s-box" x="172" y="154" width="30" height="24" rx="4"/><text class="s-t" x="187" y="170" text-anchor="middle">2</text><rect class="s-box" x="206" y="154" width="30" height="24" rx="4"/><text class="s-t" x="221" y="170" text-anchor="middle">2</text><rect class="s-good" x="240" y="154" width="30" height="24" rx="4"/><text class="s-t" x="255" y="170" text-anchor="middle">2</text></svg>
+          <figcaption>LOVE &rarr; MOVIE: replace L with M, insert I. The shaded diagonal is the cheapest route to the corner, 2.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>dp[(i&amp;1)]</code> is the current row, <code>dp[(i-1)&amp;1]</code> the previous one. The <code>add</code> term reads the current row at <code>j-1</code>, already written this pass. Answer sits in parity slot <code>n &amp; 1</code>.</p>
+        <div class="src-meta"><span class="path">dp/Edit_Distance.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+// ll rec(ll i , ll j )
+// {
+//     // this returns the edit distance to make the first i characters of s equal to the first j characters of t
+//     if ( i == 0 ) return j ;
+//     if ( j == 0 ) return i ;
+//     if ( dp[i][j] != -1 ) return dp[i][j] ;
+//     ll ans = 0 ; 
+//     if ( s[i - 1] == t[j - 1] ) {
+//         ans = rec(i - 1 , j - 1 ) ; 
+//     }
+//     else
+//     {
+//         ll add = rec(i , j - 1 ) ; 
+//         ll remove = rec(i - 1 , j ) ; 
+//         ll replace = rec(i - 1 , j - 1 ) ; 
+//         ans = min({add , remove , replace}) + 1 ; 
+//     }
+//     return dp[i][j] = ans ;
+// }
+void solve() 
+{
+
+    string s , t ;
+    cin &gt;&gt; s &gt;&gt; t ;
+    ll n = s.size() ;
+    ll m = t.size() ;
+    ll dp[2][m + 1] ;
+    for ( ll i = 0 ; i &lt;= n ; i++)
+    {
+        for ( ll j = 0 ; j &lt;= m ; j++)
+        {
+            if ( i == 0 ){
+                dp[(i&amp;1)][j] = j ;
+                continue ;
+            } 
+            if ( j == 0 )
+            {
+                dp[(i&amp;1)][j] = i ;
+                continue ;
+            }
+            if ( s[i - 1] == t[j - 1] ) 
+            {
+                dp[(i &amp; 1)][j] = dp[(i - 1) &amp; 1][(j-1)] ;
+            }
+            else
+            {
+                ll add = dp[(i &amp; 1)][j-1] + 1 ; 
+                ll remove = dp[(i - 1) &amp; 1][j] + 1 ; 
+                ll replace = dp[(i - 1) &amp; 1][(j-1)] + 1 ; 
+                dp[(i &amp; 1)][j] = min({add , remove , replace}) ; 
+            }
+        }
+    }
+    cout &lt;&lt; dp[(n &amp; 1)][m] &lt;&lt; endl ;
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Reading the answer from <code>dp[0][m]</code> instead of <code>dp[n &amp; 1][m]</code> is wrong whenever <code>|s|</code> is odd.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"min edits / transform one string into another" &rarr; <code>dp[i][j]</code> over prefixes with three moves.</div>
+    </article>
+    <article class="entry" id="longest-common-subsequence">
+      <div class="entry-head"><h3>Longest Common Subsequence</h3><span class="badge num">O(n·m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Length of the longest common subsequence of arrays <code>a</code>, <code>b</code>, and one such subsequence.<div class="formal">dp[i][j] = LCS of a[0..i) and b[0..j)</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Equal last elements can always be matched to each other &mdash; take them.</li>
+          <li>Unequal &rArr; at least one of them is unused: drop <code>a</code>'s or <code>b</code>'s.</li>
+          <li>Reconstruction retraces the same decision from <code>(n, m)</code>, so the full table must be kept.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate subsequences of <code>a</code>, test each against <code>b</code>.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(2ⁿ · m)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n, m ≤ 1000</code> &rarr; 2¹⁰⁰⁰.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Prefix pair table, <span class="cost">10⁶</span> cells, walk back for the witness.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 420 150" role="img" aria-label="LCS matching"><rect class="s-box" x="20" y="20" width="36" height="28" rx="4"/><text class="s-t" x="38" y="38" text-anchor="middle">3</text><rect class="s-box" x="60" y="20" width="36" height="28" rx="4"/><text class="s-t" x="78" y="38" text-anchor="middle">1</text><rect class="s-box" x="100" y="20" width="36" height="28" rx="4"/><text class="s-t" x="118" y="38" text-anchor="middle">3</text><rect class="s-box" x="140" y="20" width="36" height="28" rx="4"/><text class="s-t" x="158" y="38" text-anchor="middle">2</text><rect class="s-box" x="180" y="20" width="36" height="28" rx="4"/><text class="s-t" x="198" y="38" text-anchor="middle">7</text><rect class="s-box" x="220" y="20" width="36" height="28" rx="4"/><text class="s-t" x="238" y="38" text-anchor="middle">4</text><rect class="s-box" x="260" y="20" width="36" height="28" rx="4"/><text class="s-t" x="278" y="38" text-anchor="middle">7</text><rect class="s-box" x="300" y="20" width="36" height="28" rx="4"/><text class="s-t" x="318" y="38" text-anchor="middle">2</text><rect class="s-box" x="60" y="110" width="36" height="28" rx="4"/><text class="s-t" x="78" y="128" text-anchor="middle">1</text><rect class="s-box" x="100" y="110" width="36" height="28" rx="4"/><text class="s-t" x="118" y="128" text-anchor="middle">1</text><rect class="s-box" x="140" y="110" width="36" height="28" rx="4"/><text class="s-t" x="158" y="128" text-anchor="middle">3</text><rect class="s-box" x="180" y="110" width="36" height="28" rx="4"/><text class="s-t" x="198" y="128" text-anchor="middle">7</text><rect class="s-box" x="220" y="110" width="36" height="28" rx="4"/><text class="s-t" x="238" y="128" text-anchor="middle">4</text><rect class="s-box" x="260" y="110" width="36" height="28" rx="4"/><text class="s-t" x="278" y="128" text-anchor="middle">2</text><path class="s-hi" d="M78 48 L118 110"/><path class="s-hi" d="M118 48 L158 110"/><path class="s-hi" d="M198 48 L198 110"/><path class="s-hi" d="M238 48 L238 110"/></svg>
+          <figcaption>One LCS of length 4: 1 3 7 4. Matches never cross &mdash; that is what "subsequence of both" means.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>print</code> recurses back from <code>(n, m)</code>: on a match it recurses first and prints after, so output comes out in forward order. On a mismatch it follows the larger neighbour.</p>
+        <div class="src-meta"><span class="path">dp/Longest_Common_Subsequence.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+// ll rec(ll i , ll j )
+// {
+//     // this returns the length of the longest common subsequence of the first i elements of a and the first j elements of b
+//     if ( i == 0 || j == 0 ) return 0 ; 
+//     if ( dp[i][j] != -1 ) return dp[i][j] ; 
+//     ll ans = 0 ; 
+//     if ( a[i - 1] == b[j - 1] ) ans = 1 + rec(i - 1 , j - 1 ) ; 
+//     else ans = max(rec(i - 1 , j) , rec(i , j - 1)) ; 
+//     return dp[i][j] = ans ; 
+// }
+void print(ll i , ll j , ll a[] , ll b[] , vector &lt;vector&lt;ll&gt;&gt; &amp;dp)
+{
+    if ( i == 0 || j == 0 ) return ; 
+    if ( a[i - 1] == b[j - 1] ) 
+    {
+        print(i - 1 , j - 1 , a , b , dp) ; 
+        cout &lt;&lt; a[i - 1] &lt;&lt; " " ; 
+    }
+    else
+    {
+        if ( dp[i - 1][j] &gt; dp[i][j - 1] ) print(i - 1 , j , a , b , dp) ; 
+        else print(i , j - 1 , a , b , dp) ; 
+    }
+}
+
+void solve() 
+{
+    ll n , m ; 
+    cin &gt;&gt; n &gt;&gt; m ; 
+    ll a[n] , b[m] ; 
+    for ( ll i = 0 ; i &lt; n ; i++) cin &gt;&gt; a[i] ; 
+    for ( ll i = 0 ; i &lt; m ; i++) cin &gt;&gt; b[i] ; 
+    vector &lt;vector&lt;ll&gt;&gt; dp(n+1 , vector&lt;ll&gt;(m + 1 , 0)) ; 
+    for ( ll i = 0 ; i &lt;= n ; i++)
+    {
+        for ( ll j = 0 ; j &lt;= m ; j++)
+        {
+            if ( i == 0 || j == 0 ) 
+            {
+                dp[i][j] = 0 ; 
+                continue ; 
+            }
+            if ( a[i - 1] == b[j - 1] ) dp[i][j] = 1 + dp[i - 1][j - 1] ; 
+            else dp[i][j] = max(dp[i - 1][j] , dp[i][j - 1]) ; 
+        }
+    }
+    cout &lt;&lt; dp[n][m] &lt;&lt; endl ;
+
+    print(n , m , a , b , dp) ;
+    
+
+    
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Printing before the recursive call reverses the subsequence. The recursion depth is at most <code>n + m</code>, fine here.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"longest sequence appearing in order in both" &rarr; LCS table + backtrack.</div>
+    </article>
+    <article class="entry" id="minimal-grid-path">
+      <div class="entry-head"><h3>Minimal Grid Path</h3><span class="badge num">O(n³)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Right/down path through an <code>n × n</code> letter grid; output the lexicographically smallest string it spells.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Every path to <code>(i,j)</code> has the same length &rArr; lexicographic comparison of prefixes is fair.</li>
+          <li>The best string to <code>(i,j)</code> extends the smaller of the two best strings into it.</li>
+          <li>Storing whole strings makes each cell cost <code>O(n)</code>.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate every path string.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(C(2n, n) · n)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 1000</code> &rarr; astronomically many paths.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Best prefix per cell (this code): <span class="cost">O(n³)</span>. The known upgrade keeps only the set of cells on the current anti-diagonal that achieve the minimum prefix: <span class="cost">O(n²)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 220 190" role="img" aria-label="Minimal path through the sample grid"><rect class="s-good" x="20" y="10" width="40" height="38" rx="4"/><text class="s-t" x="40" y="33" text-anchor="middle">A</text><rect class="s-good" x="64" y="10" width="40" height="38" rx="4"/><text class="s-t" x="84" y="33" text-anchor="middle">A</text><rect class="s-box" x="108" y="10" width="40" height="38" rx="4"/><text class="s-t" x="128" y="33" text-anchor="middle">C</text><rect class="s-box" x="152" y="10" width="40" height="38" rx="4"/><text class="s-t" x="172" y="33" text-anchor="middle">A</text><rect class="s-box" x="20" y="54" width="40" height="38" rx="4"/><text class="s-t" x="40" y="77" text-anchor="middle">B</text><rect class="s-good" x="64" y="54" width="40" height="38" rx="4"/><text class="s-t" x="84" y="77" text-anchor="middle">A</text><rect class="s-box" x="108" y="54" width="40" height="38" rx="4"/><text class="s-t" x="128" y="77" text-anchor="middle">B</text><rect class="s-box" x="152" y="54" width="40" height="38" rx="4"/><text class="s-t" x="172" y="77" text-anchor="middle">C</text><rect class="s-box" x="20" y="98" width="40" height="38" rx="4"/><text class="s-t" x="40" y="121" text-anchor="middle">A</text><rect class="s-good" x="64" y="98" width="40" height="38" rx="4"/><text class="s-t" x="84" y="121" text-anchor="middle">B</text><rect class="s-box" x="108" y="98" width="40" height="38" rx="4"/><text class="s-t" x="128" y="121" text-anchor="middle">D</text><rect class="s-box" x="152" y="98" width="40" height="38" rx="4"/><text class="s-t" x="172" y="121" text-anchor="middle">A</text><rect class="s-box" x="20" y="142" width="40" height="38" rx="4"/><text class="s-t" x="40" y="165" text-anchor="middle">A</text><rect class="s-good" x="64" y="142" width="40" height="38" rx="4"/><text class="s-t" x="84" y="165" text-anchor="middle">A</text><rect class="s-good" x="108" y="142" width="40" height="38" rx="4"/><text class="s-t" x="128" y="165" text-anchor="middle">C</text><rect class="s-good" x="152" y="142" width="40" height="38" rx="4"/><text class="s-t" x="172" y="165" text-anchor="middle">A</text></svg>
+          <figcaption>Sample answer AAABACA follows the highlighted cells.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>lexi</code> treats <code>""</code> as "no candidate" so the border branches can reuse it. For interior cells both neighbours exist and the smaller string is extended by <code>grid[i][j]</code>.</p>
+        <div class="src-meta"><span class="path">dp/Minimal_Grid_Path.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+
+// stirng rec(ll i , ll j )
+// {
+//     // this returns the lexicographically minimal string that can be constructed from the first i rows and j columns of the grid 
+//     // we are constructing the string from the top left corner to the ( i , j ) cell of the grid
+//     if ( i == 0 &amp;&amp; j == 0 ) return grid[0][0] ;
+//     string ans = "" ;
+//     if ( i &gt; 0 ) ans = rec(i - 1 , j) + grid[i][j] ;
+//     if ( j &gt; 0 ) ans = min(ans , rec(i , j - 1) + grid[i][j]) ;
+//     return ans ;
+
+string lexi(string a , string b)
+{
+    if ( a == "" ) return b ;
+    if ( b == "" ) return a ;
+    if ( a &lt; b ) return a ;
+    return b ;
+}
+
+
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ;
+    vector&lt;string&gt; grid(n) ;
+    for ( ll i = 0 ; i &lt; n ; i++) cin &gt;&gt; grid[i] ;
+    vector &lt; vector&lt;string&gt;&gt; dp(n , vector&lt;string&gt;(n , "")) ;
+    for ( ll i = 0 ; i &lt; n ; i++)
+    {
+        for ( ll j = 0 ; j &lt; n ; j++)
+        {
+            if ( i == 0 &amp;&amp; j == 0 ) 
+            {
+                dp[i][j] = grid[0][0] ; 
+                continue ; 
+            }
+            string ans = "" ;
+            if ( i &gt; 0 &amp;&amp; j &gt; 0 ) 
+            {
+                ans = lexi (dp[i - 1][j] , dp[i][j - 1]) + grid[i][j] ;
+            }
+            else if ( i &gt; 0 )
+            {
+                ans = lexi (ans , dp[i - 1][j] + grid[i][j]) ;
+            }
+            else
+            {
+                ans = lexi (ans , dp[i][j - 1] + grid[i][j]) ;
+            }
+            dp[i][j] = ans ;
+        }
+    }
+    cout &lt;&lt; dp[n - 1][n - 1] &lt;&lt; endl ;
+
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Correct on the sample, but at <code>n = 1000</code> the table holds ~10⁶ strings averaging 1000 chars &mdash; ~1 GB. It will exceed CSES limits; the anti-diagonal frontier BFS is the fix.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"lexicographically smallest path string in a grid" &rarr; compare equal-length prefixes, diagonal by diagonal.</div>
+    </article>
+  </section>
+
+  <section class="family" id="f2">
+    <div class="family-head"><h2>2 &middot; Split into sub-ranges</h2></div>
+    <p class="family-note">Every move leaves one or two smaller contiguous pieces. Solve by range length or by recursive split.</p>
+    <article class="entry" id="rectangle-cutting">
+      <div class="entry-head"><h3>Rectangle Cutting</h3><span class="badge num">O(a·b·(a+b))</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Cut an <code>a × b</code> rectangle along grid lines into squares. Fewest cuts.<div class="formal">dp[i][i] = 0
+dp[i][j] = min over every horizontal and vertical cut of 1 + both halves</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>A cut splits one rectangle into two independent rectangles.</li>
+          <li>Squares are the only base case; there is no greedy rule for where to cut.</li>
+          <li>Both pieces are strictly smaller &rArr; fill by increasing <code>i</code>, then <code>j</code>.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Plain recursion over every cut.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">exponential</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>a, b ≤ 500</code> &rarr; the same sub-rectangle appears exponentially often.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Memo on shape: 2.5·10⁵ shapes × ≤ 1000 cuts = <span class="cost">2.5·10⁸</span> simple ops.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 260 150" role="img" aria-label="Cutting 3 by 5 into squares"><rect class="s-box" x="20" y="20" width="150" height="90"/><path class="s-hi" d="M110 20 V110"/><path class="s-hi" d="M110 80 H170"/><path class="s-hi" d="M140 80 V110"/><text class="s-tm" x="65" y="70" text-anchor="middle">3×3</text><text class="s-tm" x="140" y="54" text-anchor="middle">2×2</text><text class="s-td" x="20" y="138">3 × 5 → 3 cuts</text></svg>
+          <figcaption>Cut off the 3×3, then the 2×2, then halve the last 1×2.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Two inner loops try every horizontal and every vertical cut. <code>dp</code> is indexed by exact dimensions, so no <code>swap</code> is needed; row <code>i = 0</code> stays INF but is never read.</p>
+        <div class="src-meta"><span class="path">dp/Rectangle_Cutting.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+
+
+
+// ll rec(ll a , ll b )
+// {
+//     // this returns the number of moves to cut an a x b rectangle into squares
+//     if ( a == b ) return 0 ;
+//     if( a &lt; b ) swap(a , b) ;
+//     if ( dp[a][b] != -1 ) return dp[a][b] ;
+//     ll ans = INF ;
+//     // 
+//     for ( ll i = 1 ; i &lt; a ; i++ ) ans = min(ans , 1 + rec(i , b) + rec(a - i , b)) ;
+//     return ans ;
+//     // this has a time complexity of O(a^2 * b + a * b^2) which is too slow for the given constraints 
+// }
+void solve() 
+{
+    ll a , b ; 
+    cin &gt;&gt; a &gt;&gt; b ; 
+    vector &lt;vector&lt;ll&gt;&gt; dp(a + 1 , vector&lt;ll&gt;(b + 1 , -1)) ; 
+    
+    for(ll i = 0 ; i &lt;= a ; i++)
+    {
+        for (ll j = 0 ; j &lt;= b ; j++)
+        {
+            if ( i == j )
+            {
+                dp[i][j] = 0 ;
+                continue ; 
+            }
+            ll ans = INF ; 
+            for ( ll k = 1 ; k &lt; i ; k++ ) ans = min(ans , 1 + dp[k][j] + dp[i - k][j]) ;
+            for ( ll k = 1 ; k &lt; j ; k++ ) ans = min(ans , 1 + dp[i][k] + dp[i][j - k]) ;
+            dp[i][j] = ans ;
+        }
+    }
+    cout &lt;&lt; dp[a][b] &lt;&lt; endl ;
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Both cut loops are required. 3 × 5 needs a vertical first cut; trying only one orientation returns a larger count.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"cut / split into pieces, each piece is a smaller copy of the problem" &rarr; DP over shape, try every split.</div>
+    </article>
+    <article class="entry" id="removal-game">
+      <div class="entry-head"><h3>Removal Game</h3><span class="badge num">O(n²)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Players alternately take the first or last element. Both optimal. Max score of the first player.<div class="formal">turn = (n − (r−l+1)) mod 2
+dp[l][r] = first player's final score from the remaining range [l, r]</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>What is left is always a contiguous range <code>[l, r]</code>.</li>
+          <li>Whose turn it is follows from how many elements are gone: <code>n &minus; len</code>.</li>
+          <li>P2 playing optimally = P2 minimising P1's score, since the total is fixed.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Game tree over both choices each move.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(2ⁿ)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 5000</code> &rarr; 2⁵⁰⁰⁰.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Range state, shorter ranges first: <span class="cost">n²/2 ≈ 1.25·10⁷</span> states.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 360 110" role="img" aria-label="Removal game sample"><rect class="s-warn" x="20" y="20" width="46" height="34" rx="4"/><text class="s-t" x="43" y="41" text-anchor="middle">4</text><rect class="s-good" x="70" y="20" width="46" height="34" rx="4"/><text class="s-t" x="93" y="41" text-anchor="middle">5</text><rect class="s-box" x="120" y="20" width="46" height="34" rx="4"/><text class="s-t" x="143" y="41" text-anchor="middle">1</text><rect class="s-good" x="170" y="20" width="46" height="34" rx="4"/><text class="s-t" x="193" y="41" text-anchor="middle">3</text><text class="s-ta" x="188" y="74" text-anchor="middle">P1 first</text><text class="s-td" x="43" y="74" text-anchor="middle">P2</text><text class="s-ta" x="93" y="74" text-anchor="middle">P1</text><text class="s-td" x="8" y="100">P1: 3, P2: 4 or 1, P1: 5 → 8</text></svg>
+          <figcaption>Taking 3 first leaves P2 unable to protect the 5.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>l</code> descends and <code>r</code> ascends, so <code>dp[l+1][r]</code> and <code>dp[l][r-1]</code> are ready. On P2's turn the table still stores <em>P1's</em> score, which is why the P2 branch adds nothing.</p>
+        <div class="src-meta"><span class="path">dp/Removal_Game.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+// ll rec(ll l , ll r , ll turn)
+// {
+//     // this returns the maximum possible score for the first player when both players play optimally and the current list is from l to r and turn is 0 if it is the first player's turn and 1 if it is the second player's turn
+//     if ( l &gt; r ) return 0 ;
+//     if ( dp[l][r] != -1 ) return dp[l][r] ;
+//     ll ans = 0 ; 
+//     if ( turn == 0 ) 
+//     {
+//         ans = max(rec(l + 1 , r , 1) + x[l] , rec(l , r - 1 , 1) + x[r]) ;
+//     }
+//     else
+//     {
+//         ans = min(rec(l + 1 , r , 0) , rec(l , r - 1 , 0)) ;
+//     }
+//     return dp[l][r] = ans ;
+// }
+
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ;
+    vector &lt; ll &gt; x(n) ;
+    for ( ll i = 0 ; i &lt; n ; i++) cin &gt;&gt; x[i] ;
+    vector &lt; vector&lt;ll&gt;&gt; dp(n , vector&lt;ll&gt;(n , 0)) ;
+    for ( ll l = n - 1 ; l &gt;= 0 ; l--)
+    {
+        for ( ll r = 0 ; r &lt; n  ; r++)
+        {
+            if ( l &gt; r )
+            {
+                dp[l][r] = 0 ;
+                continue ;
+            }
+            if ( l == r )
+            {
+                ll turn =  (n - (r - l +1)) % 2 ;
+                if ( turn == 0 ) dp[l][r] = x[l] ;
+                else dp[l][r] = 0 ;
+                continue ;
+            }
+            ll turn =  (n - (r - l +1)) % 2 ; 
+
+            if ( turn == 0 ) 
+            {
+                ll ans = -INF ; 
+                if ( r - 1 &gt;= 0)
+                {
+                    ans = max(ans , dp[l][r - 1] + x[r]) ;
+                }
+                if ( l + 1 &lt; n )
+                {
+                    ans = max(ans , dp[l + 1][r] + x[l]) ;
+                }
+                dp[l][r] = ans  ; 
+            }
+            else
+            {
+                ll ans = INF ;
+                if ( r - 1 &gt;= 0)
+                {
+                    ans = min(ans , dp[l][r - 1]) ;
+                }
+                if ( l + 1 &lt; n )
+                {
+                    ans = min(ans , dp[l + 1][r]) ;
+                }
+                dp[l][r] = ans  ;
+            }   
+        }
+    }
+    cout &lt;&lt; dp[0][n - 1] &lt;&lt; endl ;
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The P2 branch takes <code>min</code> and adds no element. Storing "current player's score" instead needs <code>sum[l..r] &minus; dp</code>; mixing the two conventions is the classic bug.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"two players take from either end, optimal play" &rarr; interval DP, max/min by turn parity.</div>
+    </article>
+    <article class="entry" id="mountain-range">
+      <div class="entry-head"><h3>Mountain Range</h3><span class="badge num">O(n log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Glide from a mountain to a strictly lower one, only over strictly lower mountains. Max mountains visited.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>From anywhere in <code>[l, r]</code> you can never cross its tallest mountain <code>m</code>.</li>
+          <li>Starting at <code>m</code>, you can reach the tallest of either side &mdash; everything between is lower.</li>
+          <li>If that side's max equals <code>h[m]</code> you cannot glide to it; the side is solved on its own, without the <code>+1</code>.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">DP over every start with a scan of reachable targets.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n²)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 2·10⁵</code> &rarr; 4·10¹⁰.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Recursive split at the range max, located by a max segment tree: <span class="cost">O(n log n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 380 150" role="img" aria-label="Mountain range sample bars"><rect class="s-box" x="20" y="80" width="28" height="40"/><text class="s-td" x="34" y="136" text-anchor="middle">20</text><rect class="s-box" x="54" y="90" width="28" height="30"/><text class="s-td" x="68" y="136" text-anchor="middle">15</text><rect class="s-box" x="88" y="86" width="28" height="34"/><text class="s-td" x="102" y="136" text-anchor="middle">17</text><rect class="s-box" x="122" y="50" width="28" height="70"/><text class="s-td" x="136" y="136" text-anchor="middle">35</text><rect class="s-box" x="156" y="70" width="28" height="50"/><text class="s-td" x="170" y="136" text-anchor="middle">25</text><rect class="s-fill" x="190" y="40" width="28" height="80"/><text class="s-td" x="204" y="136" text-anchor="middle">40</text><rect class="s-box" x="224" y="96" width="28" height="24"/><text class="s-td" x="238" y="136" text-anchor="middle">12</text><rect class="s-box" x="258" y="82" width="28" height="38"/><text class="s-td" x="272" y="136" text-anchor="middle">19</text><rect class="s-box" x="292" y="94" width="28" height="26"/><text class="s-td" x="306" y="136" text-anchor="middle">13</text><rect class="s-box" x="326" y="96" width="28" height="24"/><text class="s-td" x="340" y="136" text-anchor="middle">12</text></svg>
+          <figcaption>40 splits the range; each side recurses on its own tallest mountain. 40 &rarr; 35 &rarr; 20 &rarr; 17 &rarr; 15 gives 5.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The segment tree node carries <code>mx</code> and its index. <code>merge</code> prefers the right index on ties. Empty queries return <code>node()</code> with <code>mx = 0</code>, safe because heights ≥ 1.</p>
+        <div class="src-meta"><span class="path">dp/Mountain_Range.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+
+const ll N = 2e5 + 5 ;
+struct node{
+    ll mx ; 
+    node()
+    {
+        mx = 0 ;
+    }
+    ll idx ; 
+};
+
+node t[4 * N] ;
+ll h[N] ;
+ll n ; 
+node merge(node a , node b)
+{
+    node res ;
+    res.mx = max(a.mx , b.mx ) ;
+    if(a.mx &gt; b.mx)
+    {
+        res.idx = a.idx ;
+    }
+    else
+    {
+        res.idx = b.idx ;
+    }
+    return res ;
+}
+void build(ll id , ll l , ll r)
+{
+    // this builds the segment tree for maximum height in the range l to r both inclusive and stores it in t[id]
+    if(l == r)
+    {
+        t[id].mx = h[l] ;
+        t[id].idx = l ;
+        return ; 
+    }
+    ll mid = l + (r - l) / 2 ;
+    build(2 * id , l , mid ) ;
+    build(2 * id + 1 , mid + 1 , r ) ; 
+    t[id] = merge(t[2 * id] , t[2 * id + 1] ) ;
+}
+node query( ll id , ll l , ll r , ll lq , ll rq)
+{
+    // this returns the maximum height in the range lq to rq both inclusive from the segment tree
+    if( rq &lt; l || r &lt; lq ) return node() ; // this means the range is completely outside the query range
+    if( lq &lt;= l &amp;&amp; r &lt;= rq ) return t[id] ; // this means the range is completely inside the query range
+    ll mid = l + (r - l) / 2 ;
+    node left = query(2 * id , l , mid , lq , rq ) ;
+    node right = query(2 * id + 1 , mid + 1 , r , lq , rq ) ;
+    return merge(left , right ) ;
+}
+ll rec(ll l , ll r )
+{
+    // this returns the maximum number of mountains that can be visited in the range l to r both inclusive
+    if(l &gt; r) return 0 ;
+    node mx = query(1 , 0 , n - 1 , l , r ) ;
+    ll idx = mx.idx ;
+    ll maxi = mx.mx ;
+    node left = query(1 , 0 , n - 1 , l , idx - 1 ) ;
+    node right = query(1 , 0 , n - 1 , idx + 1 , r ) ;
+    ll lm = left.mx ;
+    ll rm = right.mx ;
+    ll ans = 1 ; 
+    if(lm == maxi)
+    {
+        ans = max(ans , rec(l , idx -1)) ; 
+    }
+    else 
+    {
+        ans = max(ans , 1 + rec(l , idx - 1 ) ) ;
+    }
+    if(rm == maxi)
+    {
+        ans = max(ans , rec(idx + 1 , r ) ) ;
+    }
+    else
+    {
+        ans = max(ans , 1 + rec(idx + 1 , r ) ) ;
+    }
+    return ans ;
+
+}
+void solve() 
+{
+
+    cin &gt;&gt; n ;
+    for(ll i = 0 ; i &lt; n ; i++)
+    {
+        cin &gt;&gt; h[i] ;
+    }
+    build(1 , 0 , n - 1 ) ;
+    cout &lt;&lt; rec(0 , n - 1 ) &lt;&lt; endl ;
+
+
+
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Recursion depth equals the Cartesian-tree depth: on sorted heights it reaches <code>n = 2·10⁵</code> frames. The tie branch (<code>lm == maxi</code>) is the one line that is easy to misread as <code>1 + …</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"move only to lower elements, blocked by taller ones" &rarr; split at the range maximum (Cartesian tree).</div>
+    </article>
+  </section>
+
+  <section class="family" id="f3">
+    <div class="family-head"><h2>3 &middot; Sorted order + binary search</h2></div>
+    <p class="family-note">A one-dimensional DP whose transition would scan all earlier elements; sorting makes the relevant predecessor findable in O(log n).</p>
+    <article class="entry" id="increasing-subsequence">
+      <div class="entry-head"><h3>Increasing Subsequence</h3><span class="badge num">O(n log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Length of the longest strictly increasing subsequence.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>For each length, only the smallest possible ending value matters.</li>
+          <li><code>tails</code> is strictly increasing &rArr; binary search where <code>a[i]</code> fits.</li>
+          <li><code>lower_bound</code> (≥) keeps it strict: an equal value replaces, never extends.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v"><code>dp[i] = 1 + max dp[j]</code> over <code>j &lt; i</code>, <code>a[j] &lt; a[i]</code>.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n²)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 2·10⁵</code> &rarr; 4·10¹⁰.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Patience tails + binary search: <span class="cost">O(n log n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 250" role="img" aria-label="LIS tails evolution"><text class="s-ta" x="30" y="24" text-anchor="end">7</text><rect class="s-fill" x="50" y="8" width="28" height="24" rx="4"/><text class="s-t" x="64" y="24" text-anchor="middle">7</text><text class="s-ta" x="30" y="53" text-anchor="end">3</text><rect class="s-fill" x="50" y="37" width="28" height="24" rx="4"/><text class="s-t" x="64" y="53" text-anchor="middle">3</text><text class="s-ta" x="30" y="82" text-anchor="end">5</text><rect class="s-box" x="50" y="66" width="28" height="24" rx="4"/><text class="s-t" x="64" y="82" text-anchor="middle">3</text><rect class="s-fill" x="82" y="66" width="28" height="24" rx="4"/><text class="s-t" x="96" y="82" text-anchor="middle">5</text><text class="s-ta" x="30" y="111" text-anchor="end">3</text><rect class="s-box" x="50" y="95" width="28" height="24" rx="4"/><text class="s-t" x="64" y="111" text-anchor="middle">3</text><rect class="s-fill" x="82" y="95" width="28" height="24" rx="4"/><text class="s-t" x="96" y="111" text-anchor="middle">5</text><text class="s-ta" x="30" y="140" text-anchor="end">6</text><rect class="s-box" x="50" y="124" width="28" height="24" rx="4"/><text class="s-t" x="64" y="140" text-anchor="middle">3</text><rect class="s-box" x="82" y="124" width="28" height="24" rx="4"/><text class="s-t" x="96" y="140" text-anchor="middle">5</text><rect class="s-fill" x="114" y="124" width="28" height="24" rx="4"/><text class="s-t" x="128" y="140" text-anchor="middle">6</text><text class="s-ta" x="30" y="169" text-anchor="end">2</text><rect class="s-box" x="50" y="153" width="28" height="24" rx="4"/><text class="s-t" x="64" y="169" text-anchor="middle">2</text><rect class="s-box" x="82" y="153" width="28" height="24" rx="4"/><text class="s-t" x="96" y="169" text-anchor="middle">5</text><rect class="s-fill" x="114" y="153" width="28" height="24" rx="4"/><text class="s-t" x="128" y="169" text-anchor="middle">6</text><text class="s-ta" x="30" y="198" text-anchor="end">9</text><rect class="s-box" x="50" y="182" width="28" height="24" rx="4"/><text class="s-t" x="64" y="198" text-anchor="middle">2</text><rect class="s-box" x="82" y="182" width="28" height="24" rx="4"/><text class="s-t" x="96" y="198" text-anchor="middle">5</text><rect class="s-box" x="114" y="182" width="28" height="24" rx="4"/><text class="s-t" x="128" y="198" text-anchor="middle">6</text><rect class="s-fill" x="146" y="182" width="28" height="24" rx="4"/><text class="s-t" x="160" y="198" text-anchor="middle">9</text><text class="s-ta" x="30" y="227" text-anchor="end">8</text><rect class="s-box" x="50" y="211" width="28" height="24" rx="4"/><text class="s-t" x="64" y="227" text-anchor="middle">2</text><rect class="s-box" x="82" y="211" width="28" height="24" rx="4"/><text class="s-t" x="96" y="227" text-anchor="middle">5</text><rect class="s-box" x="114" y="211" width="28" height="24" rx="4"/><text class="s-t" x="128" y="227" text-anchor="middle">6</text><rect class="s-fill" x="146" y="211" width="28" height="24" rx="4"/><text class="s-t" x="160" y="227" text-anchor="middle">8</text></svg>
+          <figcaption>Sample 7 3 5 3 6 2 9 8: tails after each element. Final size 4.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>it == dp.end()</code> means <code>a[i]</code> beats every tail and extends the longest run; otherwise it lowers an existing tail. <code>dp</code> is not an actual subsequence &mdash; only its size is meaningful.</p>
+        <div class="src-meta"><span class="path">dp/Increasing_Subsequence.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+// ll rec(ll i , ll prev)
+// {
+//     // this returns the length of the longest increasing subsequence from index i to n - 1 with previous element as prev
+//     if(i == n) return 0 ;
+//     if(dp[i][p] != -1) return dp[i][prev] ;
+//     ll ans = rec(i + 1 , prev ) ;
+//     if(a[i] &gt; prev)
+//     {
+//         ans = max(ans , 1 + rec(i + 1 , a[i] ) ) ;
+//     }
+//     return dp[i][prev] = ans ;
+//     // but this would take O(n^2) time and O(n^2) space which is not feasible for n = 2 * 10^5
+// }
+
+void solve() 
+{
+    
+   ll n ; 
+   cin &gt;&gt; n ; 
+   vector &lt;ll&gt; a(n) ;
+   for(ll i = 0 ; i &lt; n ; i++)
+   {
+        cin &gt;&gt; a[i] ;
+   }
+   vector &lt;ll&gt; dp ;
+   // dp [k] is smallest value that can be the last element of an increasing subsequence of length k + 1
+   for(ll i = 0 ; i &lt; n ; i++)
+   {
+        auto it = lower_bound(dp.begin() , dp.end() , a[i] ) ;
+        // this returns the first element in dp which is greater than or equal to a[i]
+        // if there is no such element then it returns dp.end()
+        // if there is such an element that is greater than or equal to a[i] then we can replace that element with a[i] to get a better increasing subsequence
+        if(it == dp.end())
+        {
+            dp.push_back(a[i]) ;
+        }
+        else 
+        {
+            *it = a[i] ;
+        }
+
+   }
+   cout &lt;&lt; dp.size() &lt;&lt; endl ;
+    // LIS IN NlogN time complexity
+    
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong><code>upper_bound</code> computes the longest <em>non-decreasing</em> subsequence. The sample has two 3s precisely to catch that.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"longest increasing subsequence, n ~ 10⁵" &rarr; tails array + lower_bound.</div>
+    </article>
+    <article class="entry" id="projects">
+      <div class="entry-head"><h3>Projects</h3><span class="badge num">O(n log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Projects <code>[s, e]</code> with reward <code>m</code>; days inclusive, at most one project per day. Max total reward.<div class="formal">sorted by start;  dp[i] = best from projects i..n−1</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Sort by start: taking project <code>i</code> jumps to the first project starting after <code>e<sub>i</sub></code>; everything in between overlaps it or is skipped.</li>
+          <li>Starts are sorted &rArr; that jump target is a binary search.</li>
+          <li>Days are inclusive: the next start must be <code>&gt; e</code>, not <code>≥ e</code>.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">For each project, scan all later ones for compatibility.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n²)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 2·10⁵</code> &rarr; 4·10¹⁰; days up to 10⁹ rule out a day-indexed table.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Sort + <code>next[i]</code> by binary search + 1-D DP: <span class="cost">O(n log n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 380 150" role="img" aria-label="Projects timeline"><rect class="s-good" x="60" y="14" width="116" height="22" rx="4"/><text class="s-tm" x="118" y="29" text-anchor="middle">2–4: 4</text><rect class="s-box" x="100" y="42" width="156" height="22" rx="4"/><text class="s-tm" x="178" y="57" text-anchor="middle">3–6: 6</text><rect class="s-good" x="180" y="70" width="116" height="22" rx="4"/><text class="s-tm" x="238" y="85" text-anchor="middle">5–7: 3</text><rect class="s-box" x="220" y="98" width="116" height="22" rx="4"/><text class="s-tm" x="278" y="113" text-anchor="middle">6–8: 2</text><text class="s-td" x="80" y="140" text-anchor="middle">1</text><text class="s-td" x="120" y="140" text-anchor="middle">2</text><text class="s-td" x="160" y="140" text-anchor="middle">3</text><text class="s-td" x="200" y="140" text-anchor="middle">4</text><text class="s-td" x="240" y="140" text-anchor="middle">5</text><text class="s-td" x="280" y="140" text-anchor="middle">6</text><text class="s-td" x="320" y="140" text-anchor="middle">7</text><text class="s-td" x="360" y="140" text-anchor="middle">8</text></svg>
+          <figcaption>Sample: take [2,4] and jump past day 4 to [5,7]. 4 + 3 = 7 beats [3,6] alone.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>next[i]</code> is computed by a hand-rolled binary search over <code>[i+1, n&minus;1]</code> with default <code>n</code>. The DP then runs right to left; <code>dp[n] = 0</code> absorbs "no next project".</p>
+        <div class="src-meta"><span class="path">dp/Projects.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+// ll rec(ll i )
+// {
+//     // this returns the maximum amount of money that can be earned from project i to n - 1 if you have already completed all projects before i
+//     if(i == n) return 0 ;
+//     if(dp[i] != -1) return dp[i] ;
+//     ll ans = rec(i + 1 ) ;
+//     ll ans = max(ans , p[i] + rec(next[i] ) ) ;
+//     // here next[i] is the index of the next project that can be attended after project i; that is the first project whose starting day is greater than the ending day of project i
+//     return dp[i] = ans ;
+// }
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ;
+    vector &lt;pair&lt;pll,ll&gt;&gt; p(n) ;
+    for(ll i = 0 ; i &lt; n ; i++)
+    {
+        ll s , e , m ; 
+        cin &gt;&gt; s &gt;&gt; e &gt;&gt; m ;
+        p[i] = {{s , e} , m } ;
+    }
+    sort(p.begin() , p.end() , [&amp;](const pair&lt;pll,ll&gt; &amp;a , const pair&lt;pll,ll&gt; &amp;b)
+    {
+        ll as = a.fr.fr , ae = a.fr.sc , am = a.sc ;
+        ll bs = b.fr.fr , be = b.fr.sc , bm = b.sc ;
+        if(as == bs) return ae &lt; be ;
+        return as &lt; bs ;
+    }) ;
+    vector &lt;ll&gt; next(n + 1 , n ) ;
+    for(ll i = n ; i &gt;= 0 ; i--)
+    {
+        if(i == n)
+        {
+            next[i] = n ;
+            continue ;
+        }
+        ll s = p[i].fr.fr , e = p[i].fr.sc , m = p[i].sc ;
+        ll lo = i + 1 , hi = n - 1  , ans = n ;
+        while(lo &lt;= hi)
+        {
+            ll mid = lo + (hi - lo) / 2 ;
+            ll ms = p[mid].fr.fr , me = p[mid].fr.sc , mm = p[mid].sc ;
+            if(ms &gt; e)
+            {
+                ans = mid ; 
+                hi = mid - 1 ;
+            }
+            else 
+            {
+                lo = mid + 1 ;
+            }
+        }
+        next[i] = ans ;
+        
+    }
+    vector &lt;ll&gt; dp(n + 1 , 0 ) ;
+    for(ll i = n ; i &gt;= 0 ; i--)
+    {
+        if(i == n)
+        {
+            dp[i] = 0 ;
+            continue ;
+        }
+        ll ans = dp[i + 1] ;
+        ans = max(ans , p[i].sc + dp[next[i]] ) ;
+        dp[i] = ans ;
+    }
+    cout &lt;&lt; dp[0] &lt;&lt; endl ;
+
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong><code>ms &gt; e</code> is strict because day <code>e</code> is still occupied. With <code>&gt;=</code>, <code>[2,4]</code> and <code>[4,6]</code> would wrongly both be taken.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"weighted interval scheduling" &rarr; sort, binary-search the next compatible interval, take/skip DP.</div>
+    </article>
+  </section>
+
+  <section class="family" id="f4">
+    <div class="family-head"><h2>4 &middot; Bitmask subsets</h2></div>
+    <p class="family-note">n ≤ 20: the state is the set of items already placed.</p>
+    <article class="entry" id="elevator-rides">
+      <div class="entry-head"><h3>Elevator Rides</h3><span class="badge num">O(2ⁿ·n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask"><code>n</code> people with weights, elevator capacity <code>x</code>. Fewest rides to carry everyone.<div class="formal">dp[mask] = lexicographic min (rides, weight in the open ride)</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li><code>n ≤ 20</code> &rArr; 2²⁰ ≈ 10⁶ subsets; the state is "who has already ridden".</li>
+          <li>For a fixed ride count, a lighter open ride is never worse &rArr; compare pairs lexicographically.</li>
+          <li>Add person <code>i</code> last: fits &rarr; same rides, heavier; else &rarr; one more ride holding just <code>w<sub>i</sub></code>.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Try every order of people, fill rides greedily.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n! · n)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n = 20</code> &rarr; 20! ≈ 2.4·10¹⁸.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Order only matters through the set used so far: <span class="cost">2ⁿ · n ≈ 2·10⁷</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 100" role="img" aria-label="Elevator rides sample"><text class="s-td" x="8" y="14">x = 10, weights 4 8 6 1</text><rect class="s-good" x="20" y="28" width="36" height="30" rx="4"/><text class="s-t" x="38" y="47" text-anchor="middle">4</text><rect class="s-good" x="60" y="28" width="36" height="30" rx="4"/><text class="s-t" x="78" y="47" text-anchor="middle">6</text><text class="s-td" x="60" y="78" text-anchor="middle">ride 1: 10</text><rect class="s-fill" x="160" y="28" width="36" height="30" rx="4"/><text class="s-t" x="178" y="47" text-anchor="middle">8</text><rect class="s-fill" x="200" y="28" width="36" height="30" rx="4"/><text class="s-t" x="218" y="47" text-anchor="middle">1</text><text class="s-td" x="200" y="78" text-anchor="middle">ride 2: 9</text></svg>
+          <figcaption>Two rides suffice; dp[1111] = (2, …).</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Base <code>dp[0] = {1, 0}</code>: one empty open ride. Masks ascend, and <code>mask ^ (1 &lt;&lt; i)</code> is always smaller, so it is ready. The tie-break <code>cand.sc &lt; ans.sc</code> is the whole trick.</p>
+        <div class="src-meta"><span class="path">dp/Elevator_Rides.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+// pll rec(ll mask)
+// {
+//     // this returns the minimum number of rides needed to take all people in mask and the weight of the last ride ( the last ride is the ride where we take the least wieght so that we can take more people in the last ride later)
+//     if(mask == 0) return {1 , 0 } ;
+//     if(dp[mask] != -1) return dp[mask] ;
+//     pll ans = { n + 1 , 0 } ;
+//     for(ll i = 0 ; i &lt; n ; i++)
+//     {
+//         if(mask &amp; (1 &lt;&lt; i))
+//         {
+//             pll prev = rec(mask ^ (1 &lt;&lt; i) ) ;
+//             pll cand ;
+//             ll rides = prev.fr , weight = prev.sc 
+//             if(weight + w[i] &lt;= x)
+//             {
+//                 cand = { rides , weight + w[i] } ;
+//             }
+//             else 
+//             {
+//                 cand = { rides + 1 , w[i] } ;
+//             }
+//             if(cand.fr &lt; ans.fr || (cand.fr == ans.fr &amp;&amp; cand.sc &lt; ans.sc))
+//             {
+//                 ans = cand ;
+//             }
+
+//         }
+//         dp[mask] = ans ;
+
+//     }
+    
+// }
+void solve() 
+{
+    ll n , x ; 
+    cin &gt;&gt; n &gt;&gt; x ; 
+    vector &lt;ll&gt; w(n) ;
+    for(ll i = 0 ; i &lt; n ; i++)
+    {
+        cin &gt;&gt; w[i] ;
+    }
+    vector &lt; pll &gt; dp(1 &lt;&lt; n , {n + 1 , 0 }) ;
+    // dp[mask] = {rides , weight} where rides is the minimum number of rides needed to take all people in mask and weight is the weight of the last ride ( the last ride is the ride where we take the least wieght so that we can take more people in the last ride later)
+    for(ll mask = 0 ; mask &lt; (1 &lt;&lt; n) ; mask++)
+    {
+        if(mask == 0)
+        {
+            dp[mask] = {1 , 0 } ;
+            continue ;
+        }
+        pll ans = { n + 1 , 0 } ;
+        for(ll i = 0 ; i &lt; n ; i++)
+        {
+            if(mask &amp; (1 &lt;&lt; i))
+            {
+                pll prev = dp[mask ^ (1 &lt;&lt; i) ] ;
+                pll cand ;
+                ll rides = prev.fr , weight = prev.sc ;
+                if(weight + w[i] &lt;= x)
+                {
+                    cand = { rides , weight + w[i] } ;
+                }
+                else 
+                {
+                    cand = { rides + 1 , w[i] } ;
+                }
+                if(cand.fr &lt; ans.fr || (cand.fr == ans.fr &amp;&amp; cand.sc &lt; ans.sc))
+                {
+                    ans = cand ;
+                }
+            }
+        }
+        dp[mask] = ans ;
+    }
+    cout &lt;&lt; dp[(1 &lt;&lt; n) - 1].fr &lt;&lt; endl ;
+
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Minimising rides alone (ignoring the open ride's weight) loses the information needed for the next person and gives wrong answers.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"n ≤ 20, partition people/items into capacity-bounded groups" &rarr; bitmask DP with (groups, last load).</div>
+    </article>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+  <div class="excluded">
+    <h4>Excluded from this ledger</h4>
+    <ul>
+      <li>Nothing excluded.</li>
+    </ul>
+  </div>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/dp_2_tables_intervals.js"></script>
+</body>
+</html>

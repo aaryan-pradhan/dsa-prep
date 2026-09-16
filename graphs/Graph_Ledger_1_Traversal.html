@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Traversal &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<body data-base=".." data-slug="graphs_1_traversal">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; Graphs</div>
+  <h1>Traversal</h1>
+  <p class="dek">Plain BFS and DFS over explicit or implicit graphs. BFS when the question is distance in edges; DFS when it is structure (components, colours, cycles). Most of the work is in what is stored per vertex.</p>
+  <p class="stats"><b>9</b> problems &middot; <b>3</b> families</p>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <a href="#recognition">Recognition rules</a>
+  <div class="toc-fam"><a href="#f1">1 &middot; Flood fill</a></div>
+  <div class="toc-fam"><a href="#f2">2 &middot; BFS + parent</a></div>
+  <div class="toc-fam"><a href="#f3">3 &middot; DFS colouring / cycles</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recognition">
+    <div class="section-head"><h2>Recognition rules</h2>
+      <p>The judgment calls that separate these problems from each other.</p></div>
+    <div class="rules">
+      <div class="rule"><span class="n">1</span>
+        <p>Question asks for a count of regions or pieces &rarr; count flood-fill launches: Counting Rooms, Building Roads.</p></div>
+      <div class="rule"><span class="n">2</span>
+        <p>Unweighted "fewest steps" &rarr; BFS; "print the route" &rarr; parent array + reverse: Message Route, Labyrinth, Monsters.</p></div>
+      <div class="rule"><span class="n">3</span>
+        <p>Several simultaneous starts &rarr; one BFS seeded with all of them: Monsters (all <code>M</code>); Frog Minimum Jumps replaces the queue entirely because layers are intervals.</p></div>
+      <div class="rule"><span class="n">4</span>
+        <p>Undirected cycle &rarr; skip the parent; directed cycle &rarr; gray/black states, and do <em>not</em> skip the parent: Round Trip vs Round Trip II.</p></div>
+      <div class="rule"><span class="n">5</span>
+        <p>Constraint between endpoints of every edge &rarr; propagate a label along DFS and fail on contradiction: Building Teams (colours), Round Trip (open/closed).</p></div>
+    </div>
+  </section>
+
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1 &middot; Flood fill</h2></div>
+    <p class="family-note">Label connected components; the answer is a count or a function of the count.</p>
+    <article class="entry" id="counting-rooms">
+      <div class="entry-head"><h3>Counting Rooms</h3><span class="badge num">O(n·m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Count 4-connected components of <code>.</code> cells in an <code>n × m</code> grid.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>A room is a connected component of the implicit grid graph.</li>
+          <li>Each DFS launched from an unvisited floor cell marks exactly one whole room.</li>
+          <li>Every cell is visited once &rArr; linear in the grid size.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">For every pair of floor cells, test connectivity.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O((nm)²)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n, m ≤ 1000</code> &rarr; 10⁶ cells, 10¹² pairs.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">One flood fill per component, marking as you go: <span class="cost">O(n·m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 220 130" role="img" aria-label="Counting rooms sample"><rect class="s-fill" x="20" y="10" width="18" height="18" rx="4"/><text class="s-t" x="29" y="23" text-anchor="middle">#</text><rect class="s-fill" x="42" y="10" width="18" height="18" rx="4"/><text class="s-t" x="51" y="23" text-anchor="middle">#</text><rect class="s-fill" x="64" y="10" width="18" height="18" rx="4"/><text class="s-t" x="73" y="23" text-anchor="middle">#</text><rect class="s-fill" x="86" y="10" width="18" height="18" rx="4"/><text class="s-t" x="95" y="23" text-anchor="middle">#</text><rect class="s-fill" x="108" y="10" width="18" height="18" rx="4"/><text class="s-t" x="117" y="23" text-anchor="middle">#</text><rect class="s-fill" x="130" y="10" width="18" height="18" rx="4"/><text class="s-t" x="139" y="23" text-anchor="middle">#</text><rect class="s-fill" x="152" y="10" width="18" height="18" rx="4"/><text class="s-t" x="161" y="23" text-anchor="middle">#</text><rect class="s-fill" x="174" y="10" width="18" height="18" rx="4"/><text class="s-t" x="183" y="23" text-anchor="middle">#</text><rect class="s-fill" x="20" y="32" width="18" height="18" rx="4"/><text class="s-t" x="29" y="45" text-anchor="middle">#</text><rect class="s-good" x="42" y="32" width="18" height="18" rx="4"/><text class="s-t" x="51" y="45" text-anchor="middle"></text><rect class="s-good" x="64" y="32" width="18" height="18" rx="4"/><text class="s-t" x="73" y="45" text-anchor="middle"></text><rect class="s-fill" x="86" y="32" width="18" height="18" rx="4"/><text class="s-t" x="95" y="45" text-anchor="middle">#</text><rect class="s-hi" x="108" y="32" width="18" height="18" rx="4"/><text class="s-t" x="117" y="45" text-anchor="middle"></text><rect class="s-hi" x="130" y="32" width="18" height="18" rx="4"/><text class="s-t" x="139" y="45" text-anchor="middle"></text><rect class="s-hi" x="152" y="32" width="18" height="18" rx="4"/><text class="s-t" x="161" y="45" text-anchor="middle"></text><rect class="s-fill" x="174" y="32" width="18" height="18" rx="4"/><text class="s-t" x="183" y="45" text-anchor="middle">#</text><rect class="s-fill" x="20" y="54" width="18" height="18" rx="4"/><text class="s-t" x="29" y="67" text-anchor="middle">#</text><rect class="s-fill" x="42" y="54" width="18" height="18" rx="4"/><text class="s-t" x="51" y="67" text-anchor="middle">#</text><rect class="s-fill" x="64" y="54" width="18" height="18" rx="4"/><text class="s-t" x="73" y="67" text-anchor="middle">#</text><rect class="s-fill" x="86" y="54" width="18" height="18" rx="4"/><text class="s-t" x="95" y="67" text-anchor="middle">#</text><rect class="s-hi" x="108" y="54" width="18" height="18" rx="4"/><text class="s-t" x="117" y="67" text-anchor="middle"></text><rect class="s-fill" x="130" y="54" width="18" height="18" rx="4"/><text class="s-t" x="139" y="67" text-anchor="middle">#</text><rect class="s-hi" x="152" y="54" width="18" height="18" rx="4"/><text class="s-t" x="161" y="67" text-anchor="middle"></text><rect class="s-fill" x="174" y="54" width="18" height="18" rx="4"/><text class="s-t" x="183" y="67" text-anchor="middle">#</text><rect class="s-fill" x="20" y="76" width="18" height="18" rx="4"/><text class="s-t" x="29" y="89" text-anchor="middle">#</text><rect class="s-warn" x="42" y="76" width="18" height="18" rx="4"/><text class="s-t" x="51" y="89" text-anchor="middle"></text><rect class="s-warn" x="64" y="76" width="18" height="18" rx="4"/><text class="s-t" x="73" y="89" text-anchor="middle"></text><rect class="s-fill" x="86" y="76" width="18" height="18" rx="4"/><text class="s-t" x="95" y="89" text-anchor="middle">#</text><rect class="s-hi" x="108" y="76" width="18" height="18" rx="4"/><text class="s-t" x="117" y="89" text-anchor="middle"></text><rect class="s-hi" x="130" y="76" width="18" height="18" rx="4"/><text class="s-t" x="139" y="89" text-anchor="middle"></text><rect class="s-hi" x="152" y="76" width="18" height="18" rx="4"/><text class="s-t" x="161" y="89" text-anchor="middle"></text><rect class="s-fill" x="174" y="76" width="18" height="18" rx="4"/><text class="s-t" x="183" y="89" text-anchor="middle">#</text><rect class="s-fill" x="20" y="98" width="18" height="18" rx="4"/><text class="s-t" x="29" y="111" text-anchor="middle">#</text><rect class="s-fill" x="42" y="98" width="18" height="18" rx="4"/><text class="s-t" x="51" y="111" text-anchor="middle">#</text><rect class="s-fill" x="64" y="98" width="18" height="18" rx="4"/><text class="s-t" x="73" y="111" text-anchor="middle">#</text><rect class="s-fill" x="86" y="98" width="18" height="18" rx="4"/><text class="s-t" x="95" y="111" text-anchor="middle">#</text><rect class="s-fill" x="108" y="98" width="18" height="18" rx="4"/><text class="s-t" x="117" y="111" text-anchor="middle">#</text><rect class="s-fill" x="130" y="98" width="18" height="18" rx="4"/><text class="s-t" x="139" y="111" text-anchor="middle">#</text><rect class="s-fill" x="152" y="98" width="18" height="18" rx="4"/><text class="s-t" x="161" y="111" text-anchor="middle">#</text><rect class="s-fill" x="174" y="98" width="18" height="18" rx="4"/><text class="s-t" x="183" y="111" text-anchor="middle">#</text></svg>
+          <figcaption>Sample: three rooms (two highlighted shades plus the ring on the right).</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>vis[x][y]</code> stores the room id <code>c</code>, and the answer is read back as the maximum id &mdash; equivalent to just printing <code>c</code>. Neighbours are pruned on bounds, visited and wall before recursing.</p>
+        <div class="src-meta"><span class="path">graphs/Counting_Rooms.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll dx[] = {0, 0, 1, -1};
+ll dy[] = {1, -1, 0, 0};
+vector&lt;vector&lt;ll&gt;&gt; vis;
+vector&lt;string&gt; v;
+ll c = 0 ; 
+void dfs(ll x, ll y, ll n, ll m)
+{
+    vis[x][y] = c;
+    for(ll i = 0 ; i &lt; 4 ; i++)
+    {
+        ll nx = x + dx[i];
+        ll ny = y + dy[i];
+        if(nx &gt;= 0 &amp;&amp; nx &lt; n &amp;&amp; ny &gt;= 0 &amp;&amp; ny &lt; m &amp;&amp; !vis[nx][ny] &amp;&amp; v[nx][ny] == '.')
+        {
+            dfs(nx, ny, n, m);
+        }
+    }
+}
+void solve() 
+{
+    ll n ,m;
+    cin &gt;&gt; n &gt;&gt; m;
+    vis.resize(n, vector&lt;ll&gt;(m, 0));
+    v.resize(n);
+    for(ll i = 0 ; i &lt; n ; i++)
+    {
+        cin &gt;&gt; v[i];
+    }
+
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        for(ll j = 0 ; j &lt; m ; j++)
+        {
+            if(!vis[i][j] &amp;&amp; v[i][j] == '.')
+            {
+                c++;
+                dfs(i, j, n, m);
+            }
+        }
+    }
+    ll maxi = 0 ;
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        for(ll j = 0 ; j &lt; m ; j++)
+        {
+            maxi = max(maxi, vis[i][j]);
+        }
+    }
+    cout &lt;&lt; maxi &lt;&lt; endl;
+
+
+
+   
+
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Recursive DFS on a 1000 × 1000 open floor goes ~10⁶ frames deep. It passes CSES's stack, but a BFS queue is the safe default elsewhere.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"count regions / islands / rooms in a grid" &rarr; flood fill, count launches.</div>
+    </article>
+    <article class="entry" id="building-roads">
+      <div class="entry-head"><h3>Building Roads</h3><span class="badge num">O(n+m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Add the fewest roads to make an undirected graph connected, and list them.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Each new road can merge at most two components &rArr; at least <code>k &minus; 1</code> roads.</li>
+          <li><code>k &minus; 1</code> suffice: chain one representative of each component to the next.</li>
+          <li>Any vertex is a valid representative.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Try adding edges between arbitrary pairs until connected.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n²) checks</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code> &rarr; 10¹⁰ candidate pairs.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Label components once, chain representatives: <span class="cost">O(n + m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 90" role="img" aria-label="Building roads sample"><path class="s-edge" d="M54 30 L96 30"/><path class="s-edge" d="M204 30 L246 30"/><path class="s-hi" d="M54 30 L176 30"/><circle class="s-box" cx="40" cy="30" r="14"/><text class="s-t" x="40" y="34" text-anchor="middle">1</text><circle class="s-box" cx="110" cy="30" r="14"/><text class="s-t" x="110" y="34" text-anchor="middle">2</text><circle class="s-box" cx="190" cy="30" r="14"/><text class="s-t" x="190" y="34" text-anchor="middle">3</text><circle class="s-box" cx="260" cy="30" r="14"/><text class="s-t" x="260" y="34" text-anchor="middle">4</text><text class="s-ta" x="150" y="78" text-anchor="middle">add 1–3</text></svg>
+          <figcaption>Two components; one road joining any vertex of each is enough.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">DFS labels every vertex with component id <code>col</code>. <code>comp[c][0]</code> is the smallest vertex of component <code>c</code>, and consecutive components are linked.</p>
+        <div class="src-meta"><span class="path">graphs/Building_Roads.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+vector&lt;vector&lt;ll&gt;&gt; g ; 
+vector&lt;ll&gt; vis ;
+ll n , m ;
+ll col = 0 ; 
+void dfs(ll node)
+{
+    vis[node] = col ;
+    for(auto child : g[node])
+    {
+        if(!vis[child] )
+        {
+            dfs(child) ;
+        }
+    }
+}
+void solve() 
+{
+    cin &gt;&gt; n &gt;&gt; m ;
+    g.resize(n + 1) ;
+    vis.resize(n + 1, 0) ;
+    for(ll i = 0 ; i &lt; m ; i++)
+    {
+        ll x , y ;
+        cin &gt;&gt; x &gt;&gt; y ;
+        g[x].push_back(y) ;
+        g[y].push_back(x) ;
+    } 
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(vis[i] == 0)
+        {
+            col++ ; 
+            dfs(i) ;
+        }
+    }
+    cout &lt;&lt; col - 1 &lt;&lt; endl ;
+    vector &lt; vector &lt; ll &gt; &gt; comp(col+1) ; 
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        comp[vis[i]].push_back(i) ;
+    }
+    for(ll i = 1 ; i &lt; col ; i++)
+    {
+        cout &lt;&lt; comp[i][0] &lt;&lt; " " &lt;&lt; comp[i+1][0] &lt;&lt; endl ;
+    }
+
+
+
+
+
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Output differs from the CSES sample (<code>1 3</code> vs <code>2 3</code>) and is still accepted &mdash; any representative works. Don't "fix" it to match.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"minimum edges to make connected" &rarr; count components, answer k &minus; 1.</div>
+    </article>
+  </section>
+
+  <section class="family" id="f2">
+    <div class="family-head"><h2>2 &middot; BFS + parent</h2></div>
+    <p class="family-note">Shortest path in edges, with a parent pointer per vertex to rebuild the route.</p>
+    <article class="entry" id="message-route">
+      <div class="entry-head"><h3>Message Route</h3><span class="badge num">O(n+m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Fewest computers on a path from 1 to n in an unweighted undirected graph, and the path itself.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Unweighted &rArr; BFS layers are distances.</li>
+          <li>The first time a vertex is discovered is via a shortest path; record that parent.</li>
+          <li>Walk <code>par</code> back from <code>n</code> and reverse.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">DFS all simple paths, keep the shortest.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">exponential</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>, <code>m ≤ 2·10⁵</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">BFS: <span class="cost">O(n + m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 130" role="img" aria-label="Message route sample"><path class="s-edge" d="M53 54 L107 26"/><path class="s-edge" d="M53 66 L107 94"/><path class="s-hi" d="M54 60 L176 60"/><path class="s-edge" d="M120 34 L120 86"/><path class="s-hi" d="M246 60 L204 60"/><circle class="s-good" cx="40" cy="60" r="14"/><text class="s-t" x="40" y="64" text-anchor="middle">1</text><circle class="s-box" cx="120" cy="20" r="14"/><text class="s-t" x="120" y="24" text-anchor="middle">2</text><circle class="s-box" cx="120" cy="100" r="14"/><text class="s-t" x="120" y="104" text-anchor="middle">3</text><circle class="s-box" cx="190" cy="60" r="14"/><text class="s-t" x="190" y="64" text-anchor="middle">4</text><circle class="s-good" cx="260" cy="60" r="14"/><text class="s-t" x="260" y="64" text-anchor="middle">5</text></svg>
+          <figcaption>1 &rarr; 4 &rarr; 5: three computers.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>vis</code> is set on push, not pop, so each vertex enters the queue once. <code>par[1] = -1</code> terminates the reconstruction loop.</p>
+        <div class="src-meta"><span class="path">graphs/Message_Route.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "IMPOSSIBLE" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ;
+    vector&lt;vector&lt;ll&gt;&gt; g(n + 1) ; 
+    for(ll i = 0 ; i &lt; m ; i++)
+    {
+        ll x , y ;
+        cin &gt;&gt; x &gt;&gt; y ;
+        g[x].push_back(y) ;
+        g[y].push_back(x) ;
+    }
+    vector&lt;ll&gt; vis(n + 1, 0) ; 
+    vector&lt;ll&gt; par(n + 1, -1) ; 
+    queue&lt;ll&gt; q ; 
+    q.push(1) ; 
+    vis[1] = 1 ;
+    while(!q.empty())
+    {
+        ll node = q.front() ; 
+        q.pop() ; 
+        
+        for(auto child : g[node])
+        {
+            if(!vis[child])
+            {
+                vis[child] = 1 ;
+                par[child] = node ; 
+                q.push(child) ; 
+
+            }
+        }
+    }
+    if(!vis[n])
+    {
+        pn ; 
+        return ;    
+    }
+    else 
+    {
+        vector&lt;ll&gt; ans ; 
+        ll node = n ; 
+        while(node != -1)
+        {
+            ans.push_back(node) ; 
+            node = par[node] ; 
+        }
+        reverse(ans.begin(), ans.end()) ; 
+        cout &lt;&lt; ans.size() &lt;&lt; endl ; 
+        for(auto x : ans)
+        {
+            cout &lt;&lt; x &lt;&lt; " " ; 
+        }
+        cout &lt;&lt; endl ;
+    }
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Marking visited on pop lets a vertex be queued many times; the path is still shortest but the queue can blow up to O(m).</div>
+      <div class="callout trigger"><strong>Recognize</strong>"fewest hops / minimum stops, print the route" &rarr; BFS with parent array.</div>
+    </article>
+    <article class="entry" id="labyrinth">
+      <div class="entry-head"><h3>Labyrinth</h3><span class="badge num">O(n·m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Shortest path from <code>A</code> to <code>B</code> in a grid with walls; print length and moves.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Grid BFS: cells are vertices, 4 neighbours are edges.</li>
+          <li>Store each cell's parent; the move letter is the difference between cell and parent.</li>
+          <li>Reconstruction runs from B to A, so the string must be reversed.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">DFS over all paths.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">exponential</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n, m ≤ 1000</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">BFS with parents: <span class="cost">O(n·m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 220 130" role="img" aria-label="Labyrinth sample"><rect class="s-fill" x="20" y="10" width="18" height="18" rx="4"/><text class="s-t" x="29" y="23" text-anchor="middle">#</text><rect class="s-fill" x="42" y="10" width="18" height="18" rx="4"/><text class="s-t" x="51" y="23" text-anchor="middle">#</text><rect class="s-fill" x="64" y="10" width="18" height="18" rx="4"/><text class="s-t" x="73" y="23" text-anchor="middle">#</text><rect class="s-fill" x="86" y="10" width="18" height="18" rx="4"/><text class="s-t" x="95" y="23" text-anchor="middle">#</text><rect class="s-fill" x="108" y="10" width="18" height="18" rx="4"/><text class="s-t" x="117" y="23" text-anchor="middle">#</text><rect class="s-fill" x="130" y="10" width="18" height="18" rx="4"/><text class="s-t" x="139" y="23" text-anchor="middle">#</text><rect class="s-fill" x="152" y="10" width="18" height="18" rx="4"/><text class="s-t" x="161" y="23" text-anchor="middle">#</text><rect class="s-fill" x="174" y="10" width="18" height="18" rx="4"/><text class="s-t" x="183" y="23" text-anchor="middle">#</text><rect class="s-fill" x="20" y="32" width="18" height="18" rx="4"/><text class="s-t" x="29" y="45" text-anchor="middle">#</text><rect class="s-good" x="42" y="32" width="18" height="18" rx="4"/><text class="s-t" x="51" y="45" text-anchor="middle"></text><rect class="s-box" x="64" y="32" width="18" height="18" rx="4"/><text class="s-t" x="73" y="45" text-anchor="middle">A</text><rect class="s-fill" x="86" y="32" width="18" height="18" rx="4"/><text class="s-t" x="95" y="45" text-anchor="middle">#</text><rect class="s-box" x="108" y="32" width="18" height="18" rx="4"/><text class="s-t" x="117" y="45" text-anchor="middle"></text><rect class="s-box" x="130" y="32" width="18" height="18" rx="4"/><text class="s-t" x="139" y="45" text-anchor="middle"></text><rect class="s-box" x="152" y="32" width="18" height="18" rx="4"/><text class="s-t" x="161" y="45" text-anchor="middle"></text><rect class="s-fill" x="174" y="32" width="18" height="18" rx="4"/><text class="s-t" x="183" y="45" text-anchor="middle">#</text><rect class="s-fill" x="20" y="54" width="18" height="18" rx="4"/><text class="s-t" x="29" y="67" text-anchor="middle">#</text><rect class="s-good" x="42" y="54" width="18" height="18" rx="4"/><text class="s-t" x="51" y="67" text-anchor="middle"></text><rect class="s-fill" x="64" y="54" width="18" height="18" rx="4"/><text class="s-t" x="73" y="67" text-anchor="middle">#</text><rect class="s-fill" x="86" y="54" width="18" height="18" rx="4"/><text class="s-t" x="95" y="67" text-anchor="middle">#</text><rect class="s-box" x="108" y="54" width="18" height="18" rx="4"/><text class="s-t" x="117" y="67" text-anchor="middle"></text><rect class="s-fill" x="130" y="54" width="18" height="18" rx="4"/><text class="s-t" x="139" y="67" text-anchor="middle">#</text><rect class="s-good" x="152" y="54" width="18" height="18" rx="4"/><text class="s-t" x="161" y="67" text-anchor="middle">B</text><rect class="s-fill" x="174" y="54" width="18" height="18" rx="4"/><text class="s-t" x="183" y="67" text-anchor="middle">#</text><rect class="s-fill" x="20" y="76" width="18" height="18" rx="4"/><text class="s-t" x="29" y="89" text-anchor="middle">#</text><rect class="s-good" x="42" y="76" width="18" height="18" rx="4"/><text class="s-t" x="51" y="89" text-anchor="middle"></text><rect class="s-good" x="64" y="76" width="18" height="18" rx="4"/><text class="s-t" x="73" y="89" text-anchor="middle"></text><rect class="s-good" x="86" y="76" width="18" height="18" rx="4"/><text class="s-t" x="95" y="89" text-anchor="middle"></text><rect class="s-good" x="108" y="76" width="18" height="18" rx="4"/><text class="s-t" x="117" y="89" text-anchor="middle"></text><rect class="s-good" x="130" y="76" width="18" height="18" rx="4"/><text class="s-t" x="139" y="89" text-anchor="middle"></text><rect class="s-good" x="152" y="76" width="18" height="18" rx="4"/><text class="s-t" x="161" y="89" text-anchor="middle"></text><rect class="s-fill" x="174" y="76" width="18" height="18" rx="4"/><text class="s-t" x="183" y="89" text-anchor="middle">#</text><rect class="s-fill" x="20" y="98" width="18" height="18" rx="4"/><text class="s-t" x="29" y="111" text-anchor="middle">#</text><rect class="s-fill" x="42" y="98" width="18" height="18" rx="4"/><text class="s-t" x="51" y="111" text-anchor="middle">#</text><rect class="s-fill" x="64" y="98" width="18" height="18" rx="4"/><text class="s-t" x="73" y="111" text-anchor="middle">#</text><rect class="s-fill" x="86" y="98" width="18" height="18" rx="4"/><text class="s-t" x="95" y="111" text-anchor="middle">#</text><rect class="s-fill" x="108" y="98" width="18" height="18" rx="4"/><text class="s-t" x="117" y="111" text-anchor="middle">#</text><rect class="s-fill" x="130" y="98" width="18" height="18" rx="4"/><text class="s-t" x="139" y="111" text-anchor="middle">#</text><rect class="s-fill" x="152" y="98" width="18" height="18" rx="4"/><text class="s-t" x="161" y="111" text-anchor="middle">#</text><rect class="s-fill" x="174" y="98" width="18" height="18" rx="4"/><text class="s-t" x="183" y="111" text-anchor="middle">#</text></svg>
+          <figcaption>Sample path LDDRRRRRU, length 9.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>dist = -INF</code> doubles as the unvisited marker. The letter is chosen by comparing parent to child: parent left of the cell &rArr; the move was <code>R</code>.</p>
+        <div class="src-meta"><span class="path">graphs/Labyrinth.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll dx[] = {0, 0, 1, -1};
+ll dy[] = {1, -1, 0, 0};
+void solve() 
+{
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ; 
+    vector&lt;vector&lt;ll&gt;&gt; dist(n, vector&lt;ll&gt;(m, -INF));
+    vector&lt;vector&lt;pll&gt;&gt; par(n, vector&lt;pll&gt;(m, mp(-1, -1)));
+    vector&lt;string&gt; a(n);
+
+    for(ll i = 0 ; i &lt; n ; i++)
+    {
+        cin &gt;&gt; a[i];
+    }
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        for(ll j = 0 ; j &lt; m ; j++)
+        {
+            if(a[i][j] == 'A')
+            {
+                queue&lt;pll&gt; q ;
+                q.push(mp(i, j));
+                dist[i][j] =  0; 
+                par[i][j] = mp(-1, -1) ;
+                while(!q.empty())
+                {
+                    pll p = q.front() ;
+                    q.pop() ;
+                    ll x = p.fr ;
+                    ll y = p.sc ;
+                    for(ll k = 0 ; k &lt; 4 ; k++)
+                    {
+                        ll nx = x + dx[k];
+                        ll ny = y + dy[k];
+                        if(nx &gt;= 0 &amp;&amp; nx &lt; n &amp;&amp; ny &gt;= 0 &amp;&amp; ny &lt; m &amp;&amp; dist[nx][ny] == -INF &amp;&amp; a[nx][ny] != '#')
+                        {
+                            dist[nx][ny] = dist[x][y] + 1;
+                            par[nx][ny] = mp(x, y) ; 
+                            q.push(mp(nx, ny));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    for(ll i = 0 ; i &lt; n ; i++)
+    {
+        for(ll j = 0 ; j &lt; m ; j++)
+        {
+            if(a[i][j] == 'B')
+            {
+                if(dist[i][j] == -INF)
+                {
+                    pn ; 
+                    return ;
+                }
+                else
+                {
+                    py ; 
+                    cout &lt;&lt; dist[i][j] &lt;&lt; endl ;
+                    ll cx = i ;
+                    ll cy = j ;
+                    string ans = "" ;
+
+                    while (a[cx][cy] != 'A')
+                    {
+                        ll parx = par[cx][cy].fr ;
+                        ll pary = par[cx][cy].sc ;
+                        if(parx == cx)
+                        {
+                            if(pary &lt; cy)
+                            {
+                                ans += 'R' ; 
+                            }
+                            else
+                            {
+                                ans += 'L' ; 
+                            }
+                        }
+                        else
+                        {
+                            if(parx &lt; cx)
+                            {
+                                ans += 'D' ; 
+                            }
+                            else
+                            {
+                                ans += 'U' ; 
+                            }
+                        }
+                        cx = parx ;
+                        cy = pary ;
+                    }
+
+                    reverse(ans.begin(), ans.end()) ;
+                    cout &lt;&lt; ans &lt;&lt; endl ;
+                }
+            }
+        }
+    }
+
+    
+
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The direction is from parent to child. Reading it child-to-parent flips every letter (L↔R, U↔D).</div>
+      <div class="callout trigger"><strong>Recognize</strong>"shortest path in a maze, print the moves" &rarr; grid BFS with parent cells.</div>
+    </article>
+    <article class="entry" id="monsters">
+      <div class="entry-head"><h3>Monsters</h3><span class="badge num">O(n·m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">You and monsters move simultaneously. Reach a border cell before any monster can; print the moves.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Monsters move optimally toward you &rArr; a cell is safe iff you arrive strictly before the nearest monster could.</li>
+          <li>All monsters at once = one multi-source BFS.</li>
+          <li>If the final border cell is safe, every earlier cell on your shortest path is too.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Simulate every step with every monster.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O((nm)² ) or worse</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n, m ≤ 1000</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Two BFS (monsters multi-source, you single-source), then scan the border: <span class="cost">O(n·m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 220 130" role="img" aria-label="Monsters sample"><rect class="s-fill" x="20" y="10" width="18" height="18" rx="4"/><text class="s-t" x="29" y="23" text-anchor="middle">#</text><rect class="s-fill" x="42" y="10" width="18" height="18" rx="4"/><text class="s-t" x="51" y="23" text-anchor="middle">#</text><rect class="s-fill" x="64" y="10" width="18" height="18" rx="4"/><text class="s-t" x="73" y="23" text-anchor="middle">#</text><rect class="s-fill" x="86" y="10" width="18" height="18" rx="4"/><text class="s-t" x="95" y="23" text-anchor="middle">#</text><rect class="s-fill" x="108" y="10" width="18" height="18" rx="4"/><text class="s-t" x="117" y="23" text-anchor="middle">#</text><rect class="s-fill" x="130" y="10" width="18" height="18" rx="4"/><text class="s-t" x="139" y="23" text-anchor="middle">#</text><rect class="s-fill" x="152" y="10" width="18" height="18" rx="4"/><text class="s-t" x="161" y="23" text-anchor="middle">#</text><rect class="s-fill" x="174" y="10" width="18" height="18" rx="4"/><text class="s-t" x="183" y="23" text-anchor="middle">#</text><rect class="s-fill" x="20" y="32" width="18" height="18" rx="4"/><text class="s-t" x="29" y="45" text-anchor="middle">#</text><rect class="s-warn" x="42" y="32" width="18" height="18" rx="4"/><text class="s-t" x="51" y="45" text-anchor="middle">M</text><rect class="s-box" x="64" y="32" width="18" height="18" rx="4"/><text class="s-t" x="73" y="45" text-anchor="middle"></text><rect class="s-box" x="86" y="32" width="18" height="18" rx="4"/><text class="s-t" x="95" y="45" text-anchor="middle"></text><rect class="s-good" x="108" y="32" width="18" height="18" rx="4"/><text class="s-t" x="117" y="45" text-anchor="middle">A</text><rect class="s-good" x="130" y="32" width="18" height="18" rx="4"/><text class="s-t" x="139" y="45" text-anchor="middle"></text><rect class="s-good" x="152" y="32" width="18" height="18" rx="4"/><text class="s-t" x="161" y="45" text-anchor="middle"></text><rect class="s-fill" x="174" y="32" width="18" height="18" rx="4"/><text class="s-t" x="183" y="45" text-anchor="middle">#</text><rect class="s-fill" x="20" y="54" width="18" height="18" rx="4"/><text class="s-t" x="29" y="67" text-anchor="middle">#</text><rect class="s-box" x="42" y="54" width="18" height="18" rx="4"/><text class="s-t" x="51" y="67" text-anchor="middle"></text><rect class="s-fill" x="64" y="54" width="18" height="18" rx="4"/><text class="s-t" x="73" y="67" text-anchor="middle">#</text><rect class="s-box" x="86" y="54" width="18" height="18" rx="4"/><text class="s-t" x="95" y="67" text-anchor="middle"></text><rect class="s-warn" x="108" y="54" width="18" height="18" rx="4"/><text class="s-t" x="117" y="67" text-anchor="middle">M</text><rect class="s-fill" x="130" y="54" width="18" height="18" rx="4"/><text class="s-t" x="139" y="67" text-anchor="middle">#</text><rect class="s-good" x="152" y="54" width="18" height="18" rx="4"/><text class="s-t" x="161" y="67" text-anchor="middle"></text><rect class="s-fill" x="174" y="54" width="18" height="18" rx="4"/><text class="s-t" x="183" y="67" text-anchor="middle">#</text><rect class="s-fill" x="20" y="76" width="18" height="18" rx="4"/><text class="s-t" x="29" y="89" text-anchor="middle">#</text><rect class="s-warn" x="42" y="76" width="18" height="18" rx="4"/><text class="s-t" x="51" y="89" text-anchor="middle">M</text><rect class="s-fill" x="64" y="76" width="18" height="18" rx="4"/><text class="s-t" x="73" y="89" text-anchor="middle">#</text><rect class="s-box" x="86" y="76" width="18" height="18" rx="4"/><text class="s-t" x="95" y="89" text-anchor="middle"></text><rect class="s-box" x="108" y="76" width="18" height="18" rx="4"/><text class="s-t" x="117" y="89" text-anchor="middle"></text><rect class="s-fill" x="130" y="76" width="18" height="18" rx="4"/><text class="s-t" x="139" y="89" text-anchor="middle">#</text><rect class="s-good" x="152" y="76" width="18" height="18" rx="4"/><text class="s-t" x="161" y="89" text-anchor="middle"></text><rect class="s-good" x="174" y="76" width="18" height="18" rx="4"/><text class="s-t" x="183" y="89" text-anchor="middle"></text><rect class="s-fill" x="20" y="98" width="18" height="18" rx="4"/><text class="s-t" x="29" y="111" text-anchor="middle">#</text><rect class="s-box" x="42" y="98" width="18" height="18" rx="4"/><text class="s-t" x="51" y="111" text-anchor="middle"></text><rect class="s-fill" x="64" y="98" width="18" height="18" rx="4"/><text class="s-t" x="73" y="111" text-anchor="middle">#</text><rect class="s-fill" x="86" y="98" width="18" height="18" rx="4"/><text class="s-t" x="95" y="111" text-anchor="middle">#</text><rect class="s-fill" x="108" y="98" width="18" height="18" rx="4"/><text class="s-t" x="117" y="111" text-anchor="middle">#</text><rect class="s-fill" x="130" y="98" width="18" height="18" rx="4"/><text class="s-t" x="139" y="111" text-anchor="middle">#</text><rect class="s-fill" x="152" y="98" width="18" height="18" rx="4"/><text class="s-t" x="161" y="111" text-anchor="middle">#</text><rect class="s-fill" x="174" y="98" width="18" height="18" rx="4"/><text class="s-t" x="183" y="111" text-anchor="middle">#</text></svg>
+          <figcaption>RRDDR reaches the border at distance 5; every monster is farther from that exit.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Monster BFS is seeded with every <code>M</code> at distance 0. The border check requires <code>distA &lt; distM</code> strictly (or no monster reaches it). Path letters come from the parent offset.</p>
+        <div class="src-meta"><span class="path">graphs/Monsters.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll dx[] = {0, 0, 1, -1};
+ll dy[] = {1, -1, 0, 0};
+
+void solve() 
+{
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ;
+    vector&lt;vector&lt;char&gt;&gt; grid(n, vector&lt;char&gt;(m));
+    vector&lt;vector&lt;ll&gt;&gt; distM(n, vector&lt;ll&gt;(m, -INF));
+    vector&lt;vector&lt;ll&gt;&gt; distA(n, vector&lt;ll&gt;(m, -INF));
+    vector&lt;vector&lt;pll&gt;&gt; par(n, vector&lt;pll&gt;(m, {-1, -1}));
+    queue &lt;pll &gt; qm ; 
+    queue &lt;pll &gt; qa ;
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        for(ll j = 0 ; j &lt; m ; j++)
+        {
+            cin &gt;&gt; grid[i][j] ;
+            if (grid[i][j] == 'M')
+            {
+                distM[i][j] = 0 ;
+                qm.push({i, j}) ;
+            }
+            else if (grid[i][j] == 'A')
+            {
+                distA[i][j] = 0 ;
+                qa.push({i, j}) ;
+                par[i][j] = {-1, -1} ;
+            }
+
+        }
+    }
+    while(!qm.empty())
+    {
+        pll node = qm.front() ;
+        qm.pop() ;
+        for (ll i = 0 ; i &lt; 4 ; i++)
+        {
+            ll nx = node.fr + dx[i] ;
+            ll ny = node.sc + dy[i] ;
+            if(nx &gt;= 0 &amp;&amp; nx &lt; n &amp;&amp; ny &gt;= 0 &amp;&amp; ny &lt; m &amp;&amp; grid[nx][ny] != '#' &amp;&amp; distM[nx][ny] == -INF)
+            {
+                distM[nx][ny] = distM[node.fr][node.sc] + 1 ;
+                qm.push({nx, ny}) ;
+            }
+        }
+    }
+    while(!qa.empty())
+    {
+        pll node = qa.front() ;
+        qa.pop() ;
+        for (ll i = 0 ; i &lt; 4 ; i++)
+        {
+            ll nx = node.fr + dx[i] ;
+            ll ny = node.sc + dy[i] ;
+            if(nx &gt;= 0 &amp;&amp; nx &lt; n &amp;&amp; ny &gt;= 0 &amp;&amp; ny &lt; m &amp;&amp; grid[nx][ny] != '#' &amp;&amp; distA[nx][ny] == -INF)
+            {
+                par[nx][ny] = {node.fr, node.sc} ;
+                distA[nx][ny] = distA[node.fr][node.sc] + 1 ;
+                qa.push({nx, ny}) ;
+            }
+        }
+    }
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        for(ll j = 0 ; j &lt; m ; j++)
+        {
+            if(i == 0 || i == n - 1 || j == 0 || j == m - 1)
+            {
+                if(distA[i][j] != -INF &amp;&amp; (distM[i][j] == -INF || distA[i][j] &lt; distM[i][j]))
+                {
+                    py ; 
+                    vector&lt;char&gt; ans ;
+                    pll node = {i, j} ;
+                    while(node.fr != -1 &amp;&amp; node.sc != -1)
+                    {
+                        pll pnode = par[node.fr][node.sc] ;
+                        if(pnode.fr != -1 &amp;&amp; pnode.sc != -1)
+                        {
+                            if(pnode.fr == node.fr + 1)
+                            {
+                                ans.push_back('U') ;
+                            }
+                            else if(pnode.fr == node.fr - 1)
+                            {
+                                ans.push_back('D') ;
+                            }
+                            else if(pnode.sc == node.sc + 1)
+                            {
+                                ans.push_back('L') ;
+                            }
+                            else if(pnode.sc == node.sc - 1)
+                            {
+                                ans.push_back('R') ;
+                            }
+                        }
+                        node = pnode ;
+                    }
+                    reverse(ans.begin(), ans.end()) ;
+                    cout &lt;&lt; ans.size() &lt;&lt; endl ;
+                    for(auto x : ans)
+                    {
+                        cout &lt;&lt; x ;
+                    }
+                    cout &lt;&lt; endl ;
+                    return ; 
+                }
+            }
+        }
+    }
+    pn ; 
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Only the exit cell is compared, not the whole path. It is sufficient because a monster that could intercept earlier could also reach the exit in time.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"escape before chasers, all move simultaneously" &rarr; multi-source BFS for chasers, compare arrival times.</div>
+    </article>
+    <article class="entry" id="frog-minimum-jumps">
+      <div class="entry-head"><h3>Frog Minimum Jumps</h3><span class="badge num">O(n+q)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">From stone 1, stone <code>i</code> reaches any of <code>i+1..i+p<sub>i</sub></code>. Answer many queries: min jumps to stone <code>x</code>.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>BFS layers here are contiguous index ranges, because reach only grows rightwards.</li>
+          <li><code>curEnd</code> closes the current layer; <code>farthest</code> builds the next one.</li>
+          <li>Precompute every stone once; each query is a lookup.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">BFS enqueuing each of <code>i+1..i+p<sub>i</sub></code>.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n²) edges</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">every <code>p<sub>i</sub> = n</code> &rarr; n² edge scans.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Boundary sweep instead of a queue: <span class="cost">O(n + q)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 100" role="img" aria-label="Frog jumps layers"><rect class="s-good" x="20" y="20" width="52" height="30" rx="4"/><text class="s-t" x="46" y="39" text-anchor="middle">1</text><rect class="s-fill" x="76" y="20" width="52" height="30" rx="4"/><text class="s-t" x="102" y="39" text-anchor="middle">2</text><rect class="s-box" x="132" y="20" width="52" height="30" rx="4"/><text class="s-t" x="158" y="39" text-anchor="middle">4</text><rect class="s-box" x="188" y="20" width="52" height="30" rx="4"/><text class="s-t" x="214" y="39" text-anchor="middle">5</text><rect class="s-warn" x="244" y="20" width="52" height="30" rx="4"/><text class="s-t" x="270" y="39" text-anchor="middle">3</text><text class="s-ta" x="46" y="70" text-anchor="middle">0</text><text class="s-ta" x="102" y="70" text-anchor="middle">1</text><text class="s-ta" x="158" y="70" text-anchor="middle">2</text><text class="s-ta" x="214" y="70" text-anchor="middle">2</text><text class="s-ta" x="270" y="70" text-anchor="middle">3</text><text class="s-td" x="8" y="92">power per stone; min jumps below</text></svg>
+          <figcaption>Layers: {1}, {2}, {3,4}, {5}.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>curEnd = farthest = 1</code> and <code>jumps = 0</code> make stone 1 come out as 0 with no special case. <code>farthest</code> is updated <em>after</em> recording <code>dp[i]</code>, so stone <code>i</code> only extends the next layer.</p>
+        <div class="src-meta"><span class="path">graphs/Frog_Minimum_Jumps.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Frog Minimum Jumps (multi-query)
+// Pattern: monotonic-reach BFS collapsed into a single sweep — "Jump Game II"
+//          boundary/farthest technique
+// Time: O(N + Q)  Space: O(N)
+//
+// N stones, 1-indexed. Frog starts at stone 1. Stone i has a Jump Power
+// p[i] — from stone i the frog can jump forward to any stone in
+// [i+1, i+p[i]]. Given Q queries, each a target stone, output the minimum
+// number of jumps from stone 1 to reach it (0 if the target is stone 1).
+//
+// Example:
+//     N=5, power=[1,2,4,5,3]
+//         query 3 -&gt; 2   (1 -&gt; 2 -&gt; 3)
+//         query 1 -&gt; 0
+//         query 5 -&gt; 3   (1 -&gt; 2 -&gt; 4 -&gt; 5)
+
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int n; cin &gt;&gt; n;
+    vector&lt;int&gt; power(n + 1);
+    for (int i = 1; i &lt;= n; i++) cin &gt;&gt; power[i];
+
+    // dp[i] = min jumps from stone 1 to stone i
+    vector&lt;int&gt; dp(n + 1, 0);
+    int jumps = 0, curEnd = 1, farthest = 1;
+
+    for (int i = 1; i &lt;= n; i++) {
+        if (i &gt; curEnd) {
+            jumps++;
+            curEnd = farthest;
+        }
+        dp[i] = jumps;
+        farthest = max(farthest, i + power[i]);
+    }
+
+    int q; cin &gt;&gt; q;
+    while (q--) {
+        int x; cin &gt;&gt; x;
+        cout &lt;&lt; dp[x] &lt;&lt; "\n";
+    }
+
+    return 0;
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Looking back with stone <code>i</code>'s own power is wrong: what reaches <code>i</code> is an earlier stone's power.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"min jumps, each position reaches a forward range" &rarr; Jump Game II boundary sweep.</div>
+    </article>
+  </section>
+
+  <section class="family" id="f3">
+    <div class="family-head"><h2>3 &middot; DFS colouring / cycles</h2></div>
+    <p class="family-note">DFS that carries a per-vertex state (colour, on-stack) and stops at the first contradiction.</p>
+    <article class="entry" id="building-teams">
+      <div class="entry-head"><h3>Building Teams</h3><span class="badge num">O(n+m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Split pupils into two teams so no two friends share a team.<div class="formal">2-colour an undirected graph</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Bipartite check: every edge must join different colours.</li>
+          <li>In a component, colouring the first vertex forces everything else.</li>
+          <li>An edge between equal colours is an odd cycle &rArr; impossible.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Try all 2ⁿ assignments.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(2ⁿ · m)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Propagate colours by DFS: <span class="cost">O(n + m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 110" role="img" aria-label="Building teams sample"><path class="s-edge" d="M63 49 L107 31"/><path class="s-edge" d="M63 61 L107 79"/><path class="s-edge" d="M224 55 L256 55"/><circle class="s-good" cx="50" cy="55" r="14"/><text class="s-t" x="50" y="59" text-anchor="middle">1</text><circle class="s-warn" cx="120" cy="25" r="14"/><text class="s-t" x="120" y="29" text-anchor="middle">2</text><circle class="s-warn" cx="120" cy="85" r="14"/><text class="s-t" x="120" y="89" text-anchor="middle">3</text><circle class="s-good" cx="210" cy="55" r="14"/><text class="s-t" x="210" y="59" text-anchor="middle">4</text><circle class="s-warn" cx="270" cy="55" r="14"/><text class="s-t" x="270" y="59" text-anchor="middle">5</text></svg>
+          <figcaption>1 2 2 1 2.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>3 - col</code> flips between 1 and 2. A conflict prints <code>NO</code> via the macro and calls <code>exit(0)</code> straight out of the recursion.</p>
+        <div class="src-meta"><span class="path">graphs/Building_Teams.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "IMPOSSIBLE" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll n , m ;
+vector&lt;vector&lt;ll&gt;&gt; g ;
+vector&lt;ll&gt; vis ;
+void dfs(ll node , ll col)
+{
+    vis[node] = col ;
+    for(auto child : g[node])
+    {
+        if(!vis[child])
+        {
+            dfs(child, 3 - col) ;
+        }
+        else if(vis[child] == col)
+        {
+            pn ; 
+            exit(0) ;
+        }
+
+
+    }
+}
+void solve() 
+{
+    cin &gt;&gt; n &gt;&gt; m ;
+    g.resize(n + 1) ;
+    vis.resize(n + 1, 0) ;
+    for(ll i = 0 ; i &lt; m ; i++)
+    {
+        ll x , y ;
+        cin &gt;&gt; x &gt;&gt; y ;
+        g[x].push_back(y) ;
+        g[y].push_back(x) ;
+
+    }
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(!vis[i])
+        {
+            dfs(i, 1) ;
+        }
+    }
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        cout &lt;&lt; vis[i] &lt;&lt; " " ;
+    }
+    cout &lt;&lt; endl ; 
+
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The DFS never checks the parent specially &mdash; the parent always has the opposite colour, so the <code>vis[child] == col</code> test can only fire on a real odd cycle. <code>pn</code> is redefined in this file to print <code>IMPOSSIBLE</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"split into two groups, no conflicting pair together" &rarr; bipartite 2-colouring.</div>
+    </article>
+    <article class="entry" id="round-trip">
+      <div class="entry-head"><h3>Round Trip</h3><span class="badge num">O(n+m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Find any cycle of length ≥ 3 in an undirected graph and print it.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>In undirected DFS, any edge to an already-open vertex other than the parent closes a cycle.</li>
+          <li>Skipping the parent is what excludes the trivial <code>a&ndash;b&ndash;a</code>.</li>
+          <li>Walk <code>par</code> from the current vertex back to the open one.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Search from every vertex for a path back.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n·(n+m))</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>, <code>m ≤ 2·10⁵</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">One DFS with states 0/1/2 and parents: <span class="cost">O(n + m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 120" role="img" aria-label="Round trip sample"><path class="s-hi" d="M74 30 L136 30"/><path class="s-edge" d="M60 44 L60 81"/><path class="s-hi" d="M150 81 L150 44"/><path class="s-hi" d="M71 38 L139 87"/><path class="s-edge" d="M74 95 L226 95"/><path class="s-edge" d="M226 95 L164 95"/><circle class="s-box" cx="60" cy="30" r="14"/><text class="s-t" x="60" y="34" text-anchor="middle">1</text><circle class="s-box" cx="150" cy="30" r="14"/><text class="s-t" x="150" y="34" text-anchor="middle">3</text><circle class="s-box" cx="150" cy="95" r="14"/><text class="s-t" x="150" y="99" text-anchor="middle">5</text><circle class="s-box" cx="60" cy="95" r="14"/><text class="s-t" x="60" y="99" text-anchor="middle">2</text><circle class="s-box" cx="240" cy="95" r="14"/><text class="s-t" x="240" y="99" text-anchor="middle">4</text></svg>
+          <figcaption>5 1 3 5 &mdash; any cycle is accepted.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>vis</code> is 0 unseen, 1 on the stack, 2 finished. On a back edge to <code>child</code>, walk <code>temp</code> up from <code>node</code>, then append <code>node</code> again to close the loop.</p>
+        <div class="src-meta"><span class="path">graphs/Round_Trip.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+
+ll n , m ;
+vector&lt;vector&lt;ll&gt;&gt; g ;
+vector&lt;ll&gt; vis ;
+vector&lt;ll&gt; par ;
+
+void dfs(ll node , ll parent)
+{
+    vis[node] = 1 ;
+    par[node] = parent ;
+    for(auto child : g[node])
+    {
+        if(child == parent)
+        {
+            continue ; 
+        }
+        if(vis[child] == 0 )
+        {
+            dfs(child, node) ;
+        }
+        else if( vis[child] == 1 )
+        {
+            ll temp = node ; 
+            vector &lt;ll&gt; ans ;
+            while (temp != child)
+            {
+                ans.push_back(temp) ;
+                temp = par[temp] ;
+            }
+            ans.push_back(temp) ; 
+            ans.push_back(node) ;
+            reverse(ans.begin(), ans.end()) ;
+            cout &lt;&lt; ans.size() &lt;&lt; endl ;
+            for (auto&amp; x : ans)
+            {
+                cout &lt;&lt; x &lt;&lt; " " ;
+            }
+            cout &lt;&lt; endl ; 
+            exit(0) ;
+        }
+        else 
+        {
+            continue ; 
+        }
+
+    }
+    vis[node] = 2 ;
+
+}
+void solve() 
+{
+    cin &gt;&gt; n &gt;&gt; m ;
+    g.resize(n + 1) ;
+    vis.resize(n + 1, 0) ;
+    par.resize(n + 1, 0) ;
+    for(ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b ;
+        cin &gt;&gt; a &gt;&gt; b ;
+        g[a].push_back(b) ;
+        g[b].push_back(a) ;
+    }
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(!vis[i])
+        {
+            dfs(i, 0) ;
+                
+        }
+    }
+    cout &lt;&lt; "IMPOSSIBLE" &lt;&lt; endl ;
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Skipping by parent <em>vertex</em> is fine only because CSES has no multi-edges; with a doubled edge <code>a&ndash;b</code> it would miss that 2-cycle (which is not a valid answer here anyway).</div>
+      <div class="callout trigger"><strong>Recognize</strong>"find any cycle in an undirected graph" &rarr; DFS, back edge to a non-parent.</div>
+    </article>
+    <article class="entry" id="round-trip-ii">
+      <div class="entry-head"><h3>Round Trip II</h3><span class="badge num">O(n+m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Find any directed cycle and print it.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>A directed cycle exists iff DFS finds an edge into a vertex still on the recursion stack (gray).</li>
+          <li>Edges into finished (black) vertices are not cycles &mdash; that is why three states are needed.</li>
+          <li>The cycle is the stack segment from that vertex to the current one.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">From every vertex, search for a path back to itself.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n·(n+m))</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>, <code>m ≤ 2·10⁵</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">White/gray/black DFS: <span class="cost">O(n + m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 120" role="img" aria-label="Round trip II sample"><path class="s-hi" d="M74 30 L156 30"/><path class="s-arrow" d="M156 30 L148 34 L148 26 Z"/><path class="s-hi" d="M106 84 L69 41"/><path class="s-arrow" d="M69 41 L77 44 L71 49 Z"/><path class="s-edge" d="M129 95 L226 95"/><path class="s-arrow" d="M226 95 L218 99 L218 91 Z"/><path class="s-hi" d="M161 41 L124 84"/><path class="s-arrow" d="M124 84 L126 76 L132 81 Z"/><path class="s-edge" d="M180 40 L230 85"/><path class="s-arrow" d="M230 85 L221 83 L227 77 Z"/><circle class="s-box" cx="60" cy="30" r="14"/><text class="s-t" x="60" y="34" text-anchor="middle">1</text><circle class="s-box" cx="170" cy="30" r="14"/><text class="s-t" x="170" y="34" text-anchor="middle">3</text><circle class="s-box" cx="115" cy="95" r="14"/><text class="s-t" x="115" y="99" text-anchor="middle">2</text><circle class="s-box" cx="240" cy="95" r="14"/><text class="s-t" x="240" y="99" text-anchor="middle">4</text></svg>
+          <figcaption>1 &rarr; 3 &rarr; 2 &rarr; 1.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Same skeleton as Round Trip, but the edge list is one-directional. <code>vis == 2</code> edges are skipped explicitly.</p>
+        <div class="src-meta"><span class="path">graphs/Round_Trip_II.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+vector&lt;vector&lt;ll&gt;&gt; g ;
+vector&lt;ll&gt; vis ;
+vector &lt; ll &gt; par ;
+void dfs(ll node , ll parent)
+{
+    vis[node] = 1 ;
+    par[node] = parent ;
+    for(auto child : g[node])
+    {
+        if(child == parent)
+        {
+            continue ; 
+        }
+        if(vis[child] == 0 )
+        {
+            dfs(child, node) ;
+        }
+        else if( vis[child] == 1 )
+        {
+            vector &lt;ll&gt; ans ;
+            ans.push_back(child) ; 
+            ll temp = node ; 
+            while (temp != child)
+            {
+                ans.push_back(temp) ;
+                temp = par[temp] ;
+            }
+            ans.push_back(child) ;
+            reverse(ans.begin(), ans.end()) ;
+            cout &lt;&lt; ans.size() &lt;&lt; endl ;
+            for (auto&amp; x : ans)
+            {
+                cout &lt;&lt; x &lt;&lt; " " ;
+            }
+            cout &lt;&lt; endl ; 
+            exit(0) ;
+        }
+        else 
+        {
+            continue ; 
+        }
+
+    }
+    vis[node] = 2 ;
+
+}
+void solve() 
+{
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ;
+    g.resize(n + 1) ;
+    vis.resize(n + 1, 0) ;
+    par.resize(n + 1, 0) ;
+    for (ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b ; 
+        cin &gt;&gt; a &gt;&gt; b ;
+        g[a].push_back(b) ;
+
+    }
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(!vis[i])
+        {
+            dfs(i, 0) ;
+        }
+    }
+    cout &lt;&lt; "IMPOSSIBLE" &lt;&lt; endl ;
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The <code>child == parent</code> skip was carried over from the undirected version and is wrong here: input <code>2 2 / 1 2 / 2 1</code> prints <code>IMPOSSIBLE</code>, but <code>1 2 1</code> is a valid directed round trip.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"cycle in a directed graph / dependency loop" &rarr; three-colour DFS.</div>
+    </article>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+  <div class="excluded">
+    <h4>Excluded from this ledger</h4>
+    <ul>
+      <li><code>graphs/Nested_Ranges_Count.cpp</code> &mdash; compiles, but on its own sample (<code>4 / 1 6 / 2 4 / 4 8 / 3 6</code>) prints nothing; expected <code>2 0 0 0 / 0 1 0 1</code>. Also not a graph problem (arrays sweep).</li>
+    </ul>
+  </div>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/graphs_1_traversal.js"></script>
+</body>
+</html>

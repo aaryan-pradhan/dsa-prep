@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shortest Paths &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<body data-base=".." data-slug="graphs_2_shortest_paths">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; Graphs</div>
+  <h1>Shortest Paths</h1>
+  <p class="dek">Weighted distance. Weights and query shape choose the algorithm; the problem-specific twist is almost always an extra field per vertex or an expanded vertex state.</p>
+  <p class="stats"><b>7</b> problems &middot; <b>3</b> families</p>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <a href="#recognition">Recognition rules</a>
+  <div class="toc-fam"><a href="#f1">1 &middot; Dijkstra and variants</a></div>
+  <div class="toc-fam"><a href="#f2">2 &middot; Bellman-Ford</a></div>
+  <div class="toc-fam"><a href="#f3">3 &middot; Floyd–Warshall</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recognition">
+    <div class="section-head"><h2>Recognition rules</h2>
+      <p>The judgment calls that separate these problems from each other.</p></div>
+    <div class="rules">
+      <div class="rule"><span class="n">1</span>
+        <p>Pick by weights and query shape: non-negative, one source &rarr; Dijkstra (Shortest Routes I); negative edges or cycles &rarr; Bellman-Ford (High Score, Cycle Finding); all pairs with <code>n ≤ 500</code> &rarr; Floyd (Shortest Routes II).</p></div>
+      <div class="rule"><span class="n">2</span>
+        <p>Extend the vertex, not the algorithm: Flight Discount doubles vertices by coupon state; Flight Routes lets each vertex be finalised k times.</p></div>
+      <div class="rule"><span class="n">3</span>
+        <p>Aggregates over shortest paths ride along Dijkstra: reset on strictly shorter, merge on equal. Investigation; the same reset rule is what Shortest Routes I does with <code>dist</code> alone.</p></div>
+      <div class="rule"><span class="n">4</span>
+        <p>A negative cycle only matters where the question looks: High Score filters to 1&rarr;n walks, Cycle Finding seeds all distances at 0 to see every cycle.</p></div>
+    </div>
+  </section>
+
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1 &middot; Dijkstra and variants</h2></div>
+    <p class="family-note">Min-heap over tentative distances. The variants change the state (Flight Discount), the pop limit (Flight Routes) or what is carried (Investigation).</p>
+    <article class="entry" id="shortest-routes-i">
+      <div class="entry-head"><h3>Shortest Routes I</h3><span class="badge num">O((n+m) log m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Shortest distance from city 1 to every city; directed, non-negative weights.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Non-negative weights &rArr; the smallest tentative distance is final when popped.</li>
+          <li>Lazy deletion: push duplicates, skip a vertex already finalised.</li>
+          <li>Each edge relaxes at most once per finalised vertex &rArr; ≤ m pushes.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Bellman-Ford: relax all edges n times.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n·m)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>, <code>m ≤ 2·10⁵</code> &rarr; 2·10¹⁰.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Binary-heap Dijkstra: <span class="cost">O((n+m) log m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 280 140" role="img" aria-label="Shortest routes I sample"><path class="s-edge" d="M64 70 L216 70"/><path class="s-arrow" d="M216 70 L208 74 L208 66 Z"/><text class="s-ta" x="140" y="84" text-anchor="middle">6</text><path class="s-hi" d="M62 77 L128 113"/><path class="s-arrow" d="M128 113 L119 113 L123 106 Z"/><text class="s-ta" x="90" y="108" text-anchor="middle">2</text><path class="s-hi" d="M152 113 L218 77"/><path class="s-arrow" d="M218 77 L213 84 L209 77 Z"/><text class="s-ta" x="190" y="108" text-anchor="middle">3</text><circle class="s-good" cx="50" cy="70" r="14"/><text class="s-t" x="50" y="74" text-anchor="middle">1</text><circle class="s-box" cx="230" cy="70" r="14"/><text class="s-t" x="230" y="74" text-anchor="middle">2</text><circle class="s-box" cx="140" cy="120" r="14"/><text class="s-t" x="140" y="124" text-anchor="middle">3</text><text class="s-td" x="140" y="24" text-anchor="middle">dist = 0 5 2</text></svg>
+          <figcaption>1 &rarr; 3 &rarr; 2 costs 5, beating the direct 6.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>vis[node]</code> guards against stale heap entries. The relaxation uses <code>dist[node]</code>, which equals the popped <code>d</code> for the first (valid) pop.</p>
+        <div class="src-meta"><span class="path">graphs/Shortest_Routes_I.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n , m ; 
+    cin &gt;&gt; n &gt;&gt; m ; 
+    vector &lt; vector &lt;pll&gt;&gt; g(n + 1) ;
+    for (ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b , c ; 
+        cin &gt;&gt; a &gt;&gt; b &gt;&gt; c ; 
+        g[a].push_back({c, b}) ;
+        // daam phir naam
+    }
+    vector &lt;ll&gt; dist(n + 1, INF) ;
+    vector &lt; ll &gt; vis(n + 1, 0) ;
+    priority_queue &lt;pll, vector&lt;pll&gt;, greater&lt;pll&gt;&gt; pq ;
+    dist[1] = 0 ;
+    pq.push({0, 1}) ;
+    while(!pq.empty())
+    {
+        pll x = pq.top() ;
+        pq.pop() ;
+        ll node = x.sc ;
+        ll d = x.fr ;
+        if(vis[node])
+        {
+            continue ;
+        }
+        vis[node] = 1 ;
+        for(auto y : g[node])
+        {
+            ll child = y.sc ;
+            ll w = y.fr ;
+            if(dist[child] &gt; dist[node] + w)
+            {
+                dist[child] = dist[node] + w ;
+                pq.push({dist[child], child}) ;
+            }
+
+
+        }
+
+    }
+    for (ll i = 1 ; i &lt;= n ; i++)
+    {
+        cout &lt;&lt; dist[i] &lt;&lt; " " ;
+    }
+    
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Without the <code>vis</code> skip, every stale entry rescans its adjacency list; a star-shaped graph turns that into quadratic time.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"shortest distance from one source, weights ≥ 0" &rarr; Dijkstra with lazy deletion.</div>
+    </article>
+    <article class="entry" id="flight-discount">
+      <div class="entry-head"><h3>Flight Discount</h3><span class="badge num">O((n+m) log m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Cheapest route 1 &rarr; n when exactly one flight may be halved (rounded down).</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>"Used the coupon yet?" is one extra bit of state.</li>
+          <li>Double every city; the coupon edge moves from layer 0 to layer 1.</li>
+          <li>Plain Dijkstra on the layered graph; answer is <code>(n, 1)</code> &mdash; halving never hurts.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">For each edge, halve it and rerun Dijkstra.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(m · (n+m) log m)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>m ≤ 2·10⁵</code> &rarr; ~10¹¹.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">One Dijkstra on <span class="cost">2n</span> vertices and <span class="cost">3m</span> edges.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 150" role="img" aria-label="Flight discount layered graph"><text class="s-td" x="20" y="20">used = 0</text><text class="s-td" x="20" y="130">used = 1</text><path class="s-edge" d="M104 40 L166 40"/><path class="s-arrow" d="M166 40 L158 44 L158 36 Z"/><text class="s-ta" x="135" y="54" text-anchor="middle">3</text><path class="s-edge" d="M194 40 L256 40"/><path class="s-arrow" d="M256 40 L248 44 L248 36 Z"/><path class="s-hi" d="M100 49 L170 111"/><path class="s-arrow" d="M170 111 L161 108 L166 102 Z"/><text class="s-ta" x="128" y="91" text-anchor="middle">1</text><path class="s-hi" d="M194 120 L256 120"/><path class="s-arrow" d="M256 120 L248 124 L248 116 Z"/><text class="s-ta" x="225" y="134" text-anchor="middle">1</text><path class="s-edge" d="M190 49 L260 111"/><path class="s-arrow" d="M260 111 L251 108 L256 102 Z"/><circle class="s-box" cx="90" cy="40" r="14"/><text class="s-t" x="90" y="44" text-anchor="middle">1₀</text><circle class="s-box" cx="180" cy="40" r="14"/><text class="s-t" x="180" y="44" text-anchor="middle">2₀</text><circle class="s-box" cx="270" cy="40" r="14"/><text class="s-t" x="270" y="44" text-anchor="middle">3₀</text><circle class="s-box" cx="180" cy="120" r="14"/><text class="s-t" x="180" y="124" text-anchor="middle">2₁</text><circle class="s-good" cx="270" cy="120" r="14"/><text class="s-t" x="270" y="124" text-anchor="middle">3₁</text></svg>
+          <figcaption>Halve 1&rarr;2 (3 &rarr; 1) then pay 1: total 2.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>encode(a, b) = 2a + b</code> packs the layer into the vertex id; the array is sized <code>2n + 2</code>. Only layer-0 vertices get the <code>c / 2</code> edge.</p>
+        <div class="src-meta"><span class="path">graphs/Flight_Discount.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll encode(ll a , ll b)
+{
+    return a * 2 + b ; 
+}
+void solve() 
+{
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ;
+    ll N = n * 2 + 1 ;
+    vector &lt; vector &lt;pll&gt;&gt; g(N+1) ;
+    for (ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b , c ; 
+        cin &gt;&gt; a &gt;&gt; b &gt;&gt; c ;
+        g[encode(a, 0)].push_back({c , encode(b, 0)}) ;
+        g[encode(a, 0)].push_back({c / 2 , encode(b, 1)}) ;
+        g[encode(a, 1)].push_back({c , encode(b, 1)}) ;
+    }
+    vector &lt;ll&gt; vis(N + 1, 0) ;
+    vector &lt;ll&gt; dist(N + 1, INF) ;
+    dist[encode(1, 0)] = 0 ;
+    priority_queue &lt;pll, vector&lt;pll&gt;, greater&lt;pll&gt;&gt; pq ;
+    pq.push({0, encode(1, 0)}) ;
+
+    while(!pq.empty())
+    {
+        ll node = pq.top().sc ;
+        ll d = pq.top().fr ;
+        pq.pop() ;
+        if(vis[node])
+        {
+            continue ;
+        }
+        vis[node] = 1 ;
+        for (auto x : g[node])
+        {
+            ll child = x.sc ;
+            ll w = x.fr ;
+            if(dist[child] &gt; dist[node] + w)
+            {
+                dist[child] = dist[node] + w ;
+                pq.push({dist[child], child}) ;
+            }
+        }
+    }
+
+    cout &lt;&lt; dist[encode(n, 1)] &lt;&lt; endl ;
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Halving the largest edge on the ordinary shortest path is wrong: a longer path with one huge edge can become cheapest after the discount.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"one (or k) free/discounted uses along a shortest path" &rarr; layered state graph, then Dijkstra.</div>
+    </article>
+    <article class="entry" id="flight-routes">
+      <div class="entry-head"><h3>Flight Routes</h3><span class="badge num">O(k·(n+m) log(km))</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">The <code>k</code> cheapest routes (not necessarily simple) from 1 to n.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>The j-th pop of a vertex from a min-heap is its j-th shortest walk.</li>
+          <li>The k-th shortest route to n only extends routes that are among the k shortest at each vertex.</li>
+          <li>Cap pops per vertex at <code>k</code>; stop after <code>k</code> pops of <code>n</code>.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate walks by cost.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">unbounded</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>, <code>m ≤ 2·10⁵</code>, <code>k ≤ 10</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Dijkstra with a per-vertex pop counter: <span class="cost">O(k·m log(km))</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 140" role="img" aria-label="Flight routes sample"><path class="s-hi" d="M53 65 L137 30"/><path class="s-arrow" d="M137 30 L131 37 L128 30 Z"/><text class="s-ta" x="99" y="61" text-anchor="middle">1</text><path class="s-hi" d="M53 75 L137 110"/><path class="s-arrow" d="M137 110 L128 110 L131 103 Z"/><text class="s-ta" x="91" y="106" text-anchor="middle">3</text><path class="s-hi" d="M150 39 L150 101"/><path class="s-arrow" d="M150 101 L146 93 L154 93 Z"/><text class="s-ta" x="140" y="74" text-anchor="middle">2</text><path class="s-edge" d="M163 30 L247 65"/><path class="s-arrow" d="M247 65 L238 65 L241 58 Z"/><text class="s-ta" x="201" y="61" text-anchor="middle">6</text><path class="s-edge" d="M150 101 L150 39"/><path class="s-arrow" d="M150 39 L154 47 L146 47 Z"/><path class="s-hi" d="M163 110 L247 75"/><path class="s-arrow" d="M247 75 L241 82 L238 75 Z"/><text class="s-ta" x="209" y="106" text-anchor="middle">1</text><circle class="s-box" cx="40" cy="70" r="14"/><text class="s-t" x="40" y="74" text-anchor="middle">1</text><circle class="s-box" cx="150" cy="25" r="14"/><text class="s-t" x="150" y="29" text-anchor="middle">2</text><circle class="s-box" cx="150" cy="115" r="14"/><text class="s-t" x="150" y="119" text-anchor="middle">3</text><circle class="s-box" cx="260" cy="70" r="14"/><text class="s-t" x="260" y="74" text-anchor="middle">4</text></svg>
+          <figcaption>Costs 4 (1-3-4), 4 (1-2-3-4), 7 (1-2-4).</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>vis[node]</code> is a pop counter, not a flag. Pushes to a child already popped <code>k</code> times are pruned since they can never be used.</p>
+        <div class="src-meta"><span class="path">graphs/Flight_Routes.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n , m , k ; 
+    cin &gt;&gt; n &gt;&gt; m &gt;&gt; k ; 
+    vector &lt; vector &lt;pll&gt;&gt; g(n + 1) ;
+    for (ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b , c ; 
+        cin &gt;&gt; a &gt;&gt; b &gt;&gt; c ;
+        g[a].push_back({c , b}) ;
+    }
+
+    vector &lt; ll &gt; vis(n + 1, 0) ;
+    priority_queue &lt; pll , vector &lt;pll&gt; , greater&lt;pll&gt;&gt; pq ;
+
+    pq.push({0 , 1}) ;
+    vector &lt;ll&gt; ans ;
+    while(!pq.empty())
+    {
+        auto [d , node] = pq.top() ;
+        pq.pop() ;
+        if(vis[node] == k)
+        {
+            continue ; 
+        }
+        vis[node]++ ;
+        if(node == n)
+        {
+            ans.push_back(d) ;
+            if(ans.size() == k)
+            {
+                break ; 
+            }
+        }
+        for (auto&amp; edge : g[node])
+        {
+            ll child = edge.sc ;
+            ll wt = edge.fr ;
+            if(vis[child] &lt; k)
+            {
+                pq.push({d + wt , child}) ;
+            }
+        }
+    }
+    for (auto&amp; x : ans)
+    {
+        cout &lt;&lt; x &lt;&lt; " " ;
+    }
+    cout &lt;&lt; endl ;
+
+
+
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>A boolean <code>vis</code> (standard Dijkstra) returns only the shortest route <code>k</code> times over or stops at one.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"k shortest paths / k cheapest routes, k small" &rarr; Dijkstra allowing k pops per vertex.</div>
+    </article>
+    <article class="entry" id="investigation">
+      <div class="entry-head"><h3>Investigation</h3><span class="badge num">O((n+m) log m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">For shortest routes 1 &rarr; n: the length, how many there are, and the min and max number of flights among them.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Restrict to shortest-path edges: those with <code>dist[u] + w = dist[v]</code>.</li>
+          <li>Dijkstra finalises in distance order, which is a topological order of that sub-DAG.</li>
+          <li>Strictly better arrival resets the aggregates; an equal arrival merges them.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate all shortest paths.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">exponential</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">counts reach 10⁹+7-sized values; <code>m ≤ 2·10⁵</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Carry (ways, minF, maxF) through Dijkstra: <span class="cost">O((n+m) log m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 140" role="img" aria-label="Investigation sample"><path class="s-hi" d="M54 70 L246 70"/><path class="s-arrow" d="M246 70 L238 74 L238 66 Z"/><text class="s-ta" x="150" y="84" text-anchor="middle">5</text><path class="s-edge" d="M53 65 L137 30"/><path class="s-arrow" d="M137 30 L131 37 L128 30 Z"/><text class="s-ta" x="99" y="61" text-anchor="middle">4</text><path class="s-edge" d="M163 30 L247 65"/><path class="s-arrow" d="M247 65 L238 65 L241 58 Z"/><text class="s-ta" x="201" y="61" text-anchor="middle">5</text><path class="s-hi" d="M53 75 L137 110"/><path class="s-arrow" d="M137 110 L128 110 L131 103 Z"/><text class="s-ta" x="91" y="106" text-anchor="middle">2</text><path class="s-hi" d="M163 110 L247 75"/><path class="s-arrow" d="M247 75 L241 82 L238 75 Z"/><text class="s-ta" x="209" y="106" text-anchor="middle">3</text><circle class="s-box" cx="40" cy="70" r="14"/><text class="s-t" x="40" y="74" text-anchor="middle">1</text><circle class="s-box" cx="150" cy="25" r="14"/><text class="s-t" x="150" y="29" text-anchor="middle">2</text><circle class="s-box" cx="150" cy="115" r="14"/><text class="s-t" x="150" y="119" text-anchor="middle">3</text><circle class="s-box" cx="260" cy="70" r="14"/><text class="s-t" x="260" y="74" text-anchor="middle">4</text></svg>
+          <figcaption>Two shortest routes of length 5 with 1 and 2 flights: output 5 2 1 2.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The equality branch does not push: the child is already in the heap with this distance. All three aggregates are updated in both branches, reading from the popped <code>node</code>.</p>
+        <div class="src-meta"><span class="path">graphs/Investigation.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+#include &lt;iostream&gt;
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll madd(ll a , ll b)
+{
+    return (a%MOD + b%MOD)%MOD ; 
+}
+// ll n , m ; 
+// vector&lt;vector&lt;pll&gt;&gt; g ;
+// vector&lt;ll&gt; vis ; 
+// vector&lt;ll&gt; dist ; 
+// ll djisketra(ll src)
+// {
+
+//     priority_queue&lt;pll , vector&lt;pll&gt; , greater&lt;pll&gt;&gt; pq ;
+//     pq.push({0 , src}) ;
+//     while(!pq.empty())
+//     {
+//         auto [d , node] = pq.top() ;
+//         pq.pop() ;
+//         if(vis[node])
+//         {
+//             continue ; 
+//         }
+//         if(node == n)
+//         {
+//             return d ; 
+//         }
+//         vis[node] = 1 ;
+//         for(auto [wt , child] : g[node])
+//         {
+//             if(!vis[child])
+//             {
+//                 pq.push({d + wt , child}) ;
+//             }
+//         }
+//     }
+//     return 0 ; 
+// }
+
+void solve() 
+{
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ;
+    vector&lt;vector&lt;pll&gt;&gt; g(n+1) ;
+    for(ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b , c ; 
+        cin &gt;&gt; a &gt;&gt; b &gt;&gt; c ;
+        g[a].push_back({c , b}) ;
+    }
+    // cout &lt;&lt; djisketra(1) &lt;&lt; " " ;
+    vector&lt;ll&gt; dist(n+1 , INF) ;
+    vector&lt;ll&gt; ways(n+1 , 0) ;
+    vector&lt;ll&gt; min_flights(n+1 , INF) ;
+    vector&lt;ll&gt; max_flights(n+1 , 0) ;
+    vector&lt;ll&gt; vis(n+1 , 0) ;
+    priority_queue&lt;pll , vector&lt;pll&gt; , greater&lt;pll&gt;&gt; q ;
+    q.push({0 , 1}) ;
+    ways[1] = 1 ;
+    min_flights[1] = 0 ;
+    max_flights[1] = 0 ;
+    dist[1] = 0 ;
+    while(!q.empty())
+    {
+        auto [d , node] = q.top() ;
+        q.pop() ;
+        if(vis[node])
+        {
+            continue ; 
+        }
+        vis[node] = 1 ;
+        for(auto [wt , child] : g[node])
+        {
+            if(d + wt &gt; dist[child])
+            {
+                continue ; 
+            }
+            else if(d + wt == dist[child])
+            {
+                dist[child] = d + wt ;
+                ways[child] = madd(ways[child] , ways[node]) ; 
+                min_flights[child] = min(min_flights[child] , min_flights[node] + 1) ; 
+                max_flights[child] = max(max_flights[child] , max_flights[node] + 1) ; 
+            }
+            else if( d + wt &lt; dist[child])
+            {
+                dist[child] = d + wt ; 
+                ways[child] = ways[node] ; 
+                min_flights[child] = min_flights[node] + 1 ; 
+                max_flights[child] = max_flights[node] + 1 ; 
+                q.push({dist[child] , child}) ;
+            }
+        }
+
+    }
+    cout &lt;&lt; dist[n] &lt;&lt; " " &lt;&lt; ways[n] &lt;&lt; " " &lt;&lt; min_flights[n] &lt;&lt; " " &lt;&lt; max_flights[n] &lt;&lt; endl ;
+    
+
+
+
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Merging on equality is only safe because <code>node</code> is final when popped. Merging in a Bellman-Ford-style loop would double-count ways.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"number of shortest paths / min & max edges among shortest paths" &rarr; Dijkstra carrying aggregates, reset on &lt;, merge on =.</div>
+    </article>
+  </section>
+
+  <section class="family" id="f2">
+    <div class="family-head"><h2>2 &middot; Bellman-Ford</h2></div>
+    <p class="family-note">Relax every edge n&minus;1 times; anything still relaxable afterwards is on or behind a negative cycle.</p>
+    <article class="entry" id="high-score">
+      <div class="entry-head"><h3>High Score</h3><span class="badge num">O(n·m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Maximum score path 1 &rarr; n; print &minus;1 if the score can be made arbitrarily large.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Max-sum path = shortest path with negated weights.</li>
+          <li>Unbounded &hArr; a negative cycle reachable from 1 <em>and</em> able to reach n.</li>
+          <li>Reverse BFS from n marks which vertices can reach n.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Dijkstra on negated weights.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">wrong</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">negative edges break Dijkstra's finality.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Bellman-Ford n rounds + one detection round: <span class="cost">O(n·m) ≈ 5·10⁵</span> at <code>n ≤ 2500</code>, <code>m ≤ 5000</code>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 140" role="img" aria-label="High score sample"><path class="s-edge" d="M53 65 L137 30"/><path class="s-arrow" d="M137 30 L131 37 L128 30 Z"/><text class="s-ta" x="99" y="61" text-anchor="middle">3</text><path class="s-edge" d="M163 30 L247 65"/><path class="s-arrow" d="M247 65 L238 65 L241 58 Z"/><text class="s-ta" x="201" y="61" text-anchor="middle">−1</text><path class="s-hi" d="M53 75 L137 110"/><path class="s-arrow" d="M137 110 L128 110 L131 103 Z"/><text class="s-ta" x="91" y="106" text-anchor="middle">−2</text><path class="s-hi" d="M163 110 L247 75"/><path class="s-arrow" d="M247 75 L241 82 L238 75 Z"/><text class="s-ta" x="209" y="106" text-anchor="middle">7</text><path class="s-edge" d="M54 70 L246 70"/><path class="s-arrow" d="M246 70 L238 74 L238 66 Z"/><text class="s-ta" x="150" y="84" text-anchor="middle">4</text><circle class="s-box" cx="40" cy="70" r="14"/><text class="s-t" x="40" y="74" text-anchor="middle">1</text><circle class="s-box" cx="150" cy="25" r="14"/><text class="s-t" x="150" y="29" text-anchor="middle">2</text><circle class="s-box" cx="150" cy="115" r="14"/><text class="s-t" x="150" y="119" text-anchor="middle">3</text><circle class="s-box" cx="260" cy="70" r="14"/><text class="s-t" x="260" y="74" text-anchor="middle">4</text></svg>
+          <figcaption>1 &rarr; 3 &rarr; 4 scores 5.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>vis</code> comes from BFS on the reversed graph from n. Relaxations only happen into <code>vis</code> vertices and from finite <code>dist</code>, so cycles that are unreachable from 1 or cannot reach n are ignored.</p>
+        <div class="src-meta"><span class="path">graphs/High_Score.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+
+
+
+
+void solve() 
+{
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ;
+    vector &lt; vector &lt;pll&gt;&gt; g(n + 1) ;
+    vector&lt; vector &lt; ll &gt;&gt; rg(n + 1) ;
+    for (ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b , c ; 
+        cin &gt;&gt; a &gt;&gt; b &gt;&gt; c ; 
+        g[a].push_back({-c, b}) ;
+        rg[b].push_back(a) ;
+    }
+    vector &lt; ll &gt; vis(n + 1, 0) ;
+    queue &lt; ll &gt; q ;
+    q.push(n) ;
+    vis[n] = 1 ;
+    while(!q.empty())
+    {
+        ll node = q.front() ;
+        q.pop() ;
+        for(auto child : rg[node])
+        {
+            if(!vis[child])
+            {
+                vis[child] = 1 ;
+                q.push(child) ;
+            }
+        }
+    }
+    vector &lt;ll&gt; dist(n + 1, INF) ;
+    dist[1] = 0 ;
+    for (ll i = 1 ; i &lt;= n ; i++)
+    {
+        for (ll node = 1 ; node &lt;= n ; node++)
+        {
+            if(dist[node] == INF)
+            {
+                continue ;
+            }
+            for (auto&amp; x : g[node])
+            {
+                ll child = x.sc ;
+                ll w = x.fr ;
+                if(dist[child] &gt; dist[node] + w &amp;&amp; vis[child])
+                {
+                    dist[child] = dist[node] + w ;
+                }
+            }
+        }
+    }
+    for (ll node = 1 ; node &lt;= n ; node++)
+    {
+        if(dist[node] == INF)
+        {
+            continue ;
+        }
+        for (auto x : g[node])
+        {
+            ll child = x.sc ;
+            ll w = x.fr ;
+            if(dist[child] &gt; dist[node] + w &amp;&amp; vis[child])
+            {
+                cout &lt;&lt; -1 &lt;&lt; endl ;
+                return ; 
+            }
+            
+        }
+    }
+    cout &lt;&lt; -dist[n] &lt;&lt; endl ;
+
+    
+
+
+    
+
+    
+    
+
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Printing &minus;1 for <em>any</em> negative cycle is the classic wrong answer; the cycle must lie on some 1 &rarr; n walk.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"maximum score, may be infinite" &rarr; negate, Bellman-Ford, check relaxable cycles on a 1&rarr;n path.</div>
+    </article>
+    <article class="entry" id="cycle-finding">
+      <div class="entry-head"><h3>Cycle Finding</h3><span class="badge num">O(n·m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Does the directed graph have a negative cycle? If so, print one.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Starting all distances at 0 is a virtual source with 0-edges to every vertex &rArr; every cycle is reachable.</li>
+          <li>If round <code>n</code> still relaxes something, a negative cycle exists.</li>
+          <li>Following <code>par</code> <code>n</code> times from that vertex guarantees landing <em>on</em> the cycle.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate cycles.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">exponential</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 2500</code>, <code>m ≤ 5000</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Bellman-Ford with parents: <span class="cost">O(n·m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 280 150" role="img" aria-label="Cycle finding sample"><path class="s-hi" d="M74 40 L186 40"/><path class="s-arrow" d="M186 40 L178 44 L178 36 Z"/><text class="s-ta" x="130" y="54" text-anchor="middle">1</text><path class="s-hi" d="M200 54 L200 106"/><path class="s-arrow" d="M200 106 L196 98 L204 98 Z"/><text class="s-ta" x="190" y="84" text-anchor="middle">1</text><path class="s-edge" d="M60 106 L60 54"/><path class="s-arrow" d="M60 54 L64 62 L56 62 Z"/><text class="s-ta" x="70" y="84" text-anchor="middle">1</text><path class="s-hi" d="M188 113 L72 47"/><path class="s-arrow" d="M72 47 L81 47 L77 54 Z"/><text class="s-ta" x="135" y="75" text-anchor="middle">−3</text><path class="s-edge" d="M186 120 L74 120"/><path class="s-arrow" d="M74 120 L82 116 L82 124 Z"/><text class="s-ta" x="130" y="114" text-anchor="middle">−2</text><circle class="s-box" cx="60" cy="40" r="14"/><text class="s-t" x="60" y="44" text-anchor="middle">1</text><circle class="s-box" cx="200" cy="40" r="14"/><text class="s-t" x="200" y="44" text-anchor="middle">2</text><circle class="s-box" cx="200" cy="120" r="14"/><text class="s-t" x="200" y="124" text-anchor="middle">4</text><circle class="s-box" cx="60" cy="120" r="14"/><text class="s-t" x="60" y="124" text-anchor="middle">3</text></svg>
+          <figcaption>1 &rarr; 2 &rarr; 4 &rarr; 1 sums to &minus;1.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>x</code> is reset each round, so after the loop it is the last vertex relaxed in round <code>n</code>. The collection loop starts at <code>x</code> and stops when it returns, then reverses to get edge direction.</p>
+        <div class="src-meta"><span class="path">graphs/Cycle_Finding.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+
+void solve() 
+{
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ;
+    vector &lt; vector &lt;pll&gt;&gt; g(n + 1) ;
+    for (ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b , c ; 
+        cin &gt;&gt; a &gt;&gt; b &gt;&gt; c ;
+        g[a].push_back({c , b}) ;
+    }
+    vector &lt;ll&gt; dist(n + 1, 0) ;
+    vector &lt;ll&gt; par(n + 1, -1) ;
+    ll x = 0 ;  
+    for (ll i = 1 ; i &lt;= n ; i++)
+    {
+        x = 0 ; 
+        for(ll node = 1 ; node &lt;= n ; node++)
+        {
+            for (auto&amp; edge : g[node])
+            {
+                ll child = edge.sc ;
+                ll wt = edge.fr ;
+                if(dist[node] + wt &lt; dist[child])
+                {
+                    dist[child] = dist[node] + wt ;
+                    par[child] = node ;
+                    x = child ; 
+                }
+            }
+        }
+    }
+    for (ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(x == 0)
+        {
+            break ;
+        }
+        x = par[x] ;
+    }
+    if(x == 0)
+    {
+        pn ; 
+    }
+    else 
+    {
+        py ; 
+        vector &lt;ll&gt; ans ;
+        ll temp = x ; 
+        while(temp != x || ans.size() == 0)
+        {
+            ans.push_back(temp) ;
+            temp = par[temp] ;
+        }
+        ans.push_back(x) ;
+        reverse(ans.begin(), ans.end()) ;
+        for (auto&amp; x : ans)
+        {
+            cout &lt;&lt; x &lt;&lt; " " ;
+        }
+        cout &lt;&lt; endl ; 
+    }
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Collecting the cycle directly from <code>x</code> (without the <code>n</code> parent steps) can start on a tail leading into the cycle and never return to <code>x</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"detect and print a negative cycle" &rarr; Bellman-Ford from all-zero dist, walk parents n times.</div>
+    </article>
+  </section>
+
+  <section class="family" id="f3">
+    <div class="family-head"><h2>3 &middot; Floyd–Warshall</h2></div>
+    <p class="family-note">All-pairs by allowing intermediates one at a time.</p>
+    <article class="entry" id="shortest-routes-ii">
+      <div class="entry-head"><h3>Shortest Routes II</h3><span class="badge num">O(n³ + q)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Answer <code>q</code> shortest-distance queries between arbitrary pairs; undirected, <code>n ≤ 500</code>.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>After phase <code>k</code>, <code>g[i][j]</code> is the best path using only intermediates <code>1..k</code>.</li>
+          <li><code>n ≤ 500</code> &rArr; <code>n³ = 1.25·10⁸</code>, tiny inner loop.</li>
+          <li>Parallel edges: keep the minimum when reading.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Dijkstra per query.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(q · m log m)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>q ≤ 10⁵</code>, <code>m ≤ n²/2</code> &rarr; ~10¹⁰.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Precompute all pairs once: <span class="cost">O(n³)</span>, each query <span class="cost">O(1)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 280 130" role="img" aria-label="Shortest routes II sample"><path class="s-hi" d="M64 40 L146 40"/><text class="s-ta" x="105" y="54" text-anchor="middle">5</text><path class="s-edge" d="M59 51 L96 99"/><text class="s-ta" x="70" y="85" text-anchor="middle">9</text><path class="s-hi" d="M151 51 L114 99"/><text class="s-ta" x="125" y="73" text-anchor="middle">3</text><circle class="s-box" cx="50" cy="40" r="14"/><text class="s-t" x="50" y="44" text-anchor="middle">1</text><circle class="s-box" cx="160" cy="40" r="14"/><text class="s-t" x="160" y="44" text-anchor="middle">2</text><circle class="s-box" cx="105" cy="110" r="14"/><text class="s-t" x="105" y="114" text-anchor="middle">3</text><circle class="s-box" cx="240" cy="110" r="14"/><text class="s-t" x="240" y="114" text-anchor="middle">4</text></svg>
+          <figcaption>d(1,3) = 8 through 2; d(1,4) = &minus;1.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">INF is <code>1e18</code>, so <code>INF + INF = 2·10¹⁸</code> still fits in <code>long long</code> and no guard is needed. Diagonal set to 0 after reading edges.</p>
+        <div class="src-meta"><span class="path">graphs/Shortest_Routes_II.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+
+void solve() 
+{
+    ll n , m , q ;
+    cin &gt;&gt; n &gt;&gt; m &gt;&gt; q ;
+    vector &lt; vector &lt;ll&gt;&gt; g(n + 1, vector&lt;ll&gt;(n + 1, INF)) ;
+    for (ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b , c ; 
+        cin &gt;&gt; a &gt;&gt; b &gt;&gt; c ; 
+        g[a][b] = min(g[a][b], c) ;
+        g[b][a] = min(g[b][a], c) ;
+    }
+    for (ll i = 1 ; i &lt;= n ; i++)
+    {
+        g[i][i] = 0 ;
+    }
+    for (ll k = 1 ; k &lt;= n ; k++)
+    {
+        for (ll i = 1 ; i &lt;= n ; i++)
+        {
+            for (ll j = 1 ; j &lt;= n ; j++)
+            {
+                g[i][j] = min(g[i][j], g[i][k] + g[k][j]) ;
+            }
+        }
+    }
+    for (ll i = 0 ; i &lt; q ; i++)
+    {
+        ll a , b ; 
+        cin &gt;&gt; a &gt;&gt; b ; 
+        if(g[a][b] == INF)
+        {
+            cout &lt;&lt; -1 &lt;&lt; endl ;
+        }
+        else
+        {
+            cout &lt;&lt; g[a][b] &lt;&lt; endl ;
+        }
+    }
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong><code>k</code> must be the outer loop. With <code>i</code> or <code>j</code> outermost the table is not closed under intermediates and gives wrong distances.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"many distance queries, n ≤ 500" &rarr; Floyd–Warshall.</div>
+    </article>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+  <div class="excluded">
+    <h4>Excluded from this ledger</h4>
+    <ul>
+      <li>Nothing excluded.</li>
+    </ul>
+  </div>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/graphs_2_shortest_paths.js"></script>
+</body>
+</html>

@@ -20,7 +20,7 @@
   an adjacent-swap argument becomes a total order. Reach for this page when an
   optimisation problem has no visible structure but a single comparison between
   two elements decides which of them should come first.</p>
-  <p class="stats"><b>9</b> problems &middot; <b>4</b> families</p>
+  <p class="stats"><b>11</b> problems &middot; <b>4</b> families</p>
 </header>
 
 <div class="layout">
@@ -820,6 +820,106 @@ signed main()
       <code>x</code>" (or any even <code>k</code>-sum with <code>n</code> small) &rarr; meet
       in the middle on pair sums, one map entry per sum.</div>
     </article>
+
+    <article class="entry" id="sum-of-two-values">
+      <div class="entry-head"><h3>Sum of Two Values</h3><span class="badge num">O(n log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Find two <em>distinct positions</em> whose values sum to <code>x</code>, or IMPOSSIBLE.<div class="formal">find i ≠ j with aᵢ + aⱼ = x</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>For each <code>i</code> the partner value is forced: <code>x &minus; a&#7522;</code>.</li>
+          <li>A map from value to index answers "does the partner exist" in <code>O(log n)</code>.</li>
+          <li>Storing the <em>last</em> index per value handles <code>a&#7522; = x/2</code>: the first copy finds the last copy, a different position.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Check every pair.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n²)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 2·10⁵</code> &rarr; 2·10¹⁰ pairs.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Value &rarr; index map, one lookup per element: <span class="cost">O(n log n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 100" role="img" aria-label="Sum of two values sample"><text class="s-td" x="8" y="14">x = 8</text><rect class="s-box" x="20" y="26" width="46" height="30" rx="4"/><text class="s-t" x="43" y="45" text-anchor="middle">2</text><rect class="s-good" x="70" y="26" width="46" height="30" rx="4"/><text class="s-t" x="93" y="45" text-anchor="middle">7</text><rect class="s-box" x="120" y="26" width="46" height="30" rx="4"/><text class="s-t" x="143" y="45" text-anchor="middle">5</text><rect class="s-good" x="170" y="26" width="46" height="30" rx="4"/><text class="s-t" x="193" y="45" text-anchor="middle">1</text><text class="s-td" x="43" y="74" text-anchor="middle">1</text><text class="s-td" x="93" y="74" text-anchor="middle">2</text><text class="s-td" x="143" y="74" text-anchor="middle">3</text><text class="s-td" x="193" y="74" text-anchor="middle">4</text><text class="s-td" x="8" y="94">7 + 1 = 8 → positions 2 4</text></svg>
+          <figcaption>At i = 2 the partner 1 is in the map at position 4.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The map is filled before the search, so later positions are visible from earlier ones. <code>freq[rem]</code> uses <code>operator[]</code>, which inserts a 0 for missing values &mdash; 0 doubles as "absent" because positions are 1-indexed.</p>
+        <div class="src-meta"><span class="path">arrays/Sum_of_Two_Values.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n , x ; 
+    cin &gt;&gt; n &gt;&gt; x ; 
+    vector &lt;ll&gt; v(n+1) ;
+    map &lt;ll , ll&gt; freq;
+    for (ll i = 1 ; i &lt;= n ; i++)
+    {
+        cin &gt;&gt; v[i] ;
+        freq[v[i]] = i ;
+    }
+
+    for (ll i = 1 ; i &lt;= n ; i++)
+    {
+        ll rem = x - v[i] ;
+        if(freq[rem] != 0 &amp;&amp; freq[rem] != i)
+        {
+            cout &lt;&lt; i &lt;&lt; " " &lt;&lt; freq[rem] &lt;&lt; endl ;
+            return ; 
+        }
+
+        
+
+        
+    }
+    cout &lt;&lt; "IMPOSSIBLE" &lt;&lt; endl ;
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Without <code>freq[rem] != i</code>, <code>a&#7522; = x/2</code> pairs an element with itself. Keeping the <em>last</em> index (overwrite on insert) is what lets two equal halves still match.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"two positions summing to a target" &rarr; value&rarr;index map, check the complement.</div>
+    </article>
   </section>
 
   <!-- ===================== FAMILY 3 ===================== -->
@@ -1426,6 +1526,104 @@ signed main()
       <div class="callout trigger"><strong>Recognize</strong>"all jobs must run, cost grows
       with completion time, reward is deadline minus finish" &rarr; shortest job first; the
       deadlines are a constant.</div>
+    </article>
+
+    <article class="entry" id="movie-festival">
+      <div class="entry-head"><h3>Movie Festival</h3><span class="badge num">O(n log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Watch the maximum number of non-overlapping movies (one may start exactly when another ends).<div class="formal">max |S|,  S ⊆ intervals pairwise disjoint</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>The first movie to take is the one that ends earliest: any optimal schedule can swap its first movie for it without losing anything.</li>
+          <li>After that choice, the problem repeats on movies starting at or after its end.</li>
+          <li>Sorted by end, that repetition is a single pass carrying <code>last</code>.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Try every subset, keep the largest disjoint one.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(2ⁿ · n)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 2·10⁵</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Sort by end, greedy scan: <span class="cost">O(n log n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 110" role="img" aria-label="Movie festival sample"><rect class="s-good" x="20" y="12" width="90" height="22" rx="4"/><text class="s-tm" x="65" y="27" text-anchor="middle">3–5</text><rect class="s-good" x="110" y="40" width="135" height="22" rx="4"/><text class="s-tm" x="177" y="55" text-anchor="middle">5–8</text><rect class="s-box" x="65" y="68" width="225" height="22" rx="4"/><text class="s-tm" x="177" y="83" text-anchor="middle">4–9</text><text class="s-td" x="8" y="104">sorted by end: 3–5, 5–8, 4–9 → 2 movies</text></svg>
+          <figcaption>5&ndash;8 starts exactly when 3&ndash;5 ends, so both are taken; 4&ndash;9 overlaps.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The lambda sorts on <code>.sc</code> (end) only. <code>last</code> starts at 0, below every start time, so the first movie is always taken.</p>
+        <div class="src-meta"><span class="path">arrays/Movie_Festival.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ;
+    vector &lt;pll&gt; v(n) ;
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        cin &gt;&gt; v[i].fr &gt;&gt; v[i].sc ;
+    }
+    sort(v.begin(), v.end(), [](pll a , pll b)
+    {
+        return a.sc &lt; b.sc ;
+    });
+    ll ans = 0 ;
+    ll last = 0 ;
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        if(v[i].fr &gt;= last)
+        {
+            ans++ ;
+            last = v[i].sc ;
+        }
+    }
+    cout &lt;&lt; ans &lt;&lt; endl ;
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+    solve() ; 
+ 
+
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Sorting by start time (or by duration) is wrong: one long early movie blocks many short ones. The test is <code>&gt;=</code>, since back-to-back movies are allowed.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"maximum number of non-overlapping intervals" &rarr; sort by end, take greedily.</div>
     </article>
   </section>
 

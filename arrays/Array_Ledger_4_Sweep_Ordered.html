@@ -20,7 +20,7 @@
   hand-shifted array cannot. Reach for this page when the input is
   <code>(start, end)</code> pairs, or when the question is asked again after every
   insertion.</p>
-  <p class="stats"><b>6</b> problems &middot; <b>3</b> families</p>
+  <p class="stats"><b>7</b> problems &middot; <b>3</b> families</p>
 </header>
 
 <div class="layout">
@@ -939,8 +939,8 @@ signed main()
     <p class="family-note">Here the sorted structure is not built once and read &mdash; it
     is edited at every step. Each element arrives, a predecessor/successor lookup finds
     the one place it interacts with, and one element is removed while one or two are
-    inserted. In both problems the container must be a <code>multiset</code>, because the
-    values it stores are separate entities that can collide, and in both the answer is
+    inserted. In every problem here the container must be a <code>multiset</code>, because the
+    values it stores are separate entities that can collide, and the answer is
     read straight off the container (<code>size()</code>, <code>*rbegin()</code>) rather
     than accumulated.</p>
 
@@ -1292,6 +1292,110 @@ int main() {
       at a time, report the longest remaining segment after each&rdquo; &rarr;
       <code>set</code> of positions for predecessor/successor,
       <code>multiset</code> of lengths for the max.</div>
+    </article>
+
+    <article class="entry" id="concert-tickets">
+      <div class="entry-head"><h3>Concert Tickets</h3><span class="badge num">O((n+m) log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Customers arrive in order, each paying at most <code>t</code>. Sell each the most expensive remaining ticket ≤ <code>t</code>, or &minus;1.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>"Largest value ≤ t" is a predecessor query: <code>upper_bound(t)</code>, step back once.</li>
+          <li>Tickets with equal prices are distinct tickets &rArr; <code>multiset</code>.</li>
+          <li>Selling removes exactly one copy &rArr; erase by iterator, not by value.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Scan all unsold tickets for each customer.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n·m)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n, m ≤ 2·10⁵</code> &rarr; 4·10¹⁰.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Balanced BST (<code>multiset</code>) with predecessor + erase: <span class="cost">O((n+m) log n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 120" role="img" aria-label="Concert tickets sample"><text class="s-td" x="8" y="14">prices 3 5 5 7 8</text><rect class="s-good" x="20" y="24" width="40" height="28" rx="4"/><text class="s-t" x="40" y="42" text-anchor="middle">3</text><rect class="s-box" x="64" y="24" width="40" height="28" rx="4"/><text class="s-t" x="84" y="42" text-anchor="middle">5</text><rect class="s-box" x="108" y="24" width="40" height="28" rx="4"/><text class="s-t" x="128" y="42" text-anchor="middle">5</text><rect class="s-box" x="152" y="24" width="40" height="28" rx="4"/><text class="s-t" x="172" y="42" text-anchor="middle">7</text><rect class="s-good" x="196" y="24" width="40" height="28" rx="4"/><text class="s-t" x="216" y="42" text-anchor="middle">8</text><text class="s-td" x="8" y="76">max 4 → 3 · max 8 → 8 · max 3 → −1</text><text class="s-td" x="8" y="100">green = sold</text></svg>
+          <figcaption>Customer 3 finds nothing ≤ 3 left because the 3 was sold to customer 1.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>it == h.begin()</code> after <code>upper_bound</code> means every price exceeds <code>t</code>. Otherwise <code>it--</code> lands on the answer, and <code>h.erase(it)</code> removes that single element.</p>
+        <div class="src-meta"><span class="path">arrays/Concert_Tickets.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n , m ; 
+    cin &gt;&gt; n &gt;&gt; m ;
+    multiset &lt;ll&gt; h ; 
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        ll x ; 
+        cin &gt;&gt; x ;
+        h.insert(x) ;
+    }
+    for (ll i = 0 ; i &lt; m ; i++)
+    {
+        ll x ; 
+        cin &gt;&gt; x ;
+        auto it = h.upper_bound(x) ;
+        // what does this do is that it finds the first element in the multiset that is greater than x. If there is no such element, it returns h.end(). If there is such an element, it returns an iterator to that element.
+        if(it == h.begin())
+        {
+            cout &lt;&lt; -1 &lt;&lt; endl ;
+        }
+        else 
+        {
+            it-- ;
+            cout &lt;&lt; *it &lt;&lt; endl ;
+            h.erase(it) ;
+        }
+    }
+
+
+
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong><code>h.erase(*it)</code> (by value) deletes <em>every</em> ticket at that price. Erase the iterator.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"assign each query the largest remaining item ≤ its limit, items consumed" &rarr; multiset predecessor + erase.</div>
     </article>
   </section>
 </main>

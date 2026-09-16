@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DAGs, SCCs and Union-Find &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<body data-base=".." data-slug="graphs_3_structure">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; Graphs</div>
+  <h1>DAGs, SCCs and Union-Find</h1>
+  <p class="dek">Problems solved by first imposing structure on the graph: a topological order, a condensation into SCCs, a set partition, or a doubling table. Once the structure exists, the answer is a simple pass over it.</p>
+  <p class="stats"><b>9</b> problems &middot; <b>4</b> families</p>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <a href="#recognition">Recognition rules</a>
+  <div class="toc-fam"><a href="#f1">1 &middot; Topological order</a></div>
+  <div class="toc-fam"><a href="#f2">2 &middot; Strong connectivity</a></div>
+  <div class="toc-fam"><a href="#f3">3 &middot; Union-find</a></div>
+  <div class="toc-fam"><a href="#f4">4 &middot; Binary lifting</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recognition">
+    <div class="section-head"><h2>Recognition rules</h2>
+      <p>The judgment calls that separate these problems from each other.</p></div>
+    <div class="rules">
+      <div class="rule"><span class="n">1</span>
+        <p>Counting or optimising over paths in a DAG &rarr; DP in reverse topological order: Game Routes (sum), Longest Flight Route (max); Course Schedule is the order itself.</p></div>
+      <div class="rule"><span class="n">2</span>
+        <p>Mutual reachability &rarr; reversed graph: Flight Routes Check (two BFS), Planets and Kingdoms (Kosaraju).</p></div>
+      <div class="rule"><span class="n">3</span>
+        <p>Boolean choices with pairwise "at least one" constraints &rarr; implication graph + the same SCC routine: Giant Pizza reuses Planets and Kingdoms' two-pass DFS.</p></div>
+      <div class="rule"><span class="n">4</span>
+        <p>Connectivity under edge insertions only &rarr; DSU: Road Construction (online stats), Road Reparation (edges in cost order).</p></div>
+    </div>
+  </section>
+
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1 &middot; Topological order</h2></div>
+    <p class="family-note">DAGs: order vertices so edges point forward, then process in that order.</p>
+    <article class="entry" id="course-schedule">
+      <div class="entry-head"><h3>Course Schedule</h3><span class="badge num">O(n+m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Order <code>n</code> courses so every prerequisite comes first, or report IMPOSSIBLE.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>A valid order exists iff the prerequisite graph is a DAG.</li>
+          <li>A vertex with in-degree 0 can always go next.</li>
+          <li>If the queue empties early, the remaining vertices all sit on or behind a cycle.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Try permutations.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n! · m)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Kahn's algorithm: <span class="cost">O(n + m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 100" role="img" aria-label="Course schedule sample"><path class="s-edge" d="M54 40 L106 40"/><path class="s-arrow" d="M106 40 L98 44 L98 36 Z"/><path class="s-edge" d="M134 40 L186 40"/><path class="s-arrow" d="M186 40 L178 44 L178 36 Z"/><path class="s-edge" d="M54 80 L106 80"/><path class="s-arrow" d="M106 80 L98 84 L98 76 Z"/><circle class="s-good" cx="40" cy="40" r="14"/><text class="s-t" x="40" y="44" text-anchor="middle">3</text><circle class="s-box" cx="120" cy="40" r="14"/><text class="s-t" x="120" y="44" text-anchor="middle">1</text><circle class="s-box" cx="200" cy="40" r="14"/><text class="s-t" x="200" y="44" text-anchor="middle">2</text><circle class="s-good" cx="40" cy="80" r="14"/><text class="s-t" x="40" y="84" text-anchor="middle">4</text><circle class="s-box" cx="120" cy="80" r="14"/><text class="s-t" x="120" y="84" text-anchor="middle">5</text></svg>
+          <figcaption>Sources 3 and 4 start the queue: 3 4 1 5 2.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">In-degrees are counted while reading edges. The size check <code>topo.size() != n</code> is the cycle test.</p>
+        <div class="src-meta"><span class="path">graphs/Course_Schedule.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+
+void solve() 
+{
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ; 
+    vector &lt; vector &lt;ll&gt;&gt; g(n + 1) ;
+    vector &lt; ll &gt; vis(n + 1, 0) ;
+    vector &lt; ll &gt; indeg(n + 1, 0) ;
+    for (ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b ; 
+        cin &gt;&gt; a &gt;&gt; b ;
+        g[a].push_back(b) ;
+        indeg[b]++ ;
+    }
+    queue &lt;ll&gt; q ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(indeg[i] == 0)
+        {
+            q.push(i) ;
+        }
+    }
+    vector &lt;ll &gt; topo ;
+    while(!q.empty())
+    {
+        ll node = q.front() ;
+        q.pop() ;
+        topo.push_back(node) ;
+        for(auto child : g[node])
+        {
+            indeg[child]-- ;
+            if(indeg[child] == 0)
+            {
+                q.push(child) ;
+            }
+        }
+    }
+    if(topo.size() != n)
+    {
+        cout &lt;&lt; "IMPOSSIBLE" &lt;&lt; endl ;
+        return ; 
+    }
+    else 
+    {
+        for(auto x : topo)
+        {
+            cout &lt;&lt; x &lt;&lt; " " ;
+        }
+        cout &lt;&lt; endl ;
+    }
+    
+
+
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Any valid order is accepted; the output depends on queue order and need not match the sample.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"order tasks with prerequisites / detect dependency cycle" &rarr; Kahn's topological sort.</div>
+    </article>
+    <article class="entry" id="game-routes">
+      <div class="entry-head"><h3>Game Routes</h3><span class="badge num">O(n+m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Count paths from level 1 to level n in a DAG, mod 10⁹+7.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Paths from <code>v</code> = sum over first edge of paths from the child.</li>
+          <li>Children must be finished first &rArr; process vertices in reverse topological order.</li>
+          <li>Vertices that cannot reach n naturally get 0.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">DFS enumerating paths.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">exponential</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>, <code>m ≤ 2·10⁵</code>; path count is exponential.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">DP over topological order: <span class="cost">O(n + m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 140" role="img" aria-label="Game routes sample"><path class="s-edge" d="M53 65 L137 30"/><path class="s-arrow" d="M137 30 L131 37 L128 30 Z"/><path class="s-edge" d="M163 30 L247 65"/><path class="s-arrow" d="M247 65 L238 65 L241 58 Z"/><path class="s-edge" d="M53 75 L137 110"/><path class="s-arrow" d="M137 110 L128 110 L131 103 Z"/><path class="s-edge" d="M163 110 L247 75"/><path class="s-arrow" d="M247 75 L241 82 L238 75 Z"/><path class="s-edge" d="M54 70 L246 70"/><path class="s-arrow" d="M246 70 L238 74 L238 66 Z"/><circle class="s-good" cx="40" cy="70" r="14"/><text class="s-t" x="40" y="74" text-anchor="middle">1</text><circle class="s-box" cx="150" cy="25" r="14"/><text class="s-t" x="150" y="29" text-anchor="middle">2</text><circle class="s-box" cx="150" cy="115" r="14"/><text class="s-t" x="150" y="119" text-anchor="middle">3</text><circle class="s-good" cx="260" cy="70" r="14"/><text class="s-t" x="260" y="74" text-anchor="middle">4</text><text class="s-ta" x="150" y="72" text-anchor="middle">3 routes</text></svg>
+          <figcaption>1-2-4, 1-3-4, 1-4.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Kahn produces <code>topo</code>, which is reversed so children come first. The commented <code>rec</code> is the same recurrence top-down.</p>
+        <div class="src-meta"><span class="path">graphs/Game_Routes.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+vector&lt;vector&lt;ll&gt;&gt; g ; 
+// ll rec(ll node)
+// {
+//     if(node == n)
+//     {
+//         return 1 ; 
+//     }
+//     if(dp[node] != -1)
+//     {
+//         return dp[node] ; 
+//     }
+//     ll ans = 0 ; 
+//     for(auto child : g[node])
+//     {
+//         ans = madd(ans , rec(child)) ; 
+//     }
+//     return dp[node] = ans ;
+// }
+ll madd(ll a , ll b)
+{
+    return (a%MOD + b%MOD)%MOD ; 
+}
+void solve() 
+{
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ;
+    vector&lt;vector&lt;ll&gt;&gt; g(n+1) ;
+    vector&lt;ll&gt; indeg(n+1 , 0) ;
+    for(ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b ;
+        cin &gt;&gt; a &gt;&gt; b ;
+        g[a].push_back(b) ; 
+        indeg[b]++ ;
+    }
+    queue&lt;ll&gt; q ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(indeg[i] == 0)
+        {
+            q.push(i) ; 
+        }
+    }
+    vector &lt;ll&gt; topo ;
+    while(!q.empty())
+    {
+        ll v = q.front() ; 
+        q.pop() ; 
+        topo.push_back(v) ; 
+        for(auto u : g[v])
+        {
+            indeg[u]-- ; 
+            if(indeg[u] == 0)
+            {
+                q.push(u) ; 
+            }
+        }
+    }
+    vector&lt;ll&gt; dp(n+1 , 0) ;
+    reverse(topo.begin() , topo.end()) ;
+    for(auto node:topo)
+    {
+        if(node == n)
+        {
+            dp[node] = 1 ; 
+            continue ;
+        }
+        ll ans = 0 ;
+        for(auto child : g[node])
+        {
+            ans = madd(ans , dp[child]) ;
+        }
+        dp[node] = ans ;
+
+    }
+    cout &lt;&lt; dp[1] &lt;&lt; endl ;
+
+
+   
+
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Recursive memo DFS is correct but can hit 10⁵ depth; the topo loop avoids recursion entirely.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"count paths in a DAG" &rarr; DP in reverse topological order.</div>
+    </article>
+    <article class="entry" id="longest-flight-route">
+      <div class="entry-head"><h3>Longest Flight Route</h3><span class="badge num">O(n+m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Longest path (most cities) from 1 to n in a DAG, with the route; or IMPOSSIBLE.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Longest path is easy on a DAG: same shape as path counting with <code>max</code>.</li>
+          <li><code>dp = 0</code> must mean "cannot reach n", so dead ends are skipped, not counted as length 1.</li>
+          <li>Rebuild by following any child with <code>dp[child] = dp[v] &minus; 1</code>.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">DFS all paths.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">exponential</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>, <code>m ≤ 2·10⁵</code>; longest path is NP-hard in general graphs.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">DAG &rArr; DP over reverse topo: <span class="cost">O(n + m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 120" role="img" aria-label="Longest flight route sample"><path class="s-edge" d="M43 55 L117 25"/><path class="s-arrow" d="M117 25 L111 32 L108 24 Z"/><path class="s-edge" d="M144 23 L276 57"/><path class="s-arrow" d="M276 57 L268 59 L270 51 Z"/><path class="s-hi" d="M43 66 L97 94"/><path class="s-arrow" d="M97 94 L89 94 L92 87 Z"/><path class="s-hi" d="M124 100 L186 100"/><path class="s-arrow" d="M186 100 L178 104 L178 96 Z"/><path class="s-hi" d="M213 94 L277 66"/><path class="s-arrow" d="M277 66 L272 73 L268 65 Z"/><circle class="s-good" cx="30" cy="60" r="14"/><text class="s-t" x="30" y="64" text-anchor="middle">1</text><circle class="s-box" cx="130" cy="20" r="14"/><text class="s-t" x="130" y="24" text-anchor="middle">2</text><circle class="s-box" cx="110" cy="100" r="14"/><text class="s-t" x="110" y="104" text-anchor="middle">3</text><circle class="s-box" cx="200" cy="100" r="14"/><text class="s-t" x="200" y="104" text-anchor="middle">4</text><circle class="s-good" cx="290" cy="60" r="14"/><text class="s-t" x="290" y="64" text-anchor="middle">5</text></svg>
+          <figcaption>1 3 4 5: four cities.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>if (r != 0)</code> filters children that cannot reach n. The walk from 1 always finds a child with <code>dp[node] &minus; 1</code> because <code>dp[1] &gt; 0</code>.</p>
+        <div class="src-meta"><span class="path">graphs/Longest_Flight_Route.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+// ll n , m ;
+// vector&lt;vector&lt;ll&gt;&gt; g ;
+// vector&lt;ll&gt; dp ; 
+// ll rec(ll node)
+// {
+//     if(dp[node] != -1)
+//     {
+//         return dp[node] ;
+//     }
+//     if(node == n)
+//     {
+//         return dp[node] = 1 ; 
+//     }
+//     ll ans = 0 ; 
+//     for(auto child : g[node])
+//     {
+//        ll r = rec(child) ;
+//        // if r==0 then you can't reach
+//        if(r != 0)
+//        {
+//             ans = max(ans, r + 1) ;
+//        }
+//     }
+//     return dp[node] = ans ; 
+
+// }
+void solve() 
+{
+
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ;
+    vector&lt;vector&lt;ll&gt;&gt; g(n + 1) ;
+    vector&lt;ll&gt; dp(n + 1, -1) ;
+
+
+    vector&lt;ll&gt; topo ;
+    vector&lt;ll&gt; indeg(n + 1, 0) ;
+    for(ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b ; 
+        cin &gt;&gt; a &gt;&gt; b ;
+        g[a].push_back(b) ;
+        indeg[b]++ ;
+    }
+    
+    queue &lt;ll&gt; q ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(indeg[i] == 0)
+        {
+            q.push(i) ;
+        }
+    }
+
+    while(!q.empty())
+    {
+        ll node = q.front() ;
+        q.pop() ;
+        topo.push_back(node) ;
+        for(auto child : g[node])
+        {
+            indeg[child]-- ;
+
+            if(indeg[child] == 0)
+            {
+                q.push(child) ;
+
+            }
+        }
+    }
+
+    
+    reverse(topo.begin(), topo.end()) ;
+    for(auto node : topo)
+    {
+        if(node == n)
+        {
+            dp[node] = 1 ;
+        }
+        else 
+        {
+            ll ans = 0 ;
+            for(auto child : g[node])
+            {
+                ll r = dp[child] ;
+                if(r != 0)
+                {
+                    ans = max(ans, r + 1) ;
+                }
+            }
+            dp[node] = ans ;
+
+        }  
+    }
+    if(dp[1] == 0)
+    {
+        cout &lt;&lt; "IMPOSSIBLE" &lt;&lt; endl ;
+        return ; 
+    }
+    cout &lt;&lt; dp[1] &lt;&lt; endl ;
+    ll node = 1 ;
+    while(node != n)
+    {
+        cout &lt;&lt; node &lt;&lt; " " ;
+        for(auto child : g[node])
+        {
+            if(dp[child] == dp[node] - 1)
+            {
+                node = child ;
+                break ; 
+            }
+        }
+    }
+    cout &lt;&lt; n &lt;&lt; endl ;
+
+
+
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Treating unreachable children as 0 and taking <code>max(0 + 1)</code> makes dead ends look like valid routes.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"longest path / most stops in a DAG" &rarr; reverse-topo DP with an unreachable sentinel.</div>
+    </article>
+  </section>
+
+  <section class="family" id="f2">
+    <div class="family-head"><h2>2 &middot; Strong connectivity</h2></div>
+    <p class="family-note">Reachability in both directions, via the reversed graph.</p>
+    <article class="entry" id="flight-routes-check">
+      <div class="entry-head"><h3>Flight Routes Check</h3><span class="badge num">O(n+m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Can every city reach every other? If not, print a pair <code>a b</code> with no route a &rarr; b.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>All pairs reachable &hArr; 1 reaches everyone and everyone reaches 1.</li>
+          <li>"Everyone reaches 1" is BFS from 1 on the reversed graph.</li>
+          <li>An unreached <code>i</code> gives the witness directly: <code>1 i</code> or <code>i 1</code>.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">BFS from every vertex.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n·(n+m))</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>, <code>m ≤ 2·10⁵</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Two BFS: <span class="cost">O(n + m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 280 130" role="img" aria-label="Flight routes check sample"><path class="s-edge" d="M64 40 L136 40"/><path class="s-arrow" d="M136 40 L128 44 L128 36 Z"/><path class="s-edge" d="M142 51 L108 99"/><path class="s-arrow" d="M108 99 L110 90 L116 94 Z"/><path class="s-edge" d="M92 99 L58 51"/><path class="s-arrow" d="M58 51 L66 56 L60 60 Z"/><path class="s-edge" d="M63 44 L217 86"/><path class="s-arrow" d="M217 86 L208 88 L210 80 Z"/><path class="s-edge" d="M114 108 L216 92"/><path class="s-arrow" d="M216 92 L209 97 L208 89 Z"/><circle class="s-box" cx="50" cy="40" r="14"/><text class="s-t" x="50" y="44" text-anchor="middle">1</text><circle class="s-box" cx="150" cy="40" r="14"/><text class="s-t" x="150" y="44" text-anchor="middle">2</text><circle class="s-box" cx="100" cy="110" r="14"/><text class="s-t" x="100" y="114" text-anchor="middle">3</text><circle class="s-warn" cx="230" cy="90" r="14"/><text class="s-t" x="230" y="94" text-anchor="middle">4</text></svg>
+          <figcaption>4 has no outgoing flights: no route 4 &rarr; 1 (the sample prints 4 2; both are accepted).</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Forward BFS from 1 on <code>g</code>, then on <code>rg</code>. The first unvisited vertex in each pass is the witness.</p>
+        <div class="src-meta"><span class="path">graphs/Flight_Routes_Check.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+
+void solve() 
+{
+    ll n , m ; 
+    cin &gt;&gt; n &gt;&gt; m ;
+    vector &lt; vector &lt; ll &gt; &gt; g(n+1) , rg(n+1) ; 
+    for(ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b ; 
+        cin &gt;&gt; a &gt;&gt; b ; 
+        g[a].push_back(b) ; 
+        rg[b].push_back(a) ; 
+    }
+    queue &lt;ll&gt; q ;
+    vector &lt; bool &gt; vis(n+1 , false) ;
+    q.push(1) ;
+    vis[1] = true ;
+    while(!q.empty())
+    {
+        ll node = q.front() ; 
+        q.pop() ; 
+        for(auto child : g[node])
+        {
+            if(!vis[child])
+            {
+                vis[child] = true ; 
+                q.push(child) ; 
+            }
+        }
+    }
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(!vis[i])
+        {
+            pn ; 
+            cout &lt;&lt; 1 &lt;&lt; " " &lt;&lt; i &lt;&lt; endl ; 
+            return ; 
+        }
+    }
+    vector &lt; ll &gt; rvis(n+1 , false) ; 
+    queue &lt;ll&gt; rq ;
+    rq.push(1) ;
+    rvis[1] = true ;
+    while(!rq.empty())
+    {
+        ll node = rq.front() ; 
+        rq.pop() ; 
+        for(auto child : rg[node])
+        {
+            if(!rvis[child])
+            {
+                rvis[child] = true ; 
+                rq.push(child) ; 
+            }
+        }
+    }
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(!rvis[i])
+        {
+            pn ; 
+            cout &lt;&lt; i &lt;&lt; " " &lt;&lt; 1 &lt;&lt; endl ; 
+            return ; 
+        }
+    }
+    py ; 
+
+
+
+    
+    
+
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}
+   
+/*You have 
+𝑛
+n cities and 
+𝑚
+m one-way flights. You need to determine: is it possible to fly from any city to any other city, possibly using multiple flights in sequence?
+
+Formally: define 
+𝑢
+⇝
+𝑣
+u⇝v ("
+𝑢
+u can reach 
+𝑣
+v") to mean there's a directed path from 
+𝑢
+u to 
+𝑣
+v (possibly through other cities). The question asks: is it true that 
+𝑢
+⇝
+𝑣
+u⇝v for every pair 
+(
+𝑢
+,
+𝑣
+)
+(u,v) with 
+𝑢
+≠
+𝑣
+u
+
+=v? This property is called strong connectivity — every node can reach every other node via directed edges.
+
+If it's not strongly connected, you must also exhibit one witness pair 
+(
+𝑎
+,
+𝑏
+)
+(a,b) where 
+𝑎
+⇝
+𝑏
+a⇝b fails.
+
+The brute-force way to check this would be running BFS from every single node — 
+𝑂
+(
+𝑛
+)
+O(n) BFS calls, each 
+𝑂
+(
+𝑛
++
+𝑚
+)
+O(n+m), giving 
+𝑂
+(
+𝑛
+(
+𝑛
++
+𝑚
+)
+)
+O(n(n+m)) total. With 
+𝑛
+n up to 
+10
+5
+10
+5
+, that's far too slow. We need something in 
+𝑂
+(
+𝑛
++
+𝑚
+)
+O(n+m) — i.e., just two BFS calls total, no matter how big 
+𝑛
+n is.
+
+The claim to prove
+
+Claim: The graph is strongly connected if and only if city 1 can reach every other city, and every other city can reach city 1.
+
+In symbols: define 
+𝑅
+=
+{
+𝑥
+:
+1
+⇝
+𝑥
+}
+R={x:1⇝x} (reachable from 1) and 
+𝐵
+=
+{
+𝑥
+:
+𝑥
+⇝
+1
+}
+B={x:x⇝1} (can reach back to 1). The claim is:
+
+graph is strongly connected
+  
+⟺
+  
+𝑅
+=
+{
+1
+,
+…
+,
+𝑛
+}
+ and 
+𝐵
+=
+{
+1
+,
+…
+,
+𝑛
+}
+graph is strongly connected⟺R={1,…,n} and B={1,…,n}
+
+This is an "if and only if," so we need to prove both directions.
+
+Direction 1: strongly connected 
+  
+⟹
+  
+⟹ both conditions hold
+
+This direction is immediate. If the graph is strongly connected, then by definition every pair of nodes can reach each other — in particular, node 1 can reach every node (so 
+𝑅
+R is everything), and every node can reach node 1 (so 
+𝐵
+B is everything). Nothing to prove beyond unpacking the definition.
+
+Direction 2: both conditions hold 
+  
+⟹
+  
+⟹ strongly connected (the interesting part)
+
+Assume 
+𝑅
+=
+{
+1
+,
+…
+,
+𝑛
+}
+R={1,…,n} and 
+𝐵
+=
+{
+1
+,
+…
+,
+𝑛
+}
+B={1,…,n}. We need to show that for any pair of cities 
+𝑢
+,
+𝑣
+u,v (with 
+𝑢
+≠
+𝑣
+u
+
+=v), we have 
+𝑢
+⇝
+𝑣
+u⇝v.
+
+Take arbitrary 
+𝑢
+,
+𝑣
+u,v. We know:
+
+Since 
+𝑢
+∈
+𝐵
+u∈B, we have 
+𝑢
+⇝
+1
+u⇝1 (a path exists from 
+𝑢
+u to city 1).
+Since 
+𝑣
+∈
+𝑅
+v∈R, we have 
+1
+⇝
+𝑣
+1⇝v (a path exists from city 1 to 
+𝑣
+v).
+
+Now just concatenate these two paths: walk from 
+𝑢
+u to 
+1
+1 using the first path, then continue from 
+1
+1 to 
+𝑣
+v using the second path. This gives a valid walk from 
+𝑢
+u to 
+𝑣
+v in the directed graph — so 
+𝑢
+⇝
+𝑣
+u⇝v.
+
+Since 
+𝑢
+,
+𝑣
+u,v were arbitrary, this holds for every pair, which is exactly the definition of strongly connected. 
+■
+■
+
+Why this collapses 
+𝑛
+n BFS calls into 2
+
+The naive approach checks reachability for all 
+(
+𝑛
+2
+)
+(
+2
+n
+	​
+
+) (or 
+𝑛
+(
+𝑛
+−
+1
+)
+n(n−1) ordered) pairs directly. The proof above shows you don't need to — reachability through the "hub" node 1 automatically covers every pair simultaneously, as long as 1 itself is universally reachable both ways.
+
+𝑅
+R (everything reachable from 1) is computed with one forward BFS/DFS from node 1 on the graph as given.
+𝐵
+B (everything that can reach node 1) is computed with one BFS/DFS from node 1 on the graph with every edge reversed — because a path from 
+𝑥
+x to 1 in the original graph is exactly a path from 1 to 
+𝑥
+x in the reversed graph (reversing turns "can reach 1" into "1 can reach").
+
+So instead of 
+𝑛
+n traversals, we need exactly 2, regardless of how large 
+𝑛
+n is. That's what brings the complexity down from 
+𝑂
+(
+𝑛
+(
+𝑛
++
+𝑚
+)
+)
+O(n(n+m)) to 
+𝑂
+(
+𝑛
++
+𝑚
+)
+O(n+m).
+
+Note: node 1 isn't special — any node works
+
+Nothing in the proof used a specific property of node 1; it works as the hub precisely because it's a fixed reference point that every other node's reachability gets checked against. You could equally well pick any city 
+𝑘
+k and run forward/backward BFS from 
+𝑘
+k — the proof goes through unchanged with 
+𝑘
+k in place of 
+1
+1. Node 1 is just a convenient, arbitrary choice.
+
+Finding a witness pair when it fails
+
+If the graph is not strongly connected, the proof's contrapositive tells us where to look:
+
+If some node 
+𝑥
+∉
+𝑅
+x∈
+/
+R (i.e., 1 cannot reach 
+𝑥
+x), then 
+(
+1
+,
+𝑥
+)
+(1,x) is a valid witness pair — you genuinely cannot fly from 1 to 
+𝑥
+x.
+If some node 
+𝑥
+∉
+𝐵
+x∈
+/
+B (i.e., 
+𝑥
+x cannot reach 1), then 
+(
+𝑥
+,
+1
+)
+(x,1) is a valid witness pair.
+
+This is guaranteed to find some failing pair whenever the graph isn't strongly connected — because if both 
+𝑅
+R and 
+𝐵
+B were "everything," the claim proves the graph would be strongly connected, contradiction. So at least one of the two BFS passes must miss a node whenever the answer is NO.*/</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The witness order matters: unreached in <code>g</code> &rArr; print <code>1 i</code>; unreached in <code>rg</code> &rArr; print <code>i 1</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"can every node reach every other in a directed graph" &rarr; BFS from one vertex on G and reversed G.</div>
+    </article>
+    <article class="entry" id="planets-and-kingdoms">
+      <div class="entry-head"><h3>Planets and Kingdoms</h3><span class="badge num">O(n+m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Label strongly connected components.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>The vertex that finishes last in DFS on G lies in a source component of the condensation.</li>
+          <li>In reverse(G), that component is a sink: DFS from it cannot leak out.</li>
+          <li>Repeat in decreasing finish order; each launch is one SCC.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Reachability both ways for every pair.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n·(n+m))</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>, <code>m ≤ 2·10⁵</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Kosaraju: two DFS passes, <span class="cost">O(n + m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 120" role="img" aria-label="Planets and kingdoms sample"><path class="s-edge" d="M54 40 L106 40"/><path class="s-arrow" d="M106 40 L98 44 L98 36 Z"/><path class="s-edge" d="M112 52 L88 88"/><path class="s-arrow" d="M88 88 L89 79 L96 84 Z"/><path class="s-edge" d="M72 88 L48 52"/><path class="s-arrow" d="M48 52 L56 56 L49 61 Z"/><path class="s-edge" d="M94 96 L176 74"/><path class="s-arrow" d="M176 74 L170 80 L168 72 Z"/><path class="s-edge" d="M204 70 L256 70"/><path class="s-arrow" d="M256 70 L248 74 L248 66 Z"/><path class="s-edge" d="M256 70 L204 70"/><path class="s-arrow" d="M204 70 L212 66 L212 74 Z"/><circle class="s-good" cx="40" cy="40" r="14"/><text class="s-t" x="40" y="44" text-anchor="middle">1</text><circle class="s-good" cx="120" cy="40" r="14"/><text class="s-t" x="120" y="44" text-anchor="middle">2</text><circle class="s-good" cx="80" cy="100" r="14"/><text class="s-t" x="80" y="104" text-anchor="middle">3</text><circle class="s-fill" cx="190" cy="70" r="14"/><text class="s-t" x="190" y="74" text-anchor="middle">4</text><circle class="s-fill" cx="270" cy="70" r="14"/><text class="s-t" x="270" y="74" text-anchor="middle">5</text></svg>
+          <figcaption>Two kingdoms: {1,2,3} and {4,5}.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>order</code> collects vertices on DFS exit; popping from the back gives decreasing finish time. <code>vis</code> is reused as the component id in the second pass.</p>
+        <div class="src-meta"><span class="path">graphs/Planets_and_Kingdoms.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll n , m ;
+vector &lt; vector &lt; ll &gt; &gt;  g ; 
+vector &lt; vector &lt; ll &gt; &gt; rg ;
+vector &lt; ll &gt; vis ;
+vector &lt; ll &gt; order ;
+
+void dfsg(ll node)
+{
+    vis[node] = 1 ; 
+    for(auto child : g[node])
+    {
+        if(!vis[child])
+        {
+            dfsg(child) ; 
+        }
+    }
+    order.push_back(node) ;
+}
+void dfsrg(ll node, ll col)
+{
+    vis[node] = col ; 
+    for(auto child : rg[node])
+    {
+        if(!vis[child])
+        {
+            dfsrg(child, col) ; 
+        }
+    }
+}
+void solve() 
+{
+
+   cin &gt;&gt; n &gt;&gt; m ;
+   g.resize(n+1) ;
+   rg.resize(n+1) ;
+   vis.assign(n+1 , 0) ;
+   for(ll i = 0 ; i &lt; m ; i++)
+   {
+        ll a , b ;
+        cin &gt;&gt; a &gt;&gt; b ;
+        g[a].push_back(b) ; 
+        rg[b].push_back(a) ; 
+   }
+   for(ll i = 1 ; i &lt;= n ; i++)
+   {
+        if(!vis[i])
+        {
+            dfsg(i) ; 
+        }
+   }
+   vis.assign(n+1 , 0) ;
+   ll col = 0 ; 
+   while(!order.empty())
+   {
+        ll node = order.back() ;
+        order.pop_back() ;
+        if(!vis[node])
+        {
+            col++ ; 
+            dfsrg(node , col) ; 
+        }
+   }
+   cout &lt;&lt; col &lt;&lt; endl ;
+   for(ll i = 1 ; i &lt;= n ; i++)
+   {
+        cout &lt;&lt; vis[i] &lt;&lt; " " ; 
+   }
+   cout &lt;&lt; endl ;
+
+
+
+
+   
+
+
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The second pass must use the reversed graph. On G itself, DFS from a source component floods into everything downstream.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"groups where everyone reaches everyone" &rarr; SCC (Kosaraju).</div>
+    </article>
+    <article class="entry" id="giant-pizza">
+      <div class="entry-head"><h3>Giant Pizza</h3><span class="badge num">O(n+m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Each member wants at least one of two topping choices. Pick toppings to satisfy everyone, or IMPOSSIBLE.<div class="formal">2-SAT: ∧ (ℓ₁ ∨ ℓ₂)</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li><code>a &or; b</code> is two implications: <code>&not;a &rArr; b</code> and <code>&not;b &rArr; a</code>.</li>
+          <li><code>x</code> and <code>&not;x</code> in one SCC &rArr; each implies the other &rArr; unsatisfiable.</li>
+          <li>Otherwise set each literal whose component comes later in topological order &mdash; implications never lead from true to false.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Try all 2ᵐ topping sets.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(2ᵐ · n)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>m ≤ 10⁵</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Implication graph on 2m literals + Kosaraju: <span class="cost">O(n + m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 120" role="img" aria-label="Implication graph for one clause"><path class="s-hi" d="M68 30 L232 30"/><path class="s-arrow" d="M232 30 L224 34 L224 26 Z"/><path class="s-hi" d="M68 95 L232 95"/><path class="s-arrow" d="M232 95 L224 99 L224 91 Z"/><circle class="s-box" cx="50" cy="30" r="18"/><text class="s-t" x="50" y="34" text-anchor="middle">¬a</text><circle class="s-box" cx="250" cy="30" r="18"/><text class="s-t" x="250" y="34" text-anchor="middle">b</text><circle class="s-box" cx="50" cy="95" r="18"/><text class="s-t" x="50" y="99" text-anchor="middle">¬b</text><circle class="s-box" cx="250" cy="95" r="18"/><text class="s-t" x="250" y="99" text-anchor="middle">a</text><text class="s-ta" x="150" y="65" text-anchor="middle">clause (a ∨ b)</text></svg>
+          <figcaption>Each clause adds two edges; satisfiable iff no variable shares an SCC with its negation.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>encode</code> maps <code>+x &rarr; 2x&minus;1</code>, <code>&minus;x &rarr; 2x</code>. Kosaraju numbers components in topological order of the condensation (sources first), so <code>colour[+i] &gt; colour[&minus;i]</code> means +i is later &rArr; choose <code>+</code>. Here <code>n</code> is members and <code>m</code> toppings.</p>
+        <div class="src-meta"><span class="path">graphs/Giant_Pizza.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll encode(ll a)
+{
+    if(a &gt; 0)
+    {
+        return 2 * a - 1 ;
+    }
+    else
+    {
+        return 2 * abs(a) ;
+    }
+}
+void dfs1(ll node , const vector &lt; vector &lt; ll &gt; &gt; &amp;g , vector &lt; bool &gt; &amp;vis , vector &lt; ll &gt; &amp;order)
+{
+    vis[node] = true ;
+    for(auto child : g[node])
+    {
+        if(!vis[child])
+        {
+            dfs1(child , g , vis , order) ;
+        }
+    }
+    order.push_back(node) ;
+}
+
+void dfs2(ll node, ll col , const vector &lt; vector &lt; ll &gt; &gt; &amp;rg , vector &lt; ll &gt; &amp;colour)
+{
+    colour[node] = col ; 
+    for(auto child : rg[node])
+    {
+        if(!colour[child])
+        {
+            dfs2(child , col , rg , colour) ; 
+        }
+    }
+}
+
+void solve() 
+{
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ;
+    vector &lt; vector &lt; ll &gt; &gt; g(2 * m + 1) ;
+    // +1 -&gt; 1
+    // -1 -&gt; 2
+    // +2 -&gt; 3
+    // -2 -&gt; 4
+    //...
+    // +m -&gt; 2 * m - 1 
+    // -m -&gt; 2 * m
+    vector &lt; vector &lt; ll &gt; &gt; rg(2 * m + 1) ;
+
+    for(ll i = 0 ; i &lt; n ; i++)
+    {
+        char t1 ; 
+        cin &gt;&gt; t1 ;
+        ll p1 ; 
+        cin &gt;&gt; p1 ;
+        char t2 ;
+        cin &gt;&gt; t2 ;
+        ll p2 ;
+        cin &gt;&gt; p2 ;
+        if(t1 == '+')
+        {
+            p1 = p1 ; 
+        }
+        else
+        {
+            p1 = - p1 ;
+        }
+        if(t2 == '+')
+        {
+            p2 = p2 ; 
+        }
+        else
+        {
+            p2 = - p2 ;
+        }
+        // x1 or x2 is the same as 
+        // not x1 implies x2 and not x2 implies x1
+        g[encode(-p1)].push_back(encode(p2)) ;
+        g[encode(-p2)].push_back(encode(p1)) ;
+        rg[encode(p2)].push_back(encode(-p1)) ;
+        rg[encode(p1)].push_back(encode(-p2)) ;
+    }
+    vector &lt; ll &gt; order ;
+    vector &lt; bool &gt; vis(2 * m + 1 , false) ;
+
+    for(ll i = 1 ; i &lt;= 2 * m ; i++)
+    {
+        if(!vis[i])
+        {
+            dfs1(i , g , vis , order) ;
+        }
+    }
+    vector &lt; ll &gt; colour(2 * m + 1 , 0) ;
+    ll col = 1 ;
+    for(ll i = order.size() - 1 ; i &gt;= 0 ; i--)
+    {
+        ll node = order[i] ;
+        if(!colour[node])
+        {
+            dfs2(node , col , rg , colour) ; 
+            col++ ;
+        }
+    }
+    for(ll i = 1 ; i &lt;= m ; i++)
+    {
+        if(colour[encode(i)] == colour[encode(-i)])
+        {
+            cout &lt;&lt; "IMPOSSIBLE" &lt;&lt; endl ;
+            return ;
+        }
+    }
+    vector &lt; char &gt; ans ;
+    for(ll i = 1 ; i &lt;= m ; i++)
+    {
+        if(colour[encode(i)] &gt; colour[encode(-i)])
+        {
+            ans.push_back('+') ;
+        }
+        else
+        {
+            ans.push_back('-') ;
+        }
+    }
+    for(auto&amp; x : ans)
+    {
+        cout &lt;&lt; x &lt;&lt; " " ;
+    }
+    
+    cout &lt;&lt; endl ;
+
+    
+
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The comparison direction flips with Tarjan, which numbers SCCs in <em>reverse</em> topological order. Using Tarjan's ids with this <code>&gt;</code> picks the wrong literals.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"each constraint: at least one of two boolean choices" &rarr; 2-SAT via SCC.</div>
+    </article>
+  </section>
+
+  <section class="family" id="f3">
+    <div class="family-head"><h2>3 &middot; Union-find</h2></div>
+    <p class="family-note">Merge-only connectivity.</p>
+    <article class="entry" id="road-construction">
+      <div class="entry-head"><h3>Road Construction</h3><span class="badge num">O(m α(n))</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Roads are added one by one; after each, print the number of components and the largest component size.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Components only merge, never split &rArr; union-find.</li>
+          <li>A successful merge lowers the count by one.</li>
+          <li>The max size can only change at a merge, to the new merged size.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">BFS/DFS after every addition.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(m·(n+m))</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>, <code>m ≤ 2·10⁵</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">DSU with path compression + union by size: <span class="cost">≈ O(m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 110" role="img" aria-label="Road construction sample"><path class="s-hi" d="M54 40 L96 40"/><path class="s-hi" d="M48 51 L67 79"/><path class="s-hi" d="M204 60 L246 60"/><circle class="s-box" cx="40" cy="40" r="14"/><text class="s-t" x="40" y="44" text-anchor="middle">1</text><circle class="s-box" cx="110" cy="40" r="14"/><text class="s-t" x="110" y="44" text-anchor="middle">2</text><circle class="s-box" cx="75" cy="90" r="14"/><text class="s-t" x="75" y="94" text-anchor="middle">3</text><circle class="s-box" cx="190" cy="60" r="14"/><text class="s-t" x="190" y="64" text-anchor="middle">4</text><circle class="s-box" cx="260" cy="60" r="14"/><text class="s-t" x="260" y="64" text-anchor="middle">5</text><text class="s-td" x="150" y="105" text-anchor="middle">4 2 → 3 3 → 2 3</text></svg>
+          <figcaption>Counts and max size after each of the three roads.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>rank</code> actually holds set sizes. <code>merge</code> returns early on the same root, so <code>setsz</code> and <code>maxsz</code> only move on real merges.</p>
+        <div class="src-meta"><span class="path">graphs/Road_Construction.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+struct UnionFind{
+    ll n , *parent , *rank , setsz , maxsz; 
+    UnionFind()
+    {
+        n = setsz = 0 ;
+        parent = nullptr ; 
+        rank = nullptr ; 
+        maxsz = 0 ;
+    }
+    UnionFind(ll a)
+    {
+        n = setsz = a ; 
+        parent = new ll[a+1] ;
+        rank = new ll[a+1] ; 
+        for(ll i = 1 ; i &lt;= a ; i++)
+        {
+            parent[i] = i ; 
+            rank[i] = 1 ; 
+        }
+        maxsz = 1 ;
+    }
+    ll find(ll x)
+    {
+        if(parent[x] == x)
+        {
+            return x ; 
+        }
+        return parent[x] = find(parent[x]) ; 
+    }
+    void merge(ll x , ll y)
+    {
+        x = find(x) ; 
+        y = find(y) ; 
+        if(x == y)
+        {
+            return ; 
+        }
+        if(rank[x] &lt; rank[y])
+        {
+            swap(x , y) ; 
+        }
+        // this ensures that the larger set is always the parent of the smaller set, which helps to keep the tree flat and improves the efficiency of the union-find operations.
+        parent[y] = x ; 
+        rank[x] += rank[y] ; 
+        maxsz = max(maxsz , rank[x]) ; 
+        setsz-- ; 
+    }
+    bool connected(ll x , ll y)
+    {
+        return find(x) == find(y) ; 
+    }
+    ll size(ll x)
+    {
+        return rank[find(x)] ; 
+    }
+
+    ll sets()
+    {
+        return setsz ; 
+    }
+    ll max_size()
+    {
+        return maxsz ; 
+    }
+};
+void solve() 
+{
+    ll n , m ; 
+    cin &gt;&gt; n &gt;&gt; m ; 
+    UnionFind uf(n) ; 
+    for(ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b ; 
+        cin &gt;&gt; a &gt;&gt; b ; 
+        uf.merge(a , b) ; 
+        cout &lt;&lt; uf.sets() &lt;&lt; " " &lt;&lt; uf.max_size() &lt;&lt; endl ; 
+    }
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Printing after an edge inside one component must still output the unchanged pair; the early return handles it.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"edges added over time, report connectivity stats after each" &rarr; DSU.</div>
+    </article>
+    <article class="entry" id="road-reparation">
+      <div class="entry-head"><h3>Road Reparation</h3><span class="badge num">O(m log m)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Minimum total cost to keep all cities connected (MST), or IMPOSSIBLE.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Cheapest edge crossing any cut is safe to take (cut property).</li>
+          <li>Processing edges by cost, an edge joining two different components is such an edge.</li>
+          <li>If more than one component remains, no spanning tree exists.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Try all subsets of <code>n&minus;1</code> edges.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">exponential</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n ≤ 10⁵</code>, <code>m ≤ 2·10⁵</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Kruskal with DSU: <span class="cost">O(m log m)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 140" role="img" aria-label="Road reparation sample"><path class="s-hi" d="M64 40 L136 40"/><text class="s-ta" x="100" y="54" text-anchor="middle">3</text><path class="s-hi" d="M164 40 L236 40"/><text class="s-ta" x="200" y="54" text-anchor="middle">5</text><path class="s-hi" d="M150 54 L150 96"/><text class="s-ta" x="140" y="79" text-anchor="middle">2</text><path class="s-edge" d="M239 48 L161 102"/><text class="s-ta" x="194" y="71" text-anchor="middle">8</text><path class="s-edge" d="M50 96 L50 54"/><text class="s-ta" x="60" y="79" text-anchor="middle">7</text><path class="s-hi" d="M64 110 L136 110"/><text class="s-ta" x="100" y="124" text-anchor="middle">4</text><circle class="s-box" cx="50" cy="40" r="14"/><text class="s-t" x="50" y="44" text-anchor="middle">1</text><circle class="s-box" cx="150" cy="40" r="14"/><text class="s-t" x="150" y="44" text-anchor="middle">2</text><circle class="s-box" cx="250" cy="40" r="14"/><text class="s-t" x="250" y="44" text-anchor="middle">3</text><circle class="s-box" cx="150" cy="110" r="14"/><text class="s-t" x="150" y="114" text-anchor="middle">4</text><circle class="s-box" cx="50" cy="110" r="14"/><text class="s-t" x="50" y="114" text-anchor="middle">5</text></svg>
+          <figcaption>Edges 2, 3, 4, 5 &rarr; total 14.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Edges are sorted by the <code>second</code> field (cost) with a lambda. <code>ans</code> is <code>long long</code>: up to 10⁵ × 10⁹.</p>
+        <div class="src-meta"><span class="path">graphs/Road_Reparation.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+
+
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+struct UnionFind{
+    ll n , *parent , *rank , setsz ; 
+    UnionFind()
+    {
+        n = setsz = 0 ; 
+        parent = nullptr ; 
+        rank = nullptr ; 
+    }
+    UnionFind(ll a)
+    {
+        n = setsz = a ; 
+        parent = new ll[a+1] ; 
+        rank = new ll[a+1] ; 
+        for(ll i = 1 ; i &lt;= a ; i++ )
+        {
+            parent[i] = i ; 
+            rank[i] = 1 ;
+            // rank is the size of the set that the node belongs to
+        }
+
+    }
+    ll find(ll x)
+    {
+        if( x != parent[x] )
+        {
+            return parent[x] = find(parent[x]) ; 
+        }
+        else 
+        {
+            return x ; 
+        }
+    }
+    void merge( ll x , ll y)
+    {
+        ll parx = find(x) ; 
+        ll pary = find(y) ;
+        if(parx == pary)
+        {
+            return ; 
+        }
+        if(parx != pary)
+        {
+            if(rank[parx] &gt;= rank[pary])
+            {
+                parent[pary] = parx ; 
+                rank[parx] += rank[pary] ; 
+                // this ensures that the smaller set is merged into the larger set, which helps to keep the tree flat and improves the efficiency of future find operations.
+            }
+            else
+            {
+                parent[parx] = pary ; 
+                rank[pary] += rank[parx] ; 
+            }
+            setsz-- ; 
+        }
+    }
+    bool connected(ll x , ll y)
+    {
+        return find(x) == find(y) ; 
+    }
+    ll size(ll x)
+    {
+        return rank[find(x)] ; 
+    }
+    ll sets()
+    {
+        return setsz ; 
+    }
+
+};
+
+void solve() 
+{
+    ll n , m ;
+    cin &gt;&gt; n &gt;&gt; m ;
+    vector &lt; pair &lt; pll , ll &gt; &gt; edges ; 
+    for(ll i = 0 ; i &lt; m ; i++)
+    {
+        ll a , b , c ; 
+        cin &gt;&gt; a &gt;&gt; b &gt;&gt; c ; 
+        edges.push_back({{a , b} , c}) ; 
+    }
+    sort(edges.begin() , edges.end() , [](pair&lt;pll,ll&gt; a , pair&lt;pll,ll&gt; b)
+    {
+        return a.second &lt; b.second ; 
+    }) ;
+    UnionFind uf(n) ;
+    ll ans = 0 ; 
+    for(auto edge : edges)
+    {
+        ll a = edge.fr.fr ; 
+        ll b = edge.fr.sc ; 
+        ll c = edge.sc ; 
+        if(!uf.connected(a , b))
+        {
+            uf.merge(a , b) ; 
+            ans += c ; 
+        }
+    }
+    if(uf.sets() &gt; 1)
+    {
+        cout &lt;&lt; "IMPOSSIBLE" &lt;&lt; endl ; 
+    }
+    else
+    {
+        cout &lt;&lt; ans &lt;&lt; endl ; 
+    }
+
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The IMPOSSIBLE check uses the DSU set count, not <code>ans</code>; a disconnected input still produces a partial sum.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"minimum cost to connect everything" &rarr; Kruskal (MST).</div>
+    </article>
+  </section>
+
+  <section class="family" id="f4">
+    <div class="family-head"><h2>4 &middot; Binary lifting</h2></div>
+    <p class="family-note">Functional graphs with huge step counts.</p>
+    <article class="entry" id="planets-queries-i">
+      <div class="entry-head"><h3>Planets Queries I</h3><span class="badge num">O((n+q) log k)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Every planet has one teleporter. Answer queries: where do you end after <code>k</code> teleports from <code>x</code>?<div class="formal">f(v) given; answer f^k(x),  k ≤ 10⁹</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Out-degree exactly 1 &rArr; the k-th successor is well defined.</li>
+          <li><code>2ʲ</code> steps = two <code>2ʲ⁻¹</code> step jumps &rArr; a doubling table.</li>
+          <li>Any <code>k</code> is a sum of powers of two: jump once per set bit.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Simulate <code>k</code> steps per query.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(q·k)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>q ≤ 2·10⁵</code>, <code>k ≤ 10⁹</code> &rarr; 2·10¹⁴.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Binary lifting with 30 levels: <span class="cost">O(30·(n + q))</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 110" role="img" aria-label="Planets queries functional graph"><path class="s-edge" d="M64 40 L136 40"/><path class="s-arrow" d="M136 40 L128 44 L128 36 Z"/><path class="s-edge" d="M136 40 L64 40"/><path class="s-arrow" d="M64 40 L72 36 L72 44 Z"/><path class="s-edge" d="M50 81 L50 54"/><path class="s-arrow" d="M50 54 L54 62 L46 62 Z"/><circle class="s-box" cx="50" cy="40" r="14"/><text class="s-t" x="50" y="44" text-anchor="middle">1</text><circle class="s-box" cx="150" cy="40" r="14"/><text class="s-t" x="150" y="44" text-anchor="middle">2</text><circle class="s-box" cx="50" cy="95" r="14"/><text class="s-t" x="50" y="99" text-anchor="middle">3</text><circle class="s-box" cx="250" cy="60" r="14"/><text class="s-t" x="250" y="64" text-anchor="middle">4</text><path class="s-edge" d="M262 48 C 290 20, 300 90, 264 70"/><text class="s-td" x="160" y="100" text-anchor="middle">teleporters 2 1 1 4</text></svg>
+          <figcaption>Sample graph: 3 &rarr; 1 &harr; 2, 4 loops on itself.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>LOG = 30</code> covers <code>k &lt; 2³⁰</code>. <code>up</code> is <code>LOG × (n+1)</code> of <code>long long</code>, ~48 MB. The query loop applies bit <code>j</code> in any order since jumps commute.</p>
+        <div class="src-meta"><span class="path">graphs/Planets_Queries_I.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+#define LOG 30
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n , qu ;
+    cin &gt;&gt; n &gt;&gt; qu ;
+
+    vector&lt; vector &lt; ll &gt; &gt; up(LOG , vector&lt;ll&gt;(n+1 , 0)) ;
+    
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        ll a ; 
+        cin &gt;&gt; a ; 
+        up[0][i] = a ;
+        // up [ j ] [ node ] = the 2^j th ancestor of node
+    }
+    for(ll k = 1 ; k &lt; LOG ; k++)
+    {
+        // for each node, we will find the 2^k th ancestor of that node
+        // 2^k th ancestor of node = 2^(k-1) th ancestor of 2^(k-1) th ancestor of node
+        for(ll node = 1 ; node &lt;= n ; node++)
+        {
+            // 2 raise to k-1th ancestor of all nodes is already calculated in the previous iteration, so we can use that to calculate the 2^k th ancestor of all nodes
+            up[k][node] = up[k-1][up[k-1][node]] ;
+        }
+    }
+    while(qu--)
+    {
+        ll node , k ; 
+        cin &gt;&gt; node &gt;&gt; k ;
+        for(ll j = 0 ; j &lt; LOG ; j++)
+        {
+            // if the jth bit of k is set, we will move to the 2^j th ancestor of node
+            ll bit = (k &gt;&gt; j) &amp; 1 ;
+            if(bit)
+            {
+                node = up[j][node] ;
+            }
+        }
+        cout &lt;&lt; node &lt;&lt; endl ;
+    }
+    
+
+
+
+
+    
+
+
+
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong><code>LOG = 30</code> is exactly enough for <code>k ≤ 10⁹ &lt; 2³⁰</code>. Bits at or above <code>LOG</code> are silently ignored, so a larger bound needs a larger <code>LOG</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"k-th successor in a functional graph, k huge" &rarr; binary lifting.</div>
+    </article>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+  <div class="excluded">
+    <h4>Excluded from this ledger</h4>
+    <ul>
+      <li><code>graphs/Planets_Queries_II.cpp</code> &mdash; does not compile. <code>g++ -O2 -std=c++17 graphs/Planets_Queries_II.cpp</code> &rarr; <code>error: use of undeclared identifier 'LOG'</code> at lines 47 and 56 (no <code>#define LOG</code> in this file).</li>
+      <li><code>graphs/Planets_Cycles.cpp</code> &mdash; does not compile: <code>fatal error: 'algodebug.h' file not found</code> (header removed in b26f0ca). A separate <code>math/Planets_Cycles.cpp</code> exists.</li>
+    </ul>
+  </div>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/graphs_3_structure.js"></script>
+</body>
+</html>

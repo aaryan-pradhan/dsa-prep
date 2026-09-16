@@ -41,7 +41,12 @@ LEDGER.add(
       anchor: 'traffic-lights',
       fam: 'ordered-set greedy',
       inv: 'erase(find(hi&minus;lo)); insert(p&minus;lo), insert(hi&minus;p); ans = *gaps.rbegin()',
-      time: 'O(n log n)' }
+      time: 'O(n log n)' },
+    { name: 'Concert Tickets',
+      anchor: 'concert-tickets',
+      fam: 'ordered-set greedy',
+      inv: "it = prev(prices.upper_bound(maxᵢ)); sell *it, erase that one copy",
+      time: 'O((n+m) log n)' }
   ],
   [
     { file: 'arrays/Nested_Ranges_Count.cpp',

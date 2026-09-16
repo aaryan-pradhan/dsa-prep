@@ -86,6 +86,7 @@ topic cards, and every table update themselves.
 
 ### Migration state (as of 16 Sep 2026)
 - **Arrays**: 100% MIGRATED. All 5 child ledgers (`Array_Ledger_1_Linear_Scan.html` through `Array_Ledger_5_Range_Queries.html`) and all 5 data JS files (`arrays_1` through `arrays_5`) are complete. The old monolithic `arrays/Array_Ledger.html` has been deleted.
-- **DP & Graphs**: Old monolithic ledgers (`dp/DP_Ledger.html`, `graphs/Graph_Ledger.html`) exist with inline CSS. Need to be split into modular child ledgers and data files.
+- **DP**: MIGRATED. `dp/DP_Ledger_1_Sums_Knapsack.html` (10) and `dp/DP_Ledger_2_Tables_Intervals.html` (9), data files `dp_1`/`dp_2`. `dp/Counting_Towers.cpp` excluded (does not compile). Old `dp/DP_Ledger.html` deleted.
+- **Graphs**: MIGRATED. `Graph_Ledger_1_Traversal.html` (9), `Graph_Ledger_2_Shortest_Paths.html` (7), `Graph_Ledger_3_Structure.html` (9), data files `graphs_1`–`graphs_3`. Excluded: `Planets_Queries_II` and `Planets_Cycles` (don't compile) and `Nested_Ranges_Count` (no output on sample). Misfiled `Concert_Tickets`, `Movie_Festival`, `Sum_of_Two_Values` moved to `arrays/` and added to `Array_Ledger_2`/`_4`. Old `graphs/Graph_Ledger.html` deleted.
 - **Other topics** (trees, math, linked_list, strings): No ledgers yet.
-- **LEDGER.html**: Currently configured to load the 5 completed array data files (`arrays_1` through `arrays_5`). Non-array script tags will be re-added as their child ledgers are built.
+- **LEDGER.html**: Loads the array (`arrays_1`–`arrays_5`), DP (`dp_1`, `dp_2`) and graph (`graphs_1`–`graphs_3`) data files. Remaining topics get script tags as their child ledgers are built.
