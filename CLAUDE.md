@@ -43,10 +43,9 @@ Topics: `arrays`, `backtracking`, `dp`, `graphs`, `heaps`, `linked_list`,
 `math`, `stacks_queues`, `strings`, `trees`. New topics get created
 on-demand as problems don't fit existing ones — no fixed list.
 
-Use `templates/solution_template.cpp` as the starting point for every new
-solution file — keep the header comment format (`Problem` / `Link` /
-`Pattern` / `Time` / `Space`) and the statement/Recall-Trail comment
-placement consistent.
+Keep the header comment format (`Problem` / `Link` / `Pattern` / `Time` /
+`Space`) and the statement/Recall-Trail comment placement consistent across
+new solution files.
 
 The CSES progress tracker no longer lives here — it moved on 15 Sep 2026 to
 `../timetable/CSES_TRACKER.md` (next to the daily plans). It's a
@@ -61,14 +60,9 @@ gitignored — CPH-extension artifacts, not source.
 ```bash
 # compile + run a C++ solution
 g++ -O2 -std=c++17 -o /tmp/a.out topic/Problem_Name.cpp && /tmp/a.out
-
-# same, with debug() / debugArr() macros available (templates/algodebug.h)
-g++ -O2 -std=c++17 -Itemplates -o /tmp/a.out topic/Problem_Name.cpp && /tmp/a.out
 ```
 
 There is no repo-wide build/lint config — each problem is self-contained.
-
-`templates/algodebug.h` provides `debug(...)` / `debugArr(...)` macros (compiled out under `-DONLINE_JUDGE`). Because solutions live nested under `topic/`, not at repo root, `#include "algodebug.h"` needs `-Itemplates` on the compile line to resolve — plain quote-include won't find it otherwise.
 
 ## Workflow
 

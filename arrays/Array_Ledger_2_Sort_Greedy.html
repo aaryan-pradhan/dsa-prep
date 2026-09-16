@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sort + Greedy &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<!-- data-base = path back to repo root; data-slug = this child's slug -->
+<body data-base=".." data-slug="arrays_2_sort_greedy">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; Arrays</div>
+  <h1>Sort + Greedy</h1>
+  <p class="dek">Nine problems where the whole solution is <em>sort, then take
+  one pass</em>. Sorting is never the answer here &mdash; it is what makes a local
+  rule safe: once the array is ordered, the extreme element can be resolved
+  immediately, a failed comparison can never be rescued by a later element, and
+  an adjacent-swap argument becomes a total order. Reach for this page when an
+  optimisation problem has no visible structure but a single comparison between
+  two elements decides which of them should come first.</p>
+  <p class="stats"><b>9</b> problems &middot; <b>4</b> families</p>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <a href="#recognition">Recognition rules</a>
+  <div class="toc-fam"><a href="#f1">1 &middot; Sort + two-pointer greedy matching</a></div>
+  <div class="toc-fam"><a href="#f2">2 &middot; Sort + fixed-k value search</a></div>
+  <div class="toc-fam"><a href="#f3">3 &middot; Sort + single-pass greedy</a></div>
+  <div class="toc-fam"><a href="#f4">4 &middot; Exchange-argument scheduling</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recognition">
+    <div class="section-head"><h2>Recognition rules</h2>
+      <p>The judgment calls that separate these problems from each other.
+      Every rule must be demonstrated by at least two entries on this page.</p></div>
+    <div class="rules">
+      <div class="rule"><span class="n">1</span>
+        <p>Two pointers come in two shapes. <strong>Converging</strong> (<span class="rule-code">i=0, j=n&minus;1</span>)
+        when pairing elements <em>within</em> one array &mdash; Ferris Wheel, and the
+        inner loop of Sum of Three Values. <strong>Parallel</strong> (both start at 0)
+        when matching <em>between</em> two arrays &mdash; Apartments. Ask "am I pairing
+        a list with itself, or with another list?" before choosing.</p></div>
+      <div class="rule"><span class="n">2</span>
+        <p>Sorting is free only when positions don't matter. Ferris Wheel and Stick
+        Lengths print a number, so the array is sorted in place. Sum of Three Values
+        must print <em>original</em> 1-based positions, so the index rides along inside
+        <span class="rule-code">pair&lt;value,index&gt;</span> and the output reads
+        <span class="rule-code">v[i].sc</span>, never the loop counter. Check the output
+        format before typing <span class="rule-code">sort</span>.</p></div>
+      <div class="rule"><span class="n">3</span>
+        <p>"Does <em>some</em> X fit?" is not "can all X be matched?" &mdash; a resource
+        used once must be <em>consumed</em>. Apartments cannot binary-search each
+        applicant independently (two applicants would claim the same flat); Sum of Four
+        Values needs the explicit <span class="rule-code">a!=i &amp;&amp; a!=j &amp;&amp; b!=i &amp;&amp; b!=j</span>
+        guard because the stored pair may reuse an index it already spent.</p></div>
+      <div class="rule"><span class="n">4</span>
+        <p>When the objective is <span class="rule-code">&sum; position &times; value</span>,
+        the sort direction falls out of an adjacent swap. Reducing Dishes <em>maximises</em>,
+        so large values must take large multipliers &rarr; ascending. Tasks and Deadlines
+        <em>minimises</em> <span class="rule-code">&sum;(n&minus;k+1)&middot;a&#8342;</span>,
+        so small values take large multipliers &rarr; also ascending, but for the opposite
+        reason. Write the two-element comparison first; the order is whatever it says.</p></div>
+      <div class="rule"><span class="n">5</span>
+        <p>Before sorting, check whether a closed-form bound already answers it. Reading
+        Books is <span class="rule-code">max(&sum;t, 2&middot;t_max)</span> in one unsorted pass
+        &mdash; two lower bounds that happen to be jointly achievable. Stick Lengths only
+        needs the sorted order to <em>locate</em> the median (an <span class="rule-code">nth_element</span>
+        would do), and Missing Coin Sum only needs it to justify breaking early. Sorting is
+        the scaffold for the proof more often than it is the computation.</p></div>
+      <div class="rule"><span class="n">6</span>
+        <p>Answer width, every time: <span class="rule-code">2&middot;10&#8309;</span> values of
+        <span class="rule-code">10&#8313;</span> is <span class="rule-code">2&middot;10&#185;&#8308;</span> &mdash;
+        Stick Lengths and Reading Books both overflow <span class="rule-code">int</span> on the
+        accumulator alone, and Tasks and Deadlines reaches ~<span class="rule-code">2&middot;10&#185;&#8310;</span>
+        because its sum is of <em>prefix</em> sums. Only Ferris Wheel's and Apartments' answers
+        (counts bounded by <span class="rule-code">n</span>) actually fit in 32 bits.</p></div>
+    </div>
+  </section>
+
+  <!-- ===================== FAMILY 1 ===================== -->
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1 &middot; Sort + two-pointer greedy matching</h2></div>
+    <p class="family-note">Sort, then sweep with one pointer per end (or one per
+    array) instead of testing every element against every other. What makes it
+    work is always the same: after sorting, the element at a pointer is the
+    <em>extreme</em> unresolved one, and its fate is decided this step &mdash; either
+    it is matched, or it can be discarded forever. Each step advances a pointer,
+    so the sweep is linear and the sort dominates.</p>
+
+    <article class="entry" id="ferris-wheel">
+      <div class="entry-head"><h3>Ferris Wheel</h3><span class="badge num">O(n log n)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          <code>n</code> children with weights <code>p[0..n&minus;1]</code>. A gondola
+          carries one or two of them and their total weight must not exceed
+          <code>x</code>. Use as few gondolas as possible.
+          <div class="formal">minimise  |P|
+subject to  P partitions {0..n&minus;1},  |S| &le; 2  and  &sum;&#8342;&#8712;&#8347; p&#8342; &le; x  for every S &isin; P</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>The heaviest unmatched child rides <em>this</em> step no matter what &mdash;
+              the only open question is whether anyone joins them.</li>
+          <li>If anyone fits with the heaviest, the <em>lightest</em> fits. So pairing
+              heaviest with lightest is never worse: swapping in the lightest frees a
+              heavier child for a later gondola.</li>
+          <li>If the lightest does not fit with the heaviest, nobody does &mdash; the
+              heaviest rides alone.</li>
+          <li>Both branches consume the heaviest and cost one gondola &rarr;
+              <code>j&minus;&minus;</code> and <code>count++</code> are unconditional; only
+              <code>i++</code> depends on the test.</li>
+          <li><code>i == j</code> (one child left) needs no special case: the self-test
+              either passes or fails, and one gondola is charged either way.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate
+            partitions into gondolas, or rescan the remaining children for the best
+            partner of the current heaviest.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(n&sup2;)</span> for the rescan; super-exponential for the
+            partition search.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n &le; 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>
+            comparisons for the rescan alone.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            Sort once and converge two pointers &mdash; <span class="cost">O(n log n)</span>
+            total, <span class="cost">O(1)</span> extra state, one pass after the sort.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 560 210" role="img" aria-label="Converging two pointers over sorted weights 2 3 7 9 with capacity 10">
+  <text class="s-td" x="8" y="16">x = 10   sorted p = 2 3 7 9</text>
+  <rect class="s-box" x="60"  y="112" width="60" height="36" rx="4"/>
+  <rect class="s-box" x="150" y="112" width="60" height="36" rx="4"/>
+  <rect class="s-box" x="240" y="112" width="60" height="36" rx="4"/>
+  <rect class="s-box" x="330" y="112" width="60" height="36" rx="4"/>
+  <text class="s-t" x="86" y="136">2</text><text class="s-t" x="176" y="136">3</text>
+  <text class="s-t" x="266" y="136">7</text><text class="s-t" x="356" y="136">9</text>
+  <!-- step 1: 9 alone -->
+  <rect class="s-warn" x="330" y="64" width="60" height="36" rx="4"/>
+  <text class="s-tm" x="336" y="87">alone</text>
+  <text class="s-td" x="404" y="87">2+9 = 11 &gt; 10</text>
+  <!-- step 2: 2 paired with 7 -->
+  <path class="s-hi" d="M90 108 Q178 44 270 108"/>
+  <text class="s-ta" x="146" y="42">2 + 7 = 9 &le; 10</text>
+  <!-- step 3: 3 alone -->
+  <rect class="s-warn" x="150" y="160" width="60" height="32" rx="4"/>
+  <text class="s-tm" x="156" y="181">alone</text>
+  <text class="s-td" x="224" y="181">i = j &rarr; last child, one gondola</text>
+  <text class="s-td" x="8" y="204">gondolas = 3</text>
+</svg>
+          <figcaption>Each step resolves the heaviest remaining child: paired with the
+          lightest if they fit, otherwise sent alone. Three steps, three gondolas.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The loop body is three lines and only the first is
+        conditional. <code>j--; count++;</code> sit <em>outside</em> the <code>if</code>
+        because the heaviest child is resolved either way &mdash; the misread is to
+        expect an <code>else</code> branch. The loop condition is <code>i &lt;= j</code>,
+        not <code>i &lt; j</code>, so the final lone child is still charged a gondola.</p>
+        <div class="src-meta"><span class="path">arrays/Ferris_Wheel.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Ferris Wheel
+// Link: CSES 1090
+// Pattern: sort, two-pointer from both ends — pair lightest with heaviest
+// when they fit together, else heaviest rides alone
+// Time: O(n log n)  Space: O(1) extra
+//
+// n children, gondola holds 1 or 2, total weight per gondola &lt;= x. Minimum
+// gondolas needed.
+//
+// Example:
+//     7 2 3 9, x=10 -&gt; 3
+
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int n;
+    long long x;
+    cin &gt;&gt; n &gt;&gt; x;
+
+    vector&lt;long long&gt; p(n);
+    for (int i = 0; i &lt; n; i++) cin &gt;&gt; p[i];
+
+    sort(p.begin(), p.end());
+
+    int i = 0, j = n - 1, count = 0;
+    while (i &lt;= j) {
+        if (p[i] + p[j] &lt;= x) i++;
+        j--;
+        count++;
+    }
+
+    cout &lt;&lt; count &lt;&lt; '\n';
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong><code>j--</code> and
+      <code>count++</code> fire on every iteration, pairing or not. Writing
+      <code>if (fits) { i++; j--; count++; } else { j--; count++; }</code> is the same
+      thing spelled twice; writing <code>else j--;</code> and forgetting
+      <code>count++</code> silently undercounts the solo riders.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"minimum number of groups
+      of at most two, under a per-group capacity" &rarr; sort, converge from both ends,
+      always consume the extreme.</div>
+    </article>
+
+    <article class="entry" id="apartments">
+      <div class="entry-head"><h3>Apartments</h3><span class="badge num">O(n log n + m log m)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          <code>n</code> applicants, applicant <code>i</code> accepts any apartment whose
+          size lies in <code>[a&#7522;&minus;k, a&#7522;+k]</code>; <code>m</code> apartments
+          of fixed size <code>b&#11388;</code>. Each applicant gets at most one apartment and each
+          apartment at most one applicant. Maximise the number of matches.
+          <div class="formal">maximise |M|  over matchings M &sube; A &times; B
+subject to  |b&#11388; &minus; a&#7522;| &le; k  for every (i,j) &isin; M</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>An apartment is consumed by a match, so "does <em>some</em> apartment fit
+              applicant <code>i</code>" answered per applicant double-counts the same
+              apartment across several applicants.</li>
+          <li>Sort both sides ascending and give each applicant the <em>smallest</em>
+              apartment that fits: any larger fitting one is better saved for a larger
+              applicant (exchange argument).</li>
+          <li><code>b&#11388; &lt; a&#7522;&minus;k</code>: too small for this applicant, hence too small for
+              every later (larger) applicant &rarr; discard the apartment,
+              <code>j++</code>.</li>
+          <li><code>b&#11388; &gt; a&#7522;+k</code>: too big for this applicant, but a later larger
+              applicant may take it &rarr; discard the <em>applicant</em>,
+              <code>i++</code>.</li>
+          <li>Every step advances at least one pointer, so the sweep is
+              <code>O(n+m)</code> and the two sorts dominate.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">For each applicant,
+            scan every apartment for a free one inside the tolerance window.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(n&middot;m)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n, m &le; 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>
+            checks. Replacing the scan with a binary search is faster but
+            <em>wrong</em>: it never marks the apartment as taken.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            Sort both arrays and sweep one pointer per side, consuming on a match &mdash;
+            <span class="cost">O(n log n + m log m)</span>, <span class="cost">O(1)</span>
+            extra.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 560 210" role="img" aria-label="Applicant tolerance windows against apartment sizes on a size axis">
+  <text class="s-td" x="8" y="16">k = 5   a = 45 60 60 80 (sorted)   b = 30 60 75</text>
+  <!-- apartment ticks -->
+  <path class="s-edge" d="M80 30 V180"/>
+  <path class="s-edge" d="M320 30 V180"/>
+  <path class="s-edge" d="M440 30 V180"/>
+  <text class="s-td" x="66" y="196">30</text>
+  <text class="s-td" x="308" y="196">60</text>
+  <text class="s-td" x="428" y="196">75</text>
+  <!-- windows -->
+  <rect class="s-box" x="160" y="36"  width="80" height="26" rx="4"/>
+  <text class="s-tm" x="168" y="54">45&plusmn;5</text>
+  <rect class="s-good" x="280" y="72" width="80" height="26" rx="4"/>
+  <text class="s-tm" x="288" y="90">60&plusmn;5</text>
+  <rect class="s-box" x="280" y="108" width="80" height="26" rx="4"/>
+  <text class="s-tm" x="288" y="126">60&plusmn;5</text>
+  <rect class="s-good" x="440" y="144" width="80" height="26" rx="4"/>
+  <text class="s-tm" x="448" y="162">80&plusmn;5</text>
+  <!-- annotations -->
+  <text class="s-td" x="96" y="54">30 &lt; 40 &rarr; drop flat</text>
+  <text class="s-ta" x="370" y="90">match</text>
+  <text class="s-td" x="370" y="126">75 &gt; 65 &rarr; drop applicant</text>
+  <text class="s-ta" x="440" y="138">match (75 &ge; 75)</text>
+  <text class="s-td" x="8" y="210">matched = 2</text>
+</svg>
+          <figcaption>Each applicant is a window on the size axis; each apartment a
+          vertical tick. A tick left of the window is gone forever; a tick right of it
+          means this applicant is gone.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">One <code>while</code> with a three-way branch, and the
+        asymmetry between the first two branches is the whole algorithm: a too-small
+        apartment advances <code>j</code> (discarded permanently), a too-big apartment
+        advances <code>i</code> (the apartment survives for a later applicant). Only the
+        third branch advances both. <code>k</code> is read as <code>long long</code> so
+        <code>a[i] - k</code> is evaluated in 64-bit.</p>
+        <div class="src-meta"><span class="path">arrays/Apartments.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Apartments
+// Link: CSES 1084
+// Pattern: sort both sides, two-pointer greedy sweep
+// Time: O(n log n + m log m)  Space: O(1) extra
+//
+// n applicants each want a size in [a_i - k, a_i + k], m apartments each of
+// fixed size. Maximize the number of applicants matched to a distinct
+// apartment.
+//
+// Example:
+//     a = 60 45 80 60, b = 30 60 75, k=5 -&gt; 2
+
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int n, m;
+    long long k;
+    cin &gt;&gt; n &gt;&gt; m &gt;&gt; k;
+
+    vector&lt;long long&gt; a(n), b(m);
+    for (int i = 0; i &lt; n; i++) cin &gt;&gt; a[i];
+    for (int i = 0; i &lt; m; i++) cin &gt;&gt; b[i];
+
+    sort(a.begin(), a.end());
+    sort(b.begin(), b.end());
+
+    int i = 0, j = 0, count = 0;
+    while (i &lt; n &amp;&amp; j &lt; m) {
+        if (b[j] &lt; a[i] - k) j++;
+        else if (b[j] &gt; a[i] + k) i++;
+        else { count++; i++; j++; }
+    }
+
+    cout &lt;&lt; count &lt;&lt; '\n';
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>The two discard branches are not
+      symmetric &mdash; getting them the wrong way round (advancing <code>i</code> when the
+      apartment is too small) throws away applicants who could still be housed. Both
+      branches are only valid because <em>both</em> arrays are sorted ascending.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"match two groups under a
+      per-pair tolerance, each element usable once" &rarr; sort both, one pointer each,
+      three-way branch.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 2 ===================== -->
+  <section class="family" id="f2">
+    <div class="family-head"><h2>2 &middot; Sort + fixed-k value search</h2></div>
+    <p class="family-note">Find <code>k</code> elements hitting an exact target, with
+    <code>k</code> a small constant. The move is always to spend nested loops on
+    <code>k&minus;2</code> of them and solve the remaining 2-sum in better than linear time
+    &mdash; by converging pointers on a sorted array, or by a hash/tree map of pair sums.
+    The trap in both is index bookkeeping: the answer is <em>positions</em>, not values,
+    and every position must be distinct.</p>
+
+    <article class="entry" id="sum-of-three-values">
+      <div class="entry-head"><h3>Sum of Three Values</h3><span class="badge num">O(n&sup2;)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Find three <em>distinct positions</em> whose values sum to <code>x</code>, and
+          print those positions (1-based); print <code>IMPOSSIBLE</code> if none exist.
+          <div class="formal">find  i &lt; j &lt; k  with  a&#7522; + a&#11388; + a&#8342; = x     (n &le; 5000)</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Sorting destroys the answer's own output format &mdash; so carry the original
+              index with each value: <code>pair&lt;value, index&gt;</code>, sorted on
+              <code>.fr</code> only.</li>
+          <li>Fix the smallest of the three. What remains is 2-sum for
+              <code>x &minus; a&#7522;</code> over the sorted suffix <code>[i+1, n&minus;1]</code>.</li>
+          <li>2-sum on sorted data is a converging scan: <code>sum &lt; x</code> can only be
+              fixed by raising the low end (<code>l++</code>), <code>sum &gt; x</code> only by
+              lowering the high end (<code>r--</code>). No branch discards a real
+              solution.</li>
+          <li>Starting <code>l</code> at <code>i+1</code> makes the three positions distinct
+              by construction &mdash; no equality checks needed anywhere.</li>
+          <li>Values may repeat; nothing in the scan cares, because it compares sums, not
+              values.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Three nested loops
+            over all index triples.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(n&sup3;)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n &le; 5000</code> &rarr; <span class="cost">~2&middot;10&#185;&#8304;</span> triples
+            (<code>n&sup3;/6</code>), far past a 1s limit.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            Sort with indices attached, fix one element, collapse the inner two loops into a
+            converging two-pointer scan &mdash; <span class="cost">O(n&sup2;)</span>
+            &asymp; <span class="cost">2.5&middot;10&#8311;</span>.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 540 210" role="img" aria-label="Fixed first element with converging l and r pointers on the sorted suffix">
+  <text class="s-td" x="8" y="16">x = 8   a = 2 7 5 1  &rarr;  sorted by value, original positions kept</text>
+  <rect class="s-fill" x="50"  y="60" width="64" height="36" rx="4"/>
+  <rect class="s-box"  x="146" y="60" width="64" height="36" rx="4"/>
+  <rect class="s-box"  x="242" y="60" width="64" height="36" rx="4"/>
+  <rect class="s-box"  x="338" y="60" width="64" height="36" rx="4"/>
+  <text class="s-t" x="78" y="84">1</text><text class="s-t" x="174" y="84">2</text>
+  <text class="s-t" x="270" y="84">5</text><text class="s-t" x="366" y="84">7</text>
+  <text class="s-td" x="64" y="112">pos 4</text><text class="s-td" x="160" y="112">pos 1</text>
+  <text class="s-td" x="256" y="112">pos 3</text><text class="s-td" x="352" y="112">pos 2</text>
+  <text class="s-ta" x="66" y="50">i (fixed)</text>
+  <!-- step 1 -->
+  <text class="s-tm" x="8" y="140">step 1</text>
+  <path class="s-edge" d="M178 128 H366"/>
+  <text class="s-td" x="188" y="140">l = 2, r = 7 &rarr; 1+2+7 = 10 &gt; 8 &rarr; r&minus;&minus;</text>
+  <!-- step 2 -->
+  <text class="s-tm" x="8" y="168">step 2</text>
+  <path class="s-hi" d="M178 156 H270"/>
+  <text class="s-ta" x="188" y="168">l = 2, r = 5 &rarr; 1+2+5 = 8 &rarr; print 4 1 3</text>
+  <text class="s-td" x="8" y="196">any valid triple is accepted &mdash; sample prints 1 3 4, same three positions</text>
+</svg>
+          <figcaption>The smallest element is pinned; <code>l</code> and <code>r</code>
+          converge on the suffix. Values move, printed positions come from the stored
+          index.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>v[i].sc = i + 1</code> is set <em>before</em> the sort &mdash;
+        that one line is the whole reason the output survives reordering, and the printed
+        values are <code>v[...].sc</code>, never the loop variables. The comparator sorts on
+        <code>.fr</code> alone, so equal values keep an arbitrary index order, which is
+        harmless. The commented-out block below <code>solve()</code> is the abandoned
+        2-sum-by-map attempt, left in the file.</p>
+        <div class="src-meta"><span class="path">arrays/Sum_of_Three_Values.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n ;
+    cin &gt;&gt; n ;
+    ll x ;
+    cin &gt;&gt; x ;
+    vector &lt; pll &gt; v(n) ;
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        cin &gt;&gt; v[i].fr ;
+        v[i].sc = i + 1 ; 
+    }
+    sort(v.begin() , v.end(), [&amp;](const pll &amp;a, const pll &amp;b) {
+        return a.fr &lt; b.fr;
+    });
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        ll l = i + 1 , r = n - 1 ;
+        while(l &lt; r)
+        {
+            ll sum = v[i].fr + v[l].fr + v[r].fr ;
+            if(sum == x)
+            {
+                cout &lt;&lt; v[i].sc &lt;&lt; " " &lt;&lt; v[l].sc &lt;&lt; " " &lt;&lt; v[r].sc &lt;&lt; endl ;
+                return ;
+            }
+            else if(sum &lt; x)
+            {
+                l++ ;
+            }
+            else
+            {
+                r-- ;
+            }
+        }
+        
+    }
+    cout &lt;&lt; "IMPOSSIBLE" &lt;&lt; endl ;
+    
+}   
+// void solve()
+// {
+//     ll n ; 
+//     cin &gt;&gt; n ; 
+//     ll tar ; 
+//     cin &gt;&gt; tar ;
+//     vector &lt; ll &gt; v(n) ;
+//     map &lt; ll , ll &gt; m ;
+//     for (ll i = 0 ; i &lt; n ; i++)
+//     {
+//         cin &gt;&gt; v[i] ; 
+//         m[v[i]] = i ; 
+//     }
+//     for(auto&amp; ele : m)
+//     {
+//         cout &lt;&lt; ele.fr &lt;&lt; " " &lt;&lt; ele.sc &lt;&lt; endl ;
+//     }
+//     // for(auto &amp;x : v)
+//     // {
+//     //     ll rem = tar - x ; 
+//     //     if(m.find(rem) != m.end())
+//     //     {
+//     //         cout &lt;&lt;  &lt;&lt; " " &lt;&lt; m[x] &lt;&lt; endl ;
+//     //         return ; 
+//     //     }
+
+
+
+//     // }
+//     for(ll i = 0 ; i &lt; n ; i++)
+//     {
+//         ll rem = tar - v[i] ;
+//         if(m.find(rem) != m.end())
+//         {
+//             cout &lt;&lt; i &lt;&lt; " " &lt;&lt; m[v[i]] &lt;&lt; endl ;
+//             return ; 
+//         }
+//     }
+// }
+    
+  
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}
+
+// how to solve 2 SUM</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>Printing <code>i l r</code> (the
+      sorted indices) instead of <code>v[i].sc v[l].sc v[r].sc</code> compiles, runs, and is
+      wrong on every input where the sort moved anything. The <code>+1</code> for 1-based
+      output belongs at the point the index is <em>stored</em>, not at the point it is
+      printed &mdash; mixing the two conventions is how off-by-ones get in.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"find exactly <code>k</code>
+      values summing to <code>x</code>, <code>k</code> fixed and small" &rarr; sort, brute the
+      first <code>k&minus;2</code>, two-pointer the last two.</div>
+    </article>
+
+    <article class="entry" id="sum-of-four-values">
+      <div class="entry-head"><h3>Sum of Four Values</h3><span class="badge num">O(n&sup2; log n)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Same question one dimension up: four <em>distinct positions</em> summing to
+          <code>x</code>, printed 1-based, or <code>IMPOSSIBLE</code>.
+          <div class="formal">find  p &lt; q &lt; r &lt; s  with  a[p] + a[q] + a[r] + a[s] = x     (n &le; 1000)</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Split the quadruple into two pairs: 4-sum becomes 2-sum over
+              <em>pair sums</em>. There are only <code>n&sup2;/2</code> pairs.</li>
+          <li>One stored pair per sum is enough. <code>m[s]</code> is overwritten as the
+              loops run, so it ends up holding the lexicographically <em>largest</em>
+              <code>(i,j)</code> with that sum.</li>
+          <li>That is exactly what makes overwriting safe: for an answer
+              <code>p&lt;q&lt;r&lt;s</code>, when the outer loop reaches <code>(p,q)</code>
+              the stored pair for <code>x&minus;a[p]&minus;a[q]</code> is &ge; <code>(r,s)</code>,
+              so both of its indices exceed <code>q</code> &mdash; disjoint, always.</li>
+          <li>The four-way index check is still needed: an <em>earlier</em>
+              <code>(i,j)</code> can find a matching sum whose stored pair overlaps it, and
+              that candidate must be rejected, not printed.</li>
+          <li>The array is stored 1-based, so the indices in the map are already the
+              output format.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Four nested loops
+            over all index quadruples.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(n&#8308;)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n &le; 1000</code> &rarr; <span class="cost">10&#185;&sup2;</span> quadruples.
+            (Fixing two and two-pointering the rest is <span class="cost">O(n&sup3;)</span> =
+            <span class="cost">10&#8313;</span> &mdash; still too slow.)</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            Tabulate every pair sum in a <code>map</code>, then scan pairs again looking up
+            the complement &mdash; <span class="cost">O(n&sup2; log n)</span> &asymp;
+            <span class="cost">5&middot;10&#8309;&middot;20</span>, with
+            <span class="cost">O(n&sup2;)</span> memory.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 560 230" role="img" aria-label="Pair sum map lookup finding two disjoint pairs summing to fifteen">
+  <text class="s-td" x="8" y="16">x = 15   a = 3 2 5 8 1 3 2 3   (1-based)</text>
+  <g>
+    <rect class="s-fill" x="40"  y="34" width="52" height="34" rx="4"/>
+    <rect class="s-fill" x="100" y="34" width="52" height="34" rx="4"/>
+    <rect class="s-box"  x="160" y="34" width="52" height="34" rx="4"/>
+    <rect class="s-good" x="220" y="34" width="52" height="34" rx="4"/>
+    <rect class="s-box"  x="280" y="34" width="52" height="34" rx="4"/>
+    <rect class="s-box"  x="340" y="34" width="52" height="34" rx="4"/>
+    <rect class="s-good" x="400" y="34" width="52" height="34" rx="4"/>
+    <rect class="s-box"  x="460" y="34" width="52" height="34" rx="4"/>
+    <text class="s-t" x="62" y="57">3</text><text class="s-t" x="122" y="57">2</text>
+    <text class="s-t" x="182" y="57">5</text><text class="s-t" x="242" y="57">8</text>
+    <text class="s-t" x="302" y="57">1</text><text class="s-t" x="362" y="57">3</text>
+    <text class="s-t" x="422" y="57">2</text><text class="s-t" x="482" y="57">3</text>
+    <text class="s-td" x="62" y="84">1</text><text class="s-td" x="122" y="84">2</text>
+    <text class="s-td" x="182" y="84">3</text><text class="s-td" x="242" y="84">4</text>
+    <text class="s-td" x="302" y="84">5</text><text class="s-td" x="362" y="84">6</text>
+    <text class="s-td" x="422" y="84">7</text><text class="s-td" x="482" y="84">8</text>
+  </g>
+  <text class="s-ta" x="40" y="112">outer pair (1,2): 3 + 2 = 5</text>
+  <text class="s-td" x="40" y="132">rem = 15 &minus; 5 = 10</text>
+  <!-- map box -->
+  <rect class="s-box" x="40" y="146" width="290" height="62" rx="6"/>
+  <text class="s-tm" x="54" y="168">m[10] = (2,4)  overwritten by</text>
+  <text class="s-ta" x="54" y="190">m[10] = (4,7)   &mdash; the last pair wins</text>
+  <path class="s-hi" d="M246 142 V68"/>
+  <path class="s-hi" d="M426 142 V68"/>
+  <text class="s-td" x="348" y="172">both indices &gt; 2</text>
+  <text class="s-td" x="348" y="190">&rarr; disjoint, print 1 2 4 7</text>
+</svg>
+          <figcaption>Two pairs, looked up by sum. Overwriting keeps the
+          lexicographically last pair, whose indices always sit past the outer pair's.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Two identical double loops: the first fills
+        <code>m[v[i]+v[j]] = {i,j}</code> for every pair, the second re-walks the same pairs
+        and looks up <code>x &minus; sum</code>. The line that looks like a bug &mdash;
+        blindly overwriting <code>m[sum]</code> &mdash; is the one observation 3 defends. The
+        map is <code>std::map</code>, not <code>unordered_map</code>: ordered containers are
+        immune to the CSES anti-hash test, and <code>log n</code> on
+        <code>5&middot;10&#8309;</code> entries is affordable.</p>
+        <div class="src-meta"><span class="path">arrays/Sum_of_Four_Values.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n ;
+    cin &gt;&gt; n ;
+    ll x ; 
+    cin &gt;&gt; x ;
+    vector &lt; ll &gt; v(n + 1) ;
+    for (ll i = 1 ; i &lt;= n ; i++)
+    {
+        cin &gt;&gt; v[i] ;
+    }
+    map &lt; ll , array &lt; ll , 2 &gt; &gt; m ;
+
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        for(ll j = i + 1 ; j &lt;= n ; j++)
+        {
+            m[v[i] + v[j]] = {i , j} ;
+            // store the sum of every pair of numbers along with their indices
+            // if two pairs have the same sum, we can overwrite the previous pair since we only need one pair for each sum
+        }
+    }
+
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        for(ll j = i + 1 ; j &lt;= n ; j++)
+        {
+            ll sum = v[i] + v[j] ;
+            ll rem = x - sum ;
+            if(m.find(rem) != m.end())
+            {
+                ll a = m[rem][0] , b = m[rem][1] ;
+                if(a != i &amp;&amp; a != j &amp;&amp; b != i &amp;&amp; b != j)
+                {
+                    cout &lt;&lt; i &lt;&lt; " " &lt;&lt; j &lt;&lt; " " &lt;&lt; a &lt;&lt; " " &lt;&lt; b &lt;&lt; endl ;
+                    return ;
+                }
+            }
+        }
+    }
+    cout &lt;&lt; "IMPOSSIBLE" &lt;&lt; endl ;
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>Dropping the
+      <code>a != i &amp;&amp; a != j &amp;&amp; b != i &amp;&amp; b != j</code> guard makes the
+      program print a "quadruple" that reuses a position &mdash; the stored pair for a sum is
+      frequently the outer pair itself (every sum is in the map, including
+      <code>v[i]+v[j]</code>). The guard rejects and the loops continue; it must not
+      <code>return</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"four values summing to
+      <code>x</code>" (or any even <code>k</code>-sum with <code>n</code> small) &rarr; meet
+      in the middle on pair sums, one map entry per sum.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 3 ===================== -->
+  <section class="family" id="f3">
+    <div class="family-head"><h2>3 &middot; Sort + single-pass greedy</h2></div>
+    <p class="family-note">Sort once, then one forward pass carrying a single scalar
+    &mdash; the median, the reachable range <code>R</code>, a running total &mdash; decides
+    the answer outright. No second pointer, no table. The recurring shape is that the
+    sorted order makes a <em>local</em> test globally conclusive: the first failure is
+    permanent (Missing Coin Sum), or the quantity being compared is the same at every
+    step (Reducing Dishes).</p>
+
+    <article class="entry" id="stick-lengths">
+      <div class="entry-head"><h3>Stick Lengths</h3><span class="badge num">O(n log n)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          <code>n</code> sticks of length <code>p&#7522;</code>. Cutting or extending a stick
+          by one unit costs one. Make all sticks equal length, as cheaply as possible.
+          <div class="formal">minimise  f(t) = &sum; |p&#7522; &minus; t|   over integer t</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Sort, then pair smallest with largest. Any <code>t</code> inside
+              <code>[p&#7522;, p&#8345;&#8331;&#8321;&#8331;&#7522;]</code> pays exactly that pair's width;
+              any <code>t</code> outside pays more.</li>
+          <li>Those intervals are nested, so a single <code>t</code> in the innermost one is
+              simultaneously optimal for every pair &mdash; the lower bounds all bind at
+              once.</li>
+          <li>The innermost interval is the median. <code>p[n/2]</code> lies in it for both
+              parities.</li>
+          <li>For even <code>n</code> every point of the median range costs the same, so no
+              averaging and no floating point is ever needed.</li>
+          <li>The mean is the wrong answer &mdash; it minimises squared deviation, not
+              absolute.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Try every candidate
+            target &mdash; every stick length, or every value in the range &mdash; and sum the
+            deviations.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(n&sup2;)</span> over stick lengths;
+            <span class="cost">O(n&middot;max p)</span> over the value range.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n &le; 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>;
+            over the value range <code>p&#7522; &le; 10&#8313;</code> it is hopeless. The answer itself
+            reaches <span class="cost">~2&middot;10&#185;&#8308;</span>, past <code>int</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            The optimum is provably the median &mdash; sort, read <code>p[n/2]</code>, one
+            summing pass: <span class="cost">O(n log n)</span>, accumulator in
+            <code>long long</code>.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 540 200" role="img" aria-label="Nested pairing intervals collapsing to the median of 1 2 2 3 5">
+  <text class="s-td" x="8" y="16">sorted p = 1 2 2 3 5</text>
+  <rect class="s-box"  x="40"  y="104" width="60" height="36" rx="4"/>
+  <rect class="s-box"  x="130" y="104" width="60" height="36" rx="4"/>
+  <rect class="s-fill" x="220" y="104" width="60" height="36" rx="4"/>
+  <rect class="s-box"  x="310" y="104" width="60" height="36" rx="4"/>
+  <rect class="s-box"  x="400" y="104" width="60" height="36" rx="4"/>
+  <text class="s-t" x="66" y="128">1</text><text class="s-t" x="156" y="128">2</text>
+  <text class="s-t" x="246" y="128">2</text><text class="s-t" x="336" y="128">3</text>
+  <text class="s-t" x="426" y="128">5</text>
+  <!-- outer pair -->
+  <path class="s-edge" d="M70 84 H430"/>
+  <text class="s-td" x="176" y="78">pair (1,5): any t in [1,5] costs 4</text>
+  <!-- inner pair -->
+  <path class="s-edge" d="M160 60 H340"/>
+  <text class="s-td" x="196" y="54">pair (2,3): any t in [2,3] costs 1</text>
+  <!-- median -->
+  <path class="s-hi" d="M250 96 V36"/>
+  <text class="s-ta" x="256" y="34">t = p[n/2] = 2</text>
+  <!-- deviations -->
+  <text class="s-tm" x="62" y="162">+1</text><text class="s-tm" x="152" y="162">0</text>
+  <text class="s-tm" x="242" y="162">0</text><text class="s-tm" x="332" y="162">+1</text>
+  <text class="s-tm" x="422" y="162">+3</text>
+  <text class="s-td" x="8" y="190">cost = 1 + 0 + 0 + 1 + 3 = 5</text>
+</svg>
+          <figcaption>Each smallest-largest pair forces the target into an interval; the
+          intervals nest, and their common core is the median.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Three lines after the sort: take <code>p[n/2]</code>, sum
+        <code>abs(p[i] - median)</code>, print. <code>median</code> is declared
+        <code>long long</code> so <code>p[i] - median</code> is a 64-bit subtraction and
+        <code>abs</code> resolves to the <code>long long</code> overload &mdash; the one line
+        a reader would gloss over, and the one that silently truncates if the type is
+        <code>int</code>.</p>
+        <div class="src-meta"><span class="path">arrays/Stick_Lengths.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Stick Lengths
+// Link: CSES 1074
+// Pattern: sort, target = median, sum absolute deviations
+// Time: O(n log n)  Space: O(n)
+//
+// Minimum total cost to make all sticks equal length, cost per stick =
+// |new - old|.
+//
+// Example:
+//     2 3 1 5 2 -&gt; 5
+
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int n;
+    cin &gt;&gt; n;
+
+    vector&lt;long long&gt; p(n);
+    for (int i = 0; i &lt; n; i++) cin &gt;&gt; p[i];
+
+    sort(p.begin(), p.end());
+    long long median = p[n / 2];
+
+    long long cost = 0;
+    for (int i = 0; i &lt; n; i++) cost += abs(p[i] - median);
+
+    cout &lt;&lt; cost &lt;&lt; '\n';
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>Median, not mean. And no
+      parity special-case: <code>p[n/2]</code> is correct for even <code>n</code> because
+      every point in the median range gives the same cost &mdash; averaging the two middle
+      values would only introduce floating point for no gain.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"make everything equal, cost is
+      the absolute difference" &rarr; sort, target the median, sum the deviations.</div>
+    </article>
+
+    <article class="entry" id="missing-coin-sum">
+      <div class="entry-head"><h3>Missing Coin Sum</h3><span class="badge num">O(n log n)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Given coin values <code>x&#7522;</code>, find the smallest positive integer that no
+          subset of the coins sums to.
+          <div class="formal">min { s &ge; 1 : no S &sube; coins with &sum; S = s }</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Sort ascending and carry one invariant: after some prefix, the achievable
+              sums are exactly the contiguous range <code>[0, R]</code>.</li>
+          <li>The next coin <code>x</code> keeps it contiguous iff
+              <code>x &le; R+1</code>; the new range is <code>[0, R+x]</code>. Equality is
+              included &mdash; <code>x = R+1</code> closes the gap exactly.</li>
+          <li>If <code>x &gt; R+1</code>, then <code>R+1</code> is unreachable now, and every
+              remaining coin is <code>&ge; x</code>, so it stays unreachable &mdash; stop
+              immediately, the answer is <code>R+1</code>.</li>
+          <li>Running out of coins is the same conclusion: <code>R+1</code> again, so the
+              print sits outside the loop and covers both exits.</li>
+          <li>Sorting is what licenses the early stop; without it, a later small coin could
+              still close the gap.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Mark every achievable
+            sum &mdash; enumerate subsets, or run a boolean subset-sum DP over
+            <code>[0, &sum;x]</code>.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(2&#8319;)</span> for subsets,
+            <span class="cost">O(n &middot; &sum;x)</span> for the DP.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n &le; 10&#8309;</code>, <code>x&#7522; &le; 10&#8313;</code> &rarr;
+            <code>&sum;x</code> up to <span class="cost">10&#185;&#8308;</span> DP cells &mdash;
+            unstorable, never mind untraversable.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            The reachable set is always one interval, so store its right end only &mdash;
+            sort plus one scalar <code>R</code>: <span class="cost">O(n log n)</span>,
+            <span class="cost">O(1)</span> beyond the input.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 480 200" role="img" aria-label="Reachable range growing to five then failing at six with coins 1 2 2 7 9">
+  <text class="s-td" x="8" y="16">sorted coins = 1 2 2 7 9</text>
+  <text class="s-td" x="40" y="34">0</text><text class="s-td" x="76" y="34">1</text>
+  <text class="s-td" x="156" y="34">3</text><text class="s-td" x="236" y="34">5</text>
+  <text class="s-td" x="276" y="34">6</text><text class="s-td" x="316" y="34">7</text>
+  <rect class="s-fill" x="40" y="44"  width="40"  height="24" rx="3"/>
+  <text class="s-tm" x="92"  y="61">+1 &rarr; R = 1</text>
+  <rect class="s-fill" x="40" y="80"  width="120" height="24" rx="3"/>
+  <text class="s-tm" x="172" y="97">+2 &rarr; R = 3   (2 &le; R+1 = 2)</text>
+  <rect class="s-fill" x="40" y="116" width="200" height="24" rx="3"/>
+  <text class="s-tm" x="252" y="133">+2 &rarr; R = 5   (2 &le; R+1 = 4)</text>
+  <rect class="s-warn" x="240" y="152" width="40" height="24" rx="3"/>
+  <text class="s-tm" x="292" y="169">7 &gt; R+1 = 6   &rarr; answer 6</text>
+  <text class="s-td" x="8" y="194">every later coin is &ge; 7, so 6 can never be built</text>
+</svg>
+          <figcaption>The bar is the set of sums already achievable. Each accepted coin
+          extends it; the first coin that overshoots leaves a one-cell hole at
+          <code>R+1</code>.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The loop is a guard and an accumulation, and the answer is
+        printed <em>after</em> it &mdash; so the <code>break</code> path and the
+        ran-out-of-coins path share one line of output. The test is strict
+        <code>x[i] &gt; r + 1</code>; the coins are never re-examined and <code>R</code> is
+        the only state.</p>
+        <div class="src-meta"><span class="path">arrays/Missing_Coin_Sum.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Missing Coin Sum
+// Link: CSES 1745
+// Pattern: sort ascending, greedily extend the contiguous achievable-sum
+// range [0, R]; a coin x extends it iff x &lt;= R+1, else R+1 is the answer
+// Time: O(n log n)  Space: O(n)
+//
+// Smallest positive sum not formable as a subset sum of the given coins.
+//
+// Example:
+//     2 9 1 2 7 -&gt; 6
+
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int n;
+    cin &gt;&gt; n;
+
+    vector&lt;long long&gt; x(n);
+    for (int i = 0; i &lt; n; i++) cin &gt;&gt; x[i];
+
+    sort(x.begin(), x.end());
+
+    long long r = 0;
+    for (int i = 0; i &lt; n; i++) {
+        if (x[i] &gt; r + 1) break;
+        r += x[i];
+    }
+
+    cout &lt;&lt; r + 1 &lt;&lt; '\n';
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong><code>x == r + 1</code> must
+      <em>extend</em>, not break &mdash; using <code>&ge;</code> in the guard reports a gap
+      that is actually reachable. And it must be <code>break</code>, not
+      <code>continue</code>: skipping the offending coin and carrying on would extend
+      <code>R</code> past an already-proven hole.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"smallest amount you cannot
+      pay / cannot form" &rarr; sort ascending, grow a contiguous reachable range, stop at
+      the first coin above <code>R+1</code>.</div>
+    </article>
+
+    <article class="entry" id="reducing-dishes">
+      <div class="entry-head"><h3>Reducing Dishes</h3><span class="badge num">O(n log n)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Choose any subset of dishes and any order for them. The dish cooked
+          <code>k</code>-th scores <code>k &middot; a&#7522;</code> (satisfaction may be
+          negative). Maximise the total.
+          <div class="formal">maximise  &sum;&#8342; k &middot; a&#8347;(&#8342;)   over subsets S and orderings &sigma;</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>For a fixed subset, ascending order is optimal &mdash; swapping an
+              out-of-order adjacent pair gains exactly their difference.</li>
+          <li>So the only remaining choice is <em>which</em> dishes to drop, and dropping is
+              always a prefix of the sorted array: never drop a dish while keeping a smaller
+              one.</li>
+          <li>Dropping the front shifts every surviving multiplier down by one, so the answer
+              changes by exactly <code>&minus;T</code>, where <code>T</code> is the current
+              total. The dropped value cancels out of that delta entirely.</li>
+          <li>Therefore the decision depends only on the <em>sign</em> of <code>T</code>:
+              pop while <code>T &lt; 0</code>, stop the moment <code>T &ge; 0</code>.</li>
+          <li>If <code>T</code> stays negative to the end, the identity drives the answer to
+              <code>0</code> &mdash; the empty subset, with no clamp written anywhere.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Try every subset, sort
+            it, score it. Or a take/skip DP over
+            <code>(index, number already cooked)</code>.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(2&#8319; &middot; n)</span> for subsets;
+            <span class="cost">O(n&sup2;)</span> for the DP.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n</code> in the hundreds &rarr; <span class="cost">2&#8319;</span> is
+            unreachable at once; the <span class="cost">O(n&sup2;)</span> table survives but is
+            rebuilt per test case, and the problem is multi-test.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            The prefix-drop identity replaces the table entirely &mdash; sort, one scoring
+            pass, one popping pass: <span class="cost">O(n log n)</span>,
+            <span class="cost">O(1)</span> beyond the array.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 540 210" role="img" aria-label="Dropping the smallest dish shifts every multiplier down by one">
+  <text class="s-td" x="8" y="16">sorted a = &minus;2 &minus;2 0 3      T = &minus;1</text>
+  <!-- before -->
+  <text class="s-tm" x="8" y="60">all in</text>
+  <rect class="s-box" x="90"  y="38" width="86" height="34" rx="4"/>
+  <rect class="s-box" x="196" y="38" width="86" height="34" rx="4"/>
+  <rect class="s-box" x="302" y="38" width="86" height="34" rx="4"/>
+  <rect class="s-box" x="408" y="38" width="86" height="34" rx="4"/>
+  <text class="s-t" x="102" y="61">1&times;&minus;2</text><text class="s-t" x="208" y="61">2&times;&minus;2</text>
+  <text class="s-t" x="316" y="61">3&times;0</text><text class="s-t" x="422" y="61">4&times;3</text>
+  <text class="s-td" x="90" y="90">&minus;2</text><text class="s-td" x="196" y="90">&minus;4</text>
+  <text class="s-td" x="302" y="90">0</text><text class="s-td" x="408" y="90">12</text>
+  <text class="s-ta" x="90" y="112">ans = 6,  T = &minus;1 &lt; 0  &rarr; pop the front</text>
+  <!-- after -->
+  <text class="s-tm" x="8" y="148">pop &minus;2</text>
+  <rect class="s-warn" x="90" y="126" width="86" height="34" rx="4"/>
+  <text class="s-tm" x="106" y="148">dropped</text>
+  <rect class="s-good" x="196" y="126" width="86" height="34" rx="4"/>
+  <rect class="s-good" x="302" y="126" width="86" height="34" rx="4"/>
+  <rect class="s-good" x="408" y="126" width="86" height="34" rx="4"/>
+  <text class="s-t" x="208" y="149">1&times;&minus;2</text>
+  <text class="s-t" x="316" y="149">2&times;0</text><text class="s-t" x="422" y="149">3&times;3</text>
+  <text class="s-ta" x="90" y="180">ans = 6 &minus; (&minus;1) = 7,  new T = 1 &ge; 0  &rarr; stop</text>
+  <text class="s-td" x="8" y="202">the dropped value never appears in the delta &mdash; only the sign of T does</text>
+</svg>
+          <figcaption>Dropping the smallest dish demotes every other multiplier by one, so
+          the answer moves by exactly <code>&minus;T</code>.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The weighted sum is computed once for the full array, then the
+        popping loop edits it in place. The order inside the loop matters:
+        <code>ans -= total;</code> uses the total <em>including</em> the element about to
+        leave, and only then does <code>total -= a[start]</code> remove it. Swapping those two
+        lines applies the wrong delta on the very first pop.</p>
+        <div class="src-meta"><span class="path">arrays/Reducing_Dishes.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Reducing Dishes
+// Pattern: sort ascending, then pop the smallest from the front while the
+//          running total of included elements is negative
+// Time: O(N log N)  Space: O(N)
+//
+// n dishes with satisfaction[i] (can be negative). Chef picks any subset
+// (possibly empty/all) and any cooking order; each dish takes 1 time unit.
+// If a dish is the k-th one cooked (1-indexed), its like-time coefficient is
+// k * satisfaction[i]. Maximize the total sum over the chosen subset+order.
+// T test cases.
+//
+// Example:
+//     [-2,-2,0,3,2]    -&gt; 17
+//         [-2,0,-2,3]      -&gt; 7
+//         [-2,3,-2,0,1,2]  -&gt; 26
+
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int t; cin &gt;&gt; t;
+    while (t--) {
+        int n; cin &gt;&gt; n;
+        vector&lt;long long&gt; a(n);
+        for (int i = 0; i &lt; n; i++) cin &gt;&gt; a[i];
+
+        sort(a.begin(), a.end());
+
+        long long ans = 0, total = 0;
+        for (int i = 0; i &lt; n; i++) {
+            ans += (long long)(i + 1) * a[i];
+            total += a[i];
+        }
+
+        int start = 0;
+        while (start &lt; n &amp;&amp; total &lt; 0) {
+            ans -= total;
+            total -= a[start];
+            start++;
+        }
+
+        cout &lt;&lt; ans &lt;&lt; '\n';
+    }
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>Keeping everything is not always
+      optimal &mdash; <code>[-2,0,-2,3]</code> scores 6 whole but 7 after dropping one
+      <code>-2</code>. And there is no <code>max(ans, 0)</code>: the identity already returns
+      0 when every dish is dropped, so adding a clamp hides a bug rather than fixing
+      one.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"pick a subset and an order,
+      score is position &times; value, elements may be dropped" &rarr; sort ascending, pop
+      the front while the running total is negative.</div>
+    </article>
+
+    <article class="entry" id="tasks-and-deadlines">
+      <div class="entry-head"><h3>Tasks and Deadlines</h3><span class="badge num">O(n log n)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          <code>n</code> tasks, task <code>i</code> takes <code>a&#7522;</code> time and has
+          deadline <code>d&#7522;</code>. Run them one after another from time 0; a task finishing
+          at <code>f&#7522;</code> pays <code>d&#7522; &minus; f&#7522;</code>, negative included. Every task must
+          run. Maximise the total reward.
+          <div class="formal">maximise  &sum;(d&#7522; &minus; f&#7522;)  =  &sum;d&#7522;  &minus;  &sum;f&#7522;
+&sum;d&#7522; is fixed  &rArr;  minimise &sum; f&#7522;  =  &sum;&#8342; (n &minus; k + 1)&middot;a&#8342;</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li><code>&sum;d&#7522;</code> does not depend on the order at all &mdash; the deadlines
+              are a constant. Only <code>&sum;f&#7522;</code> is optimised.</li>
+          <li><code>&sum;f&#7522;</code> is the sum of the duration prefix sums, so the task placed
+              <code>k</code>-th is charged <code>(n&minus;k+1)</code> times.</li>
+          <li>Swap argument: two adjacent tasks <code>u</code> then <code>v</code> contribute
+              <code>2a&#7524; + a&#7525;</code> in one order and <code>a&#7524; + 2a&#7525;</code> in the other, so putting
+              the shorter first is never worse. Shortest job first, deadlines ignored.</li>
+          <li>Sorting by deadline (EDF) is the wrong greedy here &mdash; it optimises lateness,
+              not the sum of completion times.</li>
+          <li>The reward is allowed to be negative; there is no filtering and no
+              rejection.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Try every processing
+            order and score the finishing times.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(n! &middot; n)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n &le; 2&middot;10&#8309;</code> &rarr; factorial, and even an
+            <span class="cost">O(n&sup2;)</span> pairwise-improvement loop is
+            <span class="cost">4&middot;10&#185;&#8304;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            The adjacent-swap comparison is a total order on durations alone &mdash; sort
+            ascending, prefix-sum, subtract: <span class="cost">O(n log n)</span>, answer in
+            <code>long long</code> (up to <span class="cost">~2&middot;10&#185;&#8310;</span>).</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 540 200" role="img" aria-label="Three tasks scheduled shortest first with finishing times 5 11 and 19">
+  <text class="s-td" x="8" y="16">tasks (a,d) = (6,10) (8,15) (5,12)   &rarr;   run by duration: 5, 6, 8</text>
+  <path class="s-edge" d="M40 148 H500"/>
+  <text class="s-td" x="34" y="166">0</text>
+  <rect class="s-fill" x="40"  y="112" width="110" height="32" rx="4"/>
+  <rect class="s-fill" x="150" y="112" width="132" height="32" rx="4"/>
+  <rect class="s-fill" x="282" y="112" width="176" height="32" rx="4"/>
+  <text class="s-t" x="84"  y="134">a=5</text>
+  <text class="s-t" x="202" y="134">a=6</text>
+  <text class="s-t" x="352" y="134">a=8</text>
+  <text class="s-ta" x="136" y="166">f=5</text>
+  <text class="s-ta" x="264" y="166">f=11</text>
+  <text class="s-ta" x="440" y="166">f=19</text>
+  <text class="s-tm" x="40" y="66">the first duration is charged 3 times, the second 2, the last 1</text>
+  <text class="s-tm" x="40" y="88">&sum;f = 5 + 11 + 19 = 35      &sum;d = 10 + 15 + 12 = 37</text>
+  <text class="s-td" x="8" y="192">reward = 37 &minus; 35 = 2</text>
+</svg>
+          <figcaption>Finishing times are the prefix sums of the durations, so the earliest
+          slot is the most expensive one &mdash; it must hold the shortest task.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Deadlines are never stored: <code>d</code> starts life as
+        <code>&sum;d&#7522;</code> while reading input, then the same variable is decremented by each
+        finishing time and printed as the answer. <code>f[i] += f[i-1]</code> converts the
+        sorted durations into finishing times in place &mdash; after that loop
+        <code>f</code> is no longer durations, which is the line to read twice.</p>
+        <div class="src-meta"><span class="path">arrays/Tasks_and_Deadlines.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ; 
+    vector &lt; ll &gt; f(n) ;
+    ll d = 0 ; 
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        ll a , b ;
+        cin &gt;&gt; a &gt;&gt; b ;
+        f[i] = a ;
+        d += b ; 
+    }
+    sort(f.begin() , f.end()) ;
+    
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        if(i)   f[i] += f[i-1] ; 
+    }
+    for(ll i = 0 ; i &lt; n ; i++)
+    {
+        d -= f[i] ; 
+    }
+    cout &lt;&lt; d &lt;&lt; endl ;
+    
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>The deadline of a task is never
+      paired with that task &mdash; only their sum is used, so sorting a
+      <code>pair&lt;a,d&gt;</code> or trying to schedule by deadline is wasted work and
+      actively wrong. <code>d</code> doubles as accumulator and answer; the prefix loop must
+      run before the subtraction loop, since it overwrites <code>f</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"all jobs must run, cost grows
+      with completion time, reward is deadline minus finish" &rarr; shortest job first; the
+      deadlines are a constant.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 4 ===================== -->
+  <section class="family" id="f4">
+    <div class="family-head"><h2>4 &middot; Exchange-argument scheduling</h2></div>
+    <p class="family-note">One problem, kept separate because the reasoning is the
+    opposite direction to family 3: instead of sorting and reading off the answer, you
+    write down the lower bounds the schedule must obey, then show a schedule that meets
+    them all at once. When that works the sort disappears entirely and the answer is a
+    closed form.</p>
+
+    <article class="entry" id="reading-books">
+      <div class="entry-head"><h3>Reading Books</h3><span class="badge num">O(n)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Two readers must each read all <code>n</code> books; book <code>i</code> takes
+          <code>t&#7522;</code> and cannot be read by both at the same time. Reading is
+          uninterrupted, start to end. Minimise the time at which both are finished.
+          <div class="formal">minimise  T  subject to  each reader covers every book
+            and the two readings of any one book never overlap</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Bound A &mdash; work: each reader spends <code>&sum;t</code>, so
+              <code>T &ge; &sum;t</code>.</li>
+          <li>Bound B &mdash; the longest book is read twice and the two readings cannot
+              overlap, so <code>T &ge; 2&middot;t_max</code>.</li>
+          <li>Case <code>2&middot;t_max &ge; &sum;t</code>: reader 1 takes the longest book
+              first, reader 2 takes it last; everything else fits in the slack around it
+              &rarr; <code>T = 2&middot;t_max</code>.</li>
+          <li>Case <code>2&middot;t_max &le; &sum;t</code>: reader 2 reads the same cyclic
+              order shifted by one book, so the two are never on the same book &rarr;
+              <code>T = &sum;t</code>.</li>
+          <li>Both bounds are achievable, so the answer is exactly
+              <code>max(&sum;t, 2&middot;t_max)</code> &mdash; no sort, no schedule, no
+              order.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Search over the two
+            readers' orderings (and idle gaps) for the earliest joint finish.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O((n!)&sup2;)</span> orderings, each needing a feasibility
+            check for overlapping readings.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n &le; 2&middot;10&#8309;</code> &rarr; there is no search at all at this size;
+            even sorting is more than the problem needs.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            Two lower bounds, both constructively achievable &mdash; one unsorted pass keeping
+            <code>&sum;t</code> and <code>t_max</code>: <span class="cost">O(n)</span>,
+            <span class="cost">O(1)</span>, totals in <code>long long</code>.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 540 210" role="img" aria-label="Two reader timelines for books of length 2 8 and 3 finishing at time sixteen">
+  <text class="s-td" x="8" y="16">t = 2 8 3      &sum;t = 13      2&middot;t_max = 16      answer = 16</text>
+  <!-- reader 1 -->
+  <text class="s-tm" x="8" y="62">P1</text>
+  <rect class="s-fill" x="40"  y="40" width="224" height="30" rx="4"/>
+  <rect class="s-box"  x="264" y="40" width="56"  height="30" rx="4"/>
+  <rect class="s-box"  x="320" y="40" width="84"  height="30" rx="4"/>
+  <text class="s-t" x="138" y="61">B (8)</text>
+  <text class="s-t" x="274" y="61">A</text>
+  <text class="s-t" x="348" y="61">C</text>
+  <!-- reader 2 -->
+  <text class="s-tm" x="8" y="118">P2</text>
+  <rect class="s-box"  x="40"  y="96" width="56"  height="30" rx="4"/>
+  <rect class="s-box"  x="96"  y="96" width="84"  height="30" rx="4"/>
+  <rect class="s-warn" x="180" y="96" width="84"  height="30" rx="4"/>
+  <rect class="s-fill" x="264" y="96" width="224" height="30" rx="4"/>
+  <text class="s-t" x="50"  y="117">A</text>
+  <text class="s-t" x="124" y="117">C</text>
+  <text class="s-tm" x="192" y="117">idle</text>
+  <text class="s-t" x="362" y="117">B (8)</text>
+  <!-- axis -->
+  <path class="s-edge" d="M40 146 H500"/>
+  <text class="s-td" x="34" y="164">0</text>
+  <text class="s-td" x="258" y="164">8</text>
+  <text class="s-td" x="398" y="164">13</text>
+  <text class="s-ta" x="476" y="164">16</text>
+  <text class="s-td" x="8" y="192">B occupies [0,8) for P1 and [8,16) for P2 &mdash; never both at once</text>
+</svg>
+          <figcaption>The longest book is read back to back by the two readers; everything
+          else hides in the slack. The finish is <code>2&middot;t_max</code> because that bound
+          is the binding one here.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">One read loop maintaining two scalars, then a single
+        <code>max</code>. No array is stored and nothing is sorted &mdash; the input is
+        consumed as it arrives. <code>m</code> is seeded at <code>0</code>, which is safe only
+        because <code>t&#7522; &ge; 1</code>.</p>
+        <div class="src-meta"><span class="path">arrays/Reading_Books.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ; 
+    ll s = 0 , m = 0 ;
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        ll x ; 
+        cin &gt;&gt; x ; 
+        s += x ; 
+        m = max(m , x) ; 
+    }
+    cout &lt;&lt; max(s , 2 * m) &lt;&lt; endl ;
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>The answer is a
+      <code>max</code> of two bounds, not a sum or an average of them &mdash; and the
+      <code>n = 1</code> case is not special: one book gives
+      <code>max(t, 2t) = 2t</code>, correctly. <code>s</code> reaches
+      <code>2&middot;10&#185;&#8308;</code>, so both accumulators must be 64-bit.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"two workers must each process
+      every job, and no job can be worked by both simultaneously" &rarr;
+      <code>max(total work, 2 &times; largest job)</code>.</div>
+    </article>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+  <div class="excluded">
+    <h4>Excluded from this ledger</h4>
+    <ul>
+      <li>Nothing. All nine files pass
+        <code>g++ -O2 -std=c++17 -I$HOME/.local/include -fsyntax-only</code>.</li>
+    </ul>
+  </div>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/arrays_2_sort_greedy.js"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+/* ledger/data/arrays_3_windows_prefix.js — index rows for one child ledger.
+ * Adding a problem: append one object to the array. Nothing else to update. */
+LEDGER.add(
+  { slug: 'arrays_3_windows_prefix',
+    topic: 'arrays',
+    title: 'Windows &amp; Prefix Sums',
+    file: 'Array_Ledger_3_Windows_Prefix.html',
+    part: 3 },
+  [
+    { name: 'Playlist',
+      anchor: 'playlist',
+      fam: 'dup-free window',
+      inv: 'ans = max(ans, head &minus; tail + 1)',
+      time: 'O(n log n)' },
+    { name: 'Distinct Subarrays',
+      anchor: 'distinct-subarrays',
+      fam: 'dup-free window',
+      inv: 'ans += head &minus; tail + 1, once per tail',
+      time: 'O(n log n)' },
+    { name: 'Distinct Values Subarrays II',
+      anchor: 'distinct-values-subarrays-ii',
+      fam: 'dup-free window',
+      inv: 'extend while |freq| &lt; k or v[h+1] &isin; freq',
+      time: 'O(n log n)' },
+    { name: 'Subarray Sums II',
+      anchor: 'subarray-sums-ii',
+      fam: 'prefix + map',
+      inv: 'pre[l&minus;1] = pre[r] &minus; x; count then insert',
+      time: 'O(n log n)' },
+    { name: 'Subarray Divisibility',
+      anchor: 'subarray-divisibility',
+      fam: 'prefix + map',
+      inv: 'pre[r] &equiv; pre[l&minus;1] (mod n); &sum; C(c,2) per residue',
+      time: 'O(n)' },
+    { name: 'Subarray Sums I',
+      anchor: 'subarray-sums-i',
+      fam: 'positive-only window',
+      inv: 'a&#7522; &ge; 1 &rArr; sum monotone; extend while sum + v[h+1] &le; x',
+      time: 'O(n)' }
+  ],
+  []
+);

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="ledger/ledger.css">
+</head>
+<body data-base="">
+
+<header class="masthead">
+  <div class="kicker">dsa-prep &middot; recall reference</div>
+  <h1>The Ledger</h1>
+  <p class="dek">Every solved problem in this repo, reduced to its mathematical
+  baseline, the observation that unlocks it, the brute force it replaces, and the
+  code as actually written. Built for the ten minutes before an interview, not for
+  learning a topic from scratch.</p>
+  <p class="dek" style="font-family:'IBM Plex Mono',monospace;font-size:0.82rem;color:var(--ink-faint);">
+  Solutions are simple. Proofs are simple. Implementations are simple.</p>
+</header>
+
+<main class="masthead" style="padding-top:0;">
+  <section>
+    <div class="section-head"><h2>Ledgers</h2>
+      <p>Split by pattern family, 7&ndash;12 problems each so a page stays scannable.</p></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section id="master">
+    <div class="section-head"><h2>All problems</h2>
+      <p>Type to filter by name, family, topic or invariant. Each name jumps
+      straight to its entry.</p></div>
+    <input class="filter" id="filter" type="search" placeholder="filter&hellip;" autocomplete="off">
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Topic</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Generated from the solutions in this repo. Entry format and terminology:
+  <a href="CONTEXT.md">CONTEXT.md</a>. Why these pages share a stylesheet and an
+  index instead of being standalone:
+  <a href="docs/adr/0001-shared-ledger-assets-over-standalone-html.md">ADR&nbsp;0001</a>.</p>
+  <p>Adding a problem: append one row to its <code>ledger/data/&lt;slug&gt;.js</code>
+  and paste one <code>&lt;article class="entry"&gt;</code> into the matching child
+  ledger. This page updates itself.</p>
+</footer>
+
+<script src="ledger/data.js"></script>
+<script src="ledger/data/arrays_1_linear_scan.js"></script>
+<script src="ledger/data/arrays_2_sort_greedy.js"></script>
+<script src="ledger/data/arrays_3_windows_prefix.js"></script>
+<script src="ledger/data/arrays_4_sweep_ordered.js"></script>
+<script src="ledger/data/arrays_5_range_queries.js"></script>
+<!-- ponytail: remaining topics (graphs, dp, trees, math, linked_list, strings)
+     add their script tags here when their data files + child ledgers are built -->
+</body>
+</html>

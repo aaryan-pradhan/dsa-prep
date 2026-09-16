@@ -122,8 +122,7 @@ the left child's sum from k and go right — one path down, O(log n), no
 backtracking. This repo standardizes on segment tree over Fenwick
 tree/BIT for this family of problems: a segment tree subsumes everything
 a BIT does (point update, prefix/range sum) plus general range queries,
-so there's one structure to remember instead of two. Reusable template at
-`templates/segment_tree.cpp`. See `arrays/21_josephus_queries`.
+so there's one structure to remember instead of two. See `arrays/Josephus_Queries.cpp` and `arrays/Array_Ledger_5_Range_Queries.html`.
 
 ## Math — modular arithmetic helper template
 

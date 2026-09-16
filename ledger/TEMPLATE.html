@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TITLE &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<!-- data-base = path back to repo root; data-slug = this child's slug -->
+<body data-base=".." data-slug="SLUG">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; TOPIC_LABEL</div>
+  <h1>TITLE</h1>
+  <p class="dek">One-paragraph note on what unites these families and when to
+  reach for this page.</p>
+  <p class="stats"><b>N</b> problems &middot; <b>K</b> families</p>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <a href="#recognition">Recognition rules</a>
+  <div class="toc-fam"><a href="#f1">1 &middot; Family name</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recognition">
+    <div class="section-head"><h2>Recognition rules</h2>
+      <p>The judgment calls that separate these problems from each other.
+      Every rule must be demonstrated by at least two entries on this page.</p></div>
+    <div class="rules">
+      <div class="rule"><span class="n">1</span>
+        <p>Rule text, grounded in specific problems on this page.</p></div>
+    </div>
+  </section>
+
+  <!-- ===================== FAMILY ===================== -->
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1 &middot; Family name</h2></div>
+    <p class="family-note">One paragraph: what the family has in common, and
+    the shape of problem that lands here.</p>
+
+<!-- ============ ENTRY: copy this block per problem ============ -->
+    <article class="entry" id="increasing-array">
+      <div class="entry-head"><h3>Increasing Array</h3><span class="badge num">O(n)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Given <code>a[0..n&minus;1]</code>, the only legal move is to raise one
+          element by <code>1</code>. Find the least number of moves that makes the
+          array non-decreasing.
+          <div class="formal">minimise  &sum;&nbsp;(b&#7522; &minus; a&#7522;)
+subject to  b&#7522; &ge; a&#7522;  and  b&#7522; &ge; b&#7522;&#8331;&#8321;</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>You may only raise, never lower &mdash; so <code>b&#7522; &ge; a&#7522;</code> is forced
+              and the answer is a sum of non-negative shortfalls.</li>
+          <li>Raising <code>b&#7522;</code> above <code>max(a&#7522;, b&#7522;&#8331;&#8321;)</code> never helps:
+              it costs more now and only raises the floor for later elements.
+              So <code>b&#7522; = max(a&#7522;, b&#7522;&#8331;&#8321;)</code> is optimal.</li>
+          <li>That makes the choice at each index independent of everything after
+              it &mdash; one left-to-right pass, no lookahead, no DP.</li>
+          <li>The comparison is against the <em>adjusted</em> previous value, not
+              the original <code>a&#7522;&#8331;&#8321;</code>. A bump propagates.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Search over
+            target arrays <code>b</code>, or re-scan the prefix at each index to find
+            the running maximum.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(n&sup2;)</span> for the re-scan; unbounded for the search.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n &le; 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span> operations.
+            Also <span class="cost">&sum;(prev &minus; x)</span> reaches ~<span class="cost">2&middot;10&#185;&#8308;</span>,
+            past <code>int</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            Carry the running maximum in a single scalar. No structure needed at
+            all &mdash; <span class="cost">O(n)</span> time, <span class="cost">O(1)</span> space,
+            accumulator in <code>long long</code>.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 520 190" role="img" aria-label="Running floor over 3 2 5 1 7">
+  <text class="s-td" x="8" y="16">A = 3 2 5 1 7</text>
+  <g>
+    <rect class="s-box" x="40"  y="120" width="56" height="34" rx="4"/>
+    <rect class="s-box" x="132" y="120" width="56" height="34" rx="4"/>
+    <rect class="s-box" x="224" y="120" width="56" height="34" rx="4"/>
+    <rect class="s-box" x="316" y="120" width="56" height="34" rx="4"/>
+    <rect class="s-box" x="408" y="120" width="56" height="34" rx="4"/>
+    <text class="s-t" x="63" y="142">3</text><text class="s-t" x="155" y="142">2</text>
+    <text class="s-t" x="247" y="142">5</text><text class="s-t" x="339" y="142">1</text>
+    <text class="s-t" x="431" y="142">7</text>
+  </g>
+  <!-- the running floor -->
+  <path class="s-hi" d="M40 86 H96 V86 H188 V86 H280 V56 H372 V56 H464 V26"/>
+  <text class="s-ta" x="40" y="78">floor 3</text>
+  <text class="s-ta" x="230" y="48">floor 5</text>
+  <text class="s-ta" x="412" y="18">floor 7</text>
+  <!-- shortfalls paid -->
+  <rect class="s-warn" x="132" y="86" width="56" height="34" rx="4"/>
+  <text class="s-tm" x="143" y="108">+1</text>
+  <rect class="s-warn" x="316" y="56" width="56" height="64" rx="4"/>
+  <text class="s-tm" x="327" y="92">+4</text>
+  <text class="s-td" x="8" y="180">cost = 1 + 4 = 5</text>
+</svg>
+          <figcaption>The floor only ever rises. At index 1 and 3 the element sits
+          below it, so the gap is paid and the floor is unchanged.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>prev</code> is the floor and is only ever assigned
+        in the <code>else</code> branch &mdash; when a shortfall is paid the element
+        becomes <code>prev</code> conceptually, so leaving <code>prev</code> alone is
+        exactly right. Reading and processing in the same loop keeps space at
+        <code>O(1)</code>: the array is never stored.</p>
+        <div class="src-meta"><span class="path">arrays/Increasing_Array.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Increasing Array
+// Link: CSES 1094
+// Pattern: single-pass greedy — track running previous (post-adjustment), pay the shortfall
+// Time: O(n)  Space: O(1)
+//
+// Only allowed move: increase any element by 1. Minimum total moves to make
+// the array non-decreasing.
+//
+// Example:
+//     3 2 5 1 7 -&gt; 5
+
+#include &lt;iostream&gt;
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int n;
+    cin &gt;&gt; n;
+
+    long long prev = 0, cost = 0;
+    for (int i = 0; i &lt; n; i++) {
+        long long x;
+        cin &gt;&gt; x;
+        if (x &lt; prev) cost += prev - x;
+        else prev = x;
+    }
+
+    cout &lt;&lt; cost &lt;&lt; '\n';
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>Compare against the running
+      <code>prev</code>, not <code>a[i-1]</code>. A bump raises the floor for
+      everything after it, and the two differ the moment two dips occur in a row.
+      <code>cost</code> must be <code>long long</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"one-directional edit
+      only, minimum total change to make a sequence monotone" &rarr; single-pass
+      running floor, pay the shortfall.</div>
+    </article>
+<!-- ========================= END ENTRY ========================= -->
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+  <div class="excluded">
+    <h4>Excluded from this ledger</h4>
+    <ul>
+      <li><code>topic/File.cpp</code> &mdash; exact compiler error or reason.</li>
+    </ul>
+  </div>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/SLUG.js"></script>
+</body>
+</html>

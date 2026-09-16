@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Range Queries &amp; Binary Search &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<!-- data-base = path back to repo root; data-slug = this child's slug -->
+<body data-base=".." data-slug="arrays_5_range_queries">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; Arrays</div>
+  <h1>Range Queries &amp; Binary Search</h1>
+  <p class="dek">Two ways of not touching the array element by element. The first
+  five problems precompute a structure over the array &mdash; a prefix table or a
+  segment tree &mdash; so any range collapses to <code>O(1)</code> or
+  <code>O(log n)</code>. The last two never index the array at all: they binary
+  search the <em>answer</em>, and the array only appears inside a monotone
+  <code>feasible(x)</code> predicate. Reach for this page when a problem says
+  "q queries" or "minimise the maximum".</p>
+  <p class="stats"><b>7</b> problems &middot; <b>4</b> families &middot; <b>segment tree</b> toolkit</p>
+</header>
+
+<div class="layout">
+<nav class="toc" aria-label="Sections">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <a href="#recognition">Recognition rules</a>
+  <a href="#toolkit">Segment tree toolkit</a>
+  <div class="toc-fam"><a href="#f1">1&nbsp;&middot; Static range queries</a></div>
+  <div class="toc-fam"><a href="#f2">2&nbsp;&middot; Dynamic range queries</a></div>
+  <div class="toc-fam"><a href="#f3">3&nbsp;&middot; Order statistics</a></div>
+  <div class="toc-fam"><a href="#f4">4&nbsp;&middot; Binary search on the answer</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recognition">
+    <div class="section-head"><h2>Recognition rules</h2>
+      <p>The judgment calls that separate these problems from each other.
+      Every rule must be demonstrated by at least two entries on this page.</p></div>
+    <div class="rules">
+      <div class="rule"><span class="n">1</span>
+        <p>Ask two questions in order: <em>does the array change?</em> and
+        <em>does the aggregate have an inverse?</em> Both "no updates" and
+        "invertible" &rarr; prefix table, no tree (Static Range Sum Queries,
+        <span class="rule-code">prefix[b] &minus; prefix[a&minus;1]</span>).
+        Either one fails &rarr; segment tree. Static Range Minimum Queries is
+        static too, but you cannot subtract a value back out of a min, so it
+        still builds the tree &mdash; it just never calls
+        <span class="rule-code">update</span>.</p></div>
+      <div class="rule"><span class="n">2</span>
+        <p>Across Static Range Minimum, Dynamic Range Sum, Dynamic Range Minimum
+        and Josephus the <span class="rule-code">build</span> /
+        <span class="rule-code">update</span> / <span class="rule-code">query</span>
+        bodies are byte-identical. Exactly two things vary per problem: the
+        <span class="rule-code">merge</span> body and the identity in
+        <span class="rule-code">node()</span>. Write the scaffold from muscle
+        memory, then think about those two lines only.</p></div>
+      <div class="rule"><span class="n">3</span>
+        <p>The identity must be the neutral element of <em>your</em> merge,
+        because <span class="rule-code">query</span> returns a default-constructed
+        <span class="rule-code">node()</span> on no-overlap and that node is merged
+        into the real answer. <span class="rule-code">0</span> for the sum trees
+        (Dynamic Range Sum, Josephus), <span class="rule-code">2e18</span> for the
+        min trees (Static / Dynamic Range Minimum). A <span class="rule-code">0</span>
+        identity in a min tree silently answers 0 for every query that partially
+        overlaps.</p></div>
+      <div class="rule"><span class="n">4</span>
+        <p>Default to the <strong>segment tree</strong>, never a Fenwick tree/BIT.
+        The same sum tree that answers Dynamic Range Sum Queries also runs
+        Josephus Queries' <span class="rule-code">findKth</span> descent with six
+        extra lines &mdash; one structure covers point update, range sum, range min
+        and order statistics, so there is one thing to remember under interview
+        pressure instead of two.</p></div>
+      <div class="rule"><span class="n">5</span>
+        <p>CSES hands you 1-indexed queries; this repo builds trees 0-indexed over
+        <span class="rule-code">[0, n&minus;1]</span>. Convert once, at the call
+        site &mdash; <span class="rule-code">query(1, 0, n-1, a-1, b-1)</span> in
+        both Dynamic entries and in Static Range Minimum, and
+        <span class="rule-code">order[i] + 1</span> on the way out of Josephus.
+        Never half-convert inside the recursion. Prefix sums are the one exception:
+        Static Range Sum Queries stores <span class="rule-code">prefix[1..n]</span>
+        1-indexed precisely so the query needs no shifting at all.</p></div>
+      <div class="rule"><span class="n">6</span>
+        <p>"Minimise the maximum" (Array Division) or "maximise the minimum" /
+        "shortest time to reach a target" (Factory Machines) &rarr; binary search
+        the <em>answer</em>, not the array. Both files have the identical skeleton:
+        a boolean <span class="rule-code">check(mid)</span>, then
+        <span class="rule-code">ans = mid; hi = mid - 1</span> on success and
+        <span class="rule-code">lo = mid + 1</span> on failure. The array is never
+        sorted and never indexed by the search &mdash; it only feeds the predicate.</p></div>
+      <div class="rule"><span class="n">7</span>
+        <p>The predicate is where the bugs live, not the search. Array Division needs
+        the <span class="rule-code">v[i] &gt; mid &rarr; return false</span> guard, or
+        a single oversized element is silently packed into a block. Factory Machines
+        needs its <span class="rule-code">if (total &gt;= t) return true</span>
+        <em>inside</em> the loop, or <span class="rule-code">&sum; x / k&#7522;</span>
+        over 2&middot;10&#8309; machines overflows <span class="rule-code">long long</span>.
+        Both times the fix is one line in <span class="rule-code">check</span>.</p></div>
+    </div>
+  </section>
+
+  <section id="toolkit">
+    <div class="section-head"><h2>Segment tree toolkit</h2>
+      <p>The shared scaffolding behind families 1&ndash;3, canonical segment tree scaffold. Reproduce this from memory; then
+      change <code>merge</code> and the identity, and nothing else.</p></div>
+    <div class="toolkit" role="table" aria-label="Segment tree reference">
+      <table>
+        <tbody>
+          <tr><td class="fn">node t[4 * MAXN]</td><td class="desc">the <span class="mono">4&middot;n</span> sizing: the recursion is not a perfect binary tree, and a worst-case <span class="mono">n</span> (just over a power of two) pushes the largest used index past <span class="mono">2n</span>. <span class="mono">4&middot;n</span> is the safe bound &mdash; here <span class="mono">MAXN = 200020</span>, so <span class="mono">t[800080]</span>, a static global, never a <span class="mono">vector</span> resized per test.</td></tr>
+          <tr><td class="fn">node()</td><td class="desc">the default constructor <em>is</em> the identity. <span class="mono">sum = 0</span> for a sum tree; <span class="mono">mn = INF = 2e18</span> for a min tree. Nothing else declares it.</td></tr>
+          <tr><td class="fn">merge(a, b)</td><td class="desc">the only genuinely per-problem line. <span class="mono">res.sum = a.sum + b.sum</span> or <span class="mono">res.mn = min(a.mn, b.mn)</span>. Must be associative; must be neutral under <span class="mono">node()</span>.</td></tr>
+          <tr><td class="fn">build(id, l, r)</td><td class="desc">leaf <span class="mono">l == r</span> copies <span class="mono">arr[l]</span>; otherwise recurse into <span class="mono">[l, mid]</span> / <span class="mono">[mid+1, r]</span> and <span class="mono">t[id] = merge(children)</span>. Called once as <span class="mono">build(1, 0, n - 1)</span> &mdash; <span class="mono">O(n)</span>.</td></tr>
+          <tr><td class="fn">update(id, l, r, pos, val)</td><td class="desc">point <em>set</em>, not add: the leaf is overwritten with <span class="mono">val</span>, then every ancestor re-merges on the way back up. Out-of-range guard is <span class="mono">pos &lt; l || pos &gt; r</span>. <span class="mono">O(log n)</span>.</td></tr>
+          <tr><td class="fn">query(id, l, r, lq, rq)</td><td class="desc">three cases, in this order: no overlap &rarr; <span class="mono">return node()</span> (identity); full containment &rarr; <span class="mono">return t[id]</span>; else <span class="mono">merge</span> of both recursive halves. <span class="mono">O(log n)</span>.</td></tr>
+          <tr><td class="fn">findKth(id, l, r, k)</td><td class="desc">order statistics over a 0/1 "alive" sum tree. Descend from the root: <span class="mono">t[2*id].sum &gt;= k</span> &rarr; go left with the same <span class="mono">k</span>; else go right with <span class="mono">k - t[2*id].sum</span>. One path down, no backtracking, <span class="mono">O(log n)</span>. <span class="mono">k</span> is 1-indexed; the returned position is 0-indexed.</td></tr>
+          <tr><td class="fn">children of id</td><td class="desc"><span class="mono">2*id</span> and <span class="mono">2*id + 1</span>, root at <span class="mono">id = 1</span>. Index 0 is unused &mdash; that is what makes the doubling work.</td></tr>
+          <tr><td class="fn">indexing</td><td class="desc">the tree is built 0-indexed over <span class="mono">[0, n-1]</span>; CSES queries arrive 1-indexed. Subtract 1 at the call site: <span class="mono">query(1, 0, n-1, a-1, b-1)</span>, <span class="mono">update(1, 0, n-1, k-1, u)</span>.</td></tr>
+          <tr><td class="fn">vs. Fenwick / BIT</td><td class="desc">this repo does not use one. A BIT is shorter but only does invertible prefix aggregates; the segment tree above does point update, range sum, range min and <span class="mono">findKth</span> with the same body. One structure, memorised once.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== FAMILY 1 ===================== -->
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1&nbsp;&middot; Static range queries</h2></div>
+    <p class="family-note">The array is read once and never changes; only the
+    queries vary. That freedom is worth something only when the aggregate is
+    invertible &mdash; a sum can be differenced out of a prefix table, a minimum
+    cannot. So these two problems, identical in shape and identical in
+    constraints, land on completely different structures.</p>
+
+<!-- ============ ENTRY ============ -->
+    <article class="entry" id="static-range-sum-queries">
+      <div class="entry-head"><h3>Static Range Sum Queries</h3><span class="badge num">O(n+q)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Given a fixed <code>a[1..n]</code> and <code>q</code> pairs
+          <code>(a, b)</code>, report <code>&sum;</code> of the elements in each
+          range. Nothing is ever modified.
+          <div class="formal">P[0] = 0,  P[i] = P[i&minus;1] + a[i]
+answer(a, b) = P[b] &minus; P[a&minus;1]</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Sum is invertible: the range sum is the difference of two prefix
+              sums, so no structure is needed beyond one array.</li>
+          <li>Build <code>P</code> 1-indexed and size it <code>n+1</code> &mdash;
+              then the query indices need no shifting at all.</li>
+          <li><code>P[0] = 0</code> is the base case, and it is exactly what makes
+              <code>a == 1</code> work without a special case.</li>
+          <li>The elements themselves are never needed again, so nothing is stored
+              but <code>P</code>.</li>
+          <li><code>2&middot;10&#8309; &middot; 10&#8313;</code> overflows
+              <code>int</code>; <code>P</code> is <code>long long</code>.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Per query,
+            loop <code>i = a..b</code> and add.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(nq)</span>, one full scan per query.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n, q &le; 2&middot;10&#8309;</code> &rarr;
+            <span class="cost">4&middot;10&#185;&#8304;</span> additions. A single sum also
+            reaches <span class="cost">2&middot;10&#185;&#8308;</span>, past <code>int</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            One prefix pass answers every query by subtraction &mdash;
+            <span class="cost">O(n + q)</span> time, <span class="cost">O(n)</span>
+            space, accumulator in <code>long long</code>.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 600 205" role="img" aria-label="Prefix table over 3 2 4 5 1 1 5 3 answering the range 2 to 4">
+  <text class="s-td" x="10" y="20">A = 3 2 4 5 1 1 5 3     query (a, b) = (2, 4)</text>
+  <text class="s-td" x="10" y="66">A</text>
+  <text class="s-td" x="10" y="134">P</text>
+  <g>
+    <rect class="s-box" x="60"  y="44" width="60" height="32" rx="4"/>
+    <rect class="s-box" x="120" y="44" width="60" height="32" rx="4"/>
+    <rect class="s-box" x="180" y="44" width="60" height="32" rx="4"/>
+    <rect class="s-box" x="240" y="44" width="60" height="32" rx="4"/>
+    <rect class="s-box" x="300" y="44" width="60" height="32" rx="4"/>
+    <rect class="s-box" x="360" y="44" width="60" height="32" rx="4"/>
+    <rect class="s-box" x="420" y="44" width="60" height="32" rx="4"/>
+    <rect class="s-box" x="480" y="44" width="60" height="32" rx="4"/>
+    <rect class="s-fill" x="120" y="44" width="180" height="32" rx="4"/>
+    <text class="s-t" x="90"  y="66" text-anchor="middle">3</text>
+    <text class="s-t" x="150" y="66" text-anchor="middle">2</text>
+    <text class="s-t" x="210" y="66" text-anchor="middle">4</text>
+    <text class="s-t" x="270" y="66" text-anchor="middle">5</text>
+    <text class="s-t" x="330" y="66" text-anchor="middle">1</text>
+    <text class="s-t" x="390" y="66" text-anchor="middle">1</text>
+    <text class="s-t" x="450" y="66" text-anchor="middle">5</text>
+    <text class="s-t" x="510" y="66" text-anchor="middle">3</text>
+    <text class="s-td" x="90"  y="38" text-anchor="middle">1</text>
+    <text class="s-td" x="150" y="38" text-anchor="middle">2</text>
+    <text class="s-td" x="210" y="38" text-anchor="middle">3</text>
+    <text class="s-td" x="270" y="38" text-anchor="middle">4</text>
+    <text class="s-td" x="330" y="38" text-anchor="middle">5</text>
+    <text class="s-td" x="390" y="38" text-anchor="middle">6</text>
+    <text class="s-td" x="450" y="38" text-anchor="middle">7</text>
+    <text class="s-td" x="510" y="38" text-anchor="middle">8</text>
+  </g>
+  <g>
+    <rect class="s-box"  x="30"  y="112" width="60" height="32" rx="4"/>
+    <rect class="s-warn" x="90"  y="112" width="60" height="32" rx="4"/>
+    <rect class="s-box"  x="150" y="112" width="60" height="32" rx="4"/>
+    <rect class="s-box"  x="210" y="112" width="60" height="32" rx="4"/>
+    <rect class="s-good" x="270" y="112" width="60" height="32" rx="4"/>
+    <rect class="s-box"  x="330" y="112" width="60" height="32" rx="4"/>
+    <rect class="s-box"  x="390" y="112" width="60" height="32" rx="4"/>
+    <rect class="s-box"  x="450" y="112" width="60" height="32" rx="4"/>
+    <rect class="s-box"  x="510" y="112" width="60" height="32" rx="4"/>
+    <text class="s-t" x="60"  y="134" text-anchor="middle">0</text>
+    <text class="s-t" x="120" y="134" text-anchor="middle">3</text>
+    <text class="s-t" x="180" y="134" text-anchor="middle">5</text>
+    <text class="s-t" x="240" y="134" text-anchor="middle">9</text>
+    <text class="s-t" x="300" y="134" text-anchor="middle">14</text>
+    <text class="s-t" x="360" y="134" text-anchor="middle">15</text>
+    <text class="s-t" x="420" y="134" text-anchor="middle">16</text>
+    <text class="s-t" x="480" y="134" text-anchor="middle">21</text>
+    <text class="s-t" x="540" y="134" text-anchor="middle">24</text>
+    <text class="s-td" x="60"  y="160" text-anchor="middle">0</text>
+    <text class="s-td" x="120" y="160" text-anchor="middle">1</text>
+    <text class="s-td" x="180" y="160" text-anchor="middle">2</text>
+    <text class="s-td" x="240" y="160" text-anchor="middle">3</text>
+    <text class="s-td" x="300" y="160" text-anchor="middle">4</text>
+    <text class="s-td" x="360" y="160" text-anchor="middle">5</text>
+    <text class="s-td" x="420" y="160" text-anchor="middle">6</text>
+    <text class="s-td" x="480" y="160" text-anchor="middle">7</text>
+    <text class="s-td" x="540" y="160" text-anchor="middle">8</text>
+  </g>
+  <text class="s-ta" x="10" y="192">P[4] &minus; P[1] = 14 &minus; 3 = 11</text>
+</svg>
+          <figcaption>Each <code>P[i]</code> sits at the right edge of the first
+          <code>i</code> elements. Subtracting the boundary before <code>a</code>
+          from the boundary at <code>b</code> leaves exactly the shaded span.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The input element <code>x</code> is read into a scalar
+        and folded into <code>prefix[i]</code> immediately &mdash; the array itself
+        is never stored, so the only allocation is the <code>n+1</code>-long table.
+        The line worth a second look is <code>prefix[b] - prefix[a - 1]</code>:
+        <code>a</code> is 1-indexed, so <code>a == 1</code> reads
+        <code>prefix[0]</code>, which is the zero written by the vector's
+        constructor.</p>
+        <div class="src-meta"><span class="path">arrays/Static_Range_Sum_Queries.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Static Range Sum Queries
+// Link: CSES 1646
+// Pattern: prefix sums — prefix[i] = sum of first i elements (1-indexed),
+// answer for [a,b] is prefix[b] - prefix[a-1]
+// Time: O(n + q)  Space: O(n)
+//
+// Array never changes; answer q range-sum queries.
+//
+// Example:
+//     3 2 4 5 1 1 5 3, query (2,4) -&gt; 11, (5,6) -&gt; 2, (1,8) -&gt; 24, (3,3) -&gt; 4
+
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int n, q;
+    cin &gt;&gt; n &gt;&gt; q;
+
+    vector&lt;long long&gt; prefix(n + 1, 0);
+    for (int i = 1; i &lt;= n; i++) {
+        long long x;
+        cin &gt;&gt; x;
+        prefix[i] = prefix[i - 1] + x;
+    }
+
+    for (int i = 0; i &lt; q; i++) {
+        int a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        cout &lt;&lt; prefix[b] - prefix[a - 1] &lt;&lt; '\n';
+    }
+
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>Do not reach for a segment
+      tree here. Static plus invertible collapses to <code>O(1)</code> per query;
+      building a tree is slower, longer, and more to get wrong. Keep
+      <code>prefix</code> as <code>long long</code> &mdash; the total reaches
+      <code>2&middot;10&#185;&#8308;</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"array never changes,
+      answer many range sums" &rarr; one prefix pass, answer by subtraction.</div>
+    </article>
+
+<!-- ============ ENTRY ============ -->
+    <article class="entry" id="static-range-minimum-queries">
+      <div class="entry-head"><h3>Static Range Minimum Queries</h3><span class="badge num">O((n+q) log n)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Same fixed array, same <code>q</code> ranges &mdash; report the
+          <em>smallest</em> element of each range instead of the sum.
+          <div class="formal">answer(a, b) = min { a[i] : a &le; i &le; b }
+merge(x, y) = min(x, y),  identity = +&infin;</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li><code>min</code> has no inverse &mdash; you cannot un-min a prefix
+              the way you subtract a prefix sum. The prefix trick is dead.</li>
+          <li><code>min</code> <em>is</em> associative and idempotent, so any range
+              can be assembled from a handful of precomputed blocks.</li>
+          <li>A segment tree cuts every range into <code>O(log n)</code> canonical
+              nodes &mdash; the same structure used for the dynamic problems, so
+              there is nothing new to memorise.</li>
+          <li>No updates means <code>update</code> is simply never written; only
+              <code>build</code> and <code>query</code> survive.</li>
+          <li>The identity is <code>INF = 2e18</code>, not <code>0</code>: a
+              no-overlap node is merged into the answer, and <code>0</code> would
+              win every min.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Per query,
+            scan <code>i = a..b</code> tracking the minimum. Or precompute all
+            <code>O(n&sup2;)</code> ranges.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(nq)</span> for the scan;
+            <span class="cost">O(n&sup2;)</span> memory for the table.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n, q &le; 2&middot;10&#8309;</code> &rarr;
+            <span class="cost">4&middot;10&#185;&#8304;</span> comparisons; the full table
+            would be <span class="cost">4&middot;10&#185;&#8304;</span> entries of memory.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            Segment tree with a min merge: <span class="cost">O(n)</span> build,
+            <span class="cost">O(log n)</span> per query,
+            <span class="cost">O(n)</span> space.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 600 300" role="img" aria-label="Segment tree over 3 2 4 5 1 1 5 3 with the query range 1 to 3 covered by two canonical nodes">
+  <text class="s-td" x="10" y="18">query (2, 4) 1-indexed &rarr; [1, 3] 0-indexed</text>
+  <g class="s-edge">
+    <path d="M296 98 L152 128"/><path d="M296 98 L440 128"/>
+    <path d="M152 158 L80 188"/><path d="M152 158 L224 188"/>
+    <path d="M440 158 L368 188"/><path d="M440 158 L512 188"/>
+    <path d="M80 218 L44 248"/><path d="M80 218 L116 248"/>
+    <path d="M224 218 L188 248"/><path d="M224 218 L260 248"/>
+    <path d="M368 218 L332 248"/><path d="M368 218 L404 248"/>
+    <path d="M512 218 L476 248"/><path d="M512 218 L548 248"/>
+  </g>
+  <rect class="s-box" x="248" y="68" width="96" height="30" rx="4"/>
+  <text class="s-tm" x="296" y="88" text-anchor="middle">[0,7] mn 1</text>
+  <rect class="s-box" x="109" y="128" width="86" height="30" rx="4"/>
+  <text class="s-tm" x="152" y="148" text-anchor="middle">[0,3] mn 2</text>
+  <rect class="s-box" x="397" y="128" width="86" height="30" rx="4"/>
+  <text class="s-tm" x="440" y="148" text-anchor="middle">[4,7] mn 1</text>
+  <rect class="s-box" x="42"  y="188" width="76" height="30" rx="4"/>
+  <text class="s-tm" x="80"  y="208" text-anchor="middle">[0,1] 2</text>
+  <rect class="s-good" x="186" y="188" width="76" height="30" rx="4"/>
+  <text class="s-tm" x="224" y="208" text-anchor="middle">[2,3] 4</text>
+  <rect class="s-box" x="330" y="188" width="76" height="30" rx="4"/>
+  <text class="s-tm" x="368" y="208" text-anchor="middle">[4,5] 1</text>
+  <rect class="s-box" x="474" y="188" width="76" height="30" rx="4"/>
+  <text class="s-tm" x="512" y="208" text-anchor="middle">[6,7] 3</text>
+  <rect class="s-box"  x="16"  y="248" width="56" height="30" rx="4"/>
+  <rect class="s-good" x="88"  y="248" width="56" height="30" rx="4"/>
+  <rect class="s-box"  x="160" y="248" width="56" height="30" rx="4"/>
+  <rect class="s-box"  x="232" y="248" width="56" height="30" rx="4"/>
+  <rect class="s-box"  x="304" y="248" width="56" height="30" rx="4"/>
+  <rect class="s-box"  x="376" y="248" width="56" height="30" rx="4"/>
+  <rect class="s-box"  x="448" y="248" width="56" height="30" rx="4"/>
+  <rect class="s-box"  x="520" y="248" width="56" height="30" rx="4"/>
+  <text class="s-t" x="44"  y="268" text-anchor="middle">3</text>
+  <text class="s-t" x="116" y="268" text-anchor="middle">2</text>
+  <text class="s-t" x="188" y="268" text-anchor="middle">4</text>
+  <text class="s-t" x="260" y="268" text-anchor="middle">5</text>
+  <text class="s-t" x="332" y="268" text-anchor="middle">1</text>
+  <text class="s-t" x="404" y="268" text-anchor="middle">1</text>
+  <text class="s-t" x="476" y="268" text-anchor="middle">5</text>
+  <text class="s-t" x="548" y="268" text-anchor="middle">3</text>
+  <text class="s-td" x="44"  y="292" text-anchor="middle">0</text>
+  <text class="s-td" x="116" y="292" text-anchor="middle">1</text>
+  <text class="s-td" x="188" y="292" text-anchor="middle">2</text>
+  <text class="s-td" x="260" y="292" text-anchor="middle">3</text>
+  <text class="s-td" x="332" y="292" text-anchor="middle">4</text>
+  <text class="s-td" x="404" y="292" text-anchor="middle">5</text>
+  <text class="s-td" x="476" y="292" text-anchor="middle">6</text>
+  <text class="s-td" x="548" y="292" text-anchor="middle">7</text>
+  <text class="s-ta" x="10" y="36">covered by leaf [1] and node [2,3]  &rarr;  min(2, 4) = 2</text>
+</svg>
+          <figcaption>The range <code>[1,3]</code> is not one node, but it is
+          exactly two: the leaf <code>[1]</code> and the block
+          <code>[2,3]</code>. Every range decomposes into at most
+          <code>2 log n</code> such nodes, which is where the <code>log</code>
+          comes from.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The only edits to the standing template are
+        <code>node.mn</code> in place of <code>node.sum</code>, the
+        <code>min</code> merge, and the constructor's <code>INF</code>. The
+        easily-misread line is <code>if (l &gt; rq || r &lt; lq) return node();</code>
+        &mdash; that default node is the <code>+&infin;</code> identity, and
+        returning it is how a disjoint subtree declines to affect the answer.
+        <code>n</code> is a file-scope global because <code>build</code> and
+        <code>query</code> take the segment bounds explicitly, not the array
+        length.</p>
+        <div class="src-meta"><span class="path">arrays/Static_Range_Minimum_Queries.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Static Range Minimum Queries
+// Link: CSES 1647
+// Pattern: segment tree, same template as templates/segment_tree.cpp,
+// merge swapped to min (identity = +infinity instead of 0)
+// Time: O((n + q) log n)  Space: O(n)
+//
+// Array never changes; answer q range-minimum queries.
+//
+// Example:
+//     3 2 4 5 1 1 5 3, query (2,4) -&gt; 2, (5,6) -&gt; 1, (1,8) -&gt; 1, (3,3) -&gt; 4
+
+#include &lt;iostream&gt;
+using namespace std;
+typedef long long ll;
+
+const int MAXN = 200020;
+const ll INF = 2e18;
+
+struct node {
+    ll mn;
+    node() { mn = INF; }
+};
+
+node t[4 * MAXN];
+ll arr[MAXN];
+int n;
+
+node merge(node a, node b) {
+    node res;
+    res.mn = min(a.mn, b.mn);
+    return res;
+}
+
+void build(ll id, ll l, ll r) {
+    if (l == r) {
+        t[id].mn = arr[l];
+        return;
+    }
+    ll mid = (l + r) / 2;
+    build(2 * id, l, mid);
+    build(2 * id + 1, mid + 1, r);
+    t[id] = merge(t[2 * id], t[2 * id + 1]);
+}
+
+node query(ll id, ll l, ll r, ll lq, ll rq) {
+    if (l &gt; rq || r &lt; lq) return node();
+    if (l &gt;= lq &amp;&amp; r &lt;= rq) return t[id];
+    ll mid = (l + r) / 2;
+    node left = query(2 * id, l, mid, lq, rq);
+    node right = query(2 * id + 1, mid + 1, r, lq, rq);
+    return merge(left, right);
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int q;
+    cin &gt;&gt; n &gt;&gt; q;
+
+    for (int i = 0; i &lt; n; i++) cin &gt;&gt; arr[i];
+    build(1, 0, n - 1);
+
+    for (int i = 0; i &lt; q; i++) {
+        int a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        cout &lt;&lt; query(1, 0, n - 1, a - 1, b - 1).mn &lt;&lt; '\n';
+    }
+
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>"Static" does not mean "no
+      tree" &mdash; that shortcut only exists for invertible aggregates. And the
+      identity must be <code>+&infin;</code>: leaving the sum tree's
+      <code>node() { sum = 0; }</code> in place makes every partially-overlapping
+      query answer <code>0</code>, which passes the sample and fails everything
+      else.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"many range min/max
+      queries, array fixed" &rarr; segment tree with the matching merge, build once,
+      no <code>update</code>.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 2 ===================== -->
+  <section class="family" id="f2">
+    <div class="family-head"><h2>2&nbsp;&middot; Dynamic range queries</h2></div>
+    <p class="family-note">Point updates arrive interleaved with the queries, so
+    nothing precomputed over whole prefixes survives. The segment tree is the
+    answer to both, and the two files differ by three lines &mdash; the field name,
+    the merge, and the identity. Read them as one problem solved twice.</p>
+
+<!-- ============ ENTRY ============ -->
+    <article class="entry" id="dynamic-range-sum-queries">
+      <div class="entry-head"><h3>Dynamic Range Sum Queries</h3><span class="badge num">O((n+q) log n)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          <code>q</code> operations on <code>a[1..n]</code>, in any order: set one
+          position to a new value, or report the sum of a range.
+          <div class="formal">type 1 k u :  a[k] &larr; u
+type 2 a b :  report &sum; a[i],  a &le; i &le; b</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>A prefix table is global: changing <code>a[k]</code> invalidates
+              every <code>P[i]</code> with <code>i &ge; k</code>. That is
+              <code>O(n)</code> per update.</li>
+          <li>A segment tree is local: position <code>k</code> appears in exactly
+              the <code>log n</code> nodes on its root-to-leaf path, and nowhere
+              else.</li>
+          <li>So an update is one downward walk plus one re-merge per ancestor on
+              the way back up.</li>
+          <li>The update <em>sets</em> the value, it does not add to it &mdash;
+              the leaf is overwritten, no delta is computed.</li>
+          <li>Merge is <code>+</code> and the identity is <code>0</code>: the
+              unmodified template.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Keep the
+            prefix table and rebuild it after each update (or drop it and scan
+            <code>a..b</code> per query).</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(n)</span> per operation &rarr;
+            <span class="cost">O(nq)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n, q &le; 2&middot;10&#8309;</code> &rarr;
+            <span class="cost">4&middot;10&#185;&#8304;</span> operations, and the update
+            mix is adversarial &mdash; every update triggers a full rebuild.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            Segment tree, sum merge: <span class="cost">O(log n)</span> per update
+            <em>and</em> per query &rarr;
+            <span class="cost">O((n + q) log n)</span>.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 520 252" role="img" aria-label="Point update on a sum segment tree over 3 2 4 5 re-merging one root to leaf path">
+  <text class="s-td" x="10" y="20">set(3, 1)  &rarr;  update(1, 0, 3, pos = 2, val = 1)</text>
+  <g class="s-edge">
+    <path d="M250 86 L130 126"/><path d="M250 86 L370 126"/>
+    <path d="M130 156 L70 196"/><path d="M130 156 L190 196"/>
+    <path d="M370 156 L310 196"/><path d="M370 156 L430 196"/>
+  </g>
+  <rect class="s-warn" x="195" y="56" width="110" height="30" rx="4"/>
+  <text class="s-tm" x="250" y="76" text-anchor="middle">[0,3]  14 &rarr; 11</text>
+  <rect class="s-box" x="80" y="126" width="100" height="30" rx="4"/>
+  <text class="s-tm" x="130" y="146" text-anchor="middle">[0,1]  5</text>
+  <rect class="s-warn" x="320" y="126" width="100" height="30" rx="4"/>
+  <text class="s-tm" x="370" y="146" text-anchor="middle">[2,3]  9 &rarr; 6</text>
+  <rect class="s-box"  x="30"  y="196" width="80" height="30" rx="4"/>
+  <rect class="s-box"  x="150" y="196" width="80" height="30" rx="4"/>
+  <rect class="s-warn" x="270" y="196" width="80" height="30" rx="4"/>
+  <rect class="s-box"  x="390" y="196" width="80" height="30" rx="4"/>
+  <text class="s-t"  x="70"  y="216" text-anchor="middle">3</text>
+  <text class="s-t"  x="190" y="216" text-anchor="middle">2</text>
+  <text class="s-tm" x="310" y="216" text-anchor="middle">4 &rarr; 1</text>
+  <text class="s-t"  x="430" y="216" text-anchor="middle">5</text>
+  <text class="s-ta" x="10" y="244">only the shaded path changes &mdash; [0,1] is never visited</text>
+</svg>
+          <figcaption>Writing the leaf and re-merging its ancestors touches
+          <code>log n + 1</code> nodes. The untouched sibling subtree keeps its
+          stored sum, which is why the query afterwards is still correct.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">This is the canonical segment tree with
+        no adaptation at all &mdash; only <code>main</code> is new, dispatching on
+        the operation type. In <code>update</code> both recursive calls are always
+        issued; the one whose segment excludes <code>pos</code> returns on its first
+        line, which is what keeps the walk <code>O(log n)</code> despite looking
+        like a full traversal. The re-merge sits <em>after</em> both calls, so a
+        node is recomputed only once its children are final.</p>
+        <div class="src-meta"><span class="path">arrays/Dynamic_Range_Sum_Queries.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Dynamic Range Sum Queries
+// Link: CSES 1648
+// Pattern: segment tree, same as templates/segment_tree.cpp — point
+// update (set, not add) + range sum query
+// Time: O((n + q) log n)  Space: O(n)
+//
+// Array supports point updates (set position k to u) interleaved with range
+// sum queries.
+//
+// Example:
+//     3 2 4 5 1 1 5 3, sum(1,4)=14, sum(5,6)=2, set(3,1), sum(1,4)=11
+
+#include &lt;iostream&gt;
+using namespace std;
+typedef long long ll;
+
+const int MAXN = 200020;
+
+struct node {
+    ll sum;
+    node() { sum = 0; }
+};
+
+node t[4 * MAXN];
+ll arr[MAXN];
+int n;
+
+node merge(node a, node b) {
+    node res;
+    res.sum = a.sum + b.sum;
+    return res;
+}
+
+void build(ll id, ll l, ll r) {
+    if (l == r) {
+        t[id].sum = arr[l];
+        return;
+    }
+    ll mid = (l + r) / 2;
+    build(2 * id, l, mid);
+    build(2 * id + 1, mid + 1, r);
+    t[id] = merge(t[2 * id], t[2 * id + 1]);
+}
+
+void update(ll id, ll l, ll r, ll pos, ll val) {
+    if (pos &lt; l || pos &gt; r) return;
+    if (l == r) {
+        t[id].sum = val;
+        return;
+    }
+    ll mid = (l + r) / 2;
+    update(2 * id, l, mid, pos, val);
+    update(2 * id + 1, mid + 1, r, pos, val);
+    t[id] = merge(t[2 * id], t[2 * id + 1]);
+}
+
+node query(ll id, ll l, ll r, ll lq, ll rq) {
+    if (l &gt; rq || r &lt; lq) return node();
+    if (l &gt;= lq &amp;&amp; r &lt;= rq) return t[id];
+    ll mid = (l + r) / 2;
+    node left = query(2 * id, l, mid, lq, rq);
+    node right = query(2 * id + 1, mid + 1, r, lq, rq);
+    return merge(left, right);
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int q;
+    cin &gt;&gt; n &gt;&gt; q;
+
+    for (int i = 0; i &lt; n; i++) cin &gt;&gt; arr[i];
+    build(1, 0, n - 1);
+
+    for (int i = 0; i &lt; q; i++) {
+        int type;
+        cin &gt;&gt; type;
+        if (type == 1) {
+            int k;
+            ll u;
+            cin &gt;&gt; k &gt;&gt; u;
+            update(1, 0, n - 1, k - 1, u);
+        } else {
+            int a, b;
+            cin &gt;&gt; a &gt;&gt; b;
+            cout &lt;&lt; query(1, 0, n - 1, a - 1, b - 1).sum &lt;&lt; '\n';
+        }
+    }
+
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong><code>update</code> assigns
+      <code>t[id].sum = val</code> at the leaf &mdash; a <em>set</em>, not an add.
+      Reading the CSES statement as "add <code>u</code> at position <code>k</code>"
+      and writing <code>+= val</code> passes nothing. Also note <code>k</code>,
+      <code>a</code> and <code>b</code> all arrive 1-indexed and are each shifted by
+      <code>-1</code> at the call site.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"point updates
+      interleaved with range sums" &rarr; the plain segment tree, merge
+      <code>+</code>, identity <code>0</code>.</div>
+    </article>
+
+<!-- ============ ENTRY ============ -->
+    <article class="entry" id="dynamic-range-minimum-queries">
+      <div class="entry-head"><h3>Dynamic Range Minimum Queries</h3><span class="badge num">O((n+q) log n)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          The previous problem with one word changed: report the minimum of the
+          range instead of its sum.
+          <div class="formal">type 1 k u :  a[k] &larr; u
+type 2 a b :  report min a[i],  a &le; i &le; b</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Nothing new: this is Static Range Minimum's merge plus Dynamic Range
+              Sum's <code>update</code>. Recognising that <em>is</em> the solution.</li>
+          <li>The parent is recomputed as <code>min</code> of both children, not
+              patched &mdash; raising a value can make the parent take the
+              sibling's value instead.</li>
+          <li>That is why a Fenwick tree does not cover this case while the segment
+              tree does: no inverse, no delta, no prefix trick.</li>
+          <li>Identity stays <code>INF = 2e18</code>, and <code>INF</code> must
+              exceed any legal answer so it never wins a real query.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Scan
+            <code>a..b</code> per query; apply updates directly to the array.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(1)</span> update but <span class="cost">O(n)</span>
+            query &rarr; <span class="cost">O(nq)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n, q &le; 2&middot;10&#8309;</code> &rarr;
+            <span class="cost">4&middot;10&#185;&#8304;</span> comparisons. No prefix
+            escape exists, because <code>min</code> has no inverse.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            The same tree again, merge swapped to <code>min</code> and identity to
+            <code>+&infin;</code> &rarr; <span class="cost">O((n + q) log n)</span>.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 520 252" role="img" aria-label="Raising a leaf in a min segment tree makes the parent take the sibling value">
+  <text class="s-td" x="10" y="20">set(2, 9)  &rarr;  update(1, 0, 3, pos = 1, val = 9)</text>
+  <g class="s-edge">
+    <path d="M250 86 L130 126"/><path d="M250 86 L370 126"/>
+    <path d="M130 156 L70 196"/><path d="M130 156 L190 196"/>
+    <path d="M370 156 L310 196"/><path d="M370 156 L430 196"/>
+  </g>
+  <rect class="s-warn" x="195" y="56" width="110" height="30" rx="4"/>
+  <text class="s-tm" x="250" y="76" text-anchor="middle">[0,3]  2 &rarr; 3</text>
+  <rect class="s-warn" x="80" y="126" width="100" height="30" rx="4"/>
+  <text class="s-tm" x="130" y="146" text-anchor="middle">[0,1]  2 &rarr; 3</text>
+  <rect class="s-box" x="320" y="126" width="100" height="30" rx="4"/>
+  <text class="s-tm" x="370" y="146" text-anchor="middle">[2,3]  4</text>
+  <rect class="s-good" x="30"  y="196" width="80" height="30" rx="4"/>
+  <rect class="s-warn" x="150" y="196" width="80" height="30" rx="4"/>
+  <rect class="s-box"  x="270" y="196" width="80" height="30" rx="4"/>
+  <rect class="s-box"  x="390" y="196" width="80" height="30" rx="4"/>
+  <text class="s-t"  x="70"  y="216" text-anchor="middle">3</text>
+  <text class="s-tm" x="190" y="216" text-anchor="middle">2 &rarr; 9</text>
+  <text class="s-t"  x="310" y="216" text-anchor="middle">4</text>
+  <text class="s-t"  x="430" y="216" text-anchor="middle">5</text>
+  <text class="s-ta" x="10" y="244">the new 3 comes from the untouched sibling, not from the written leaf</text>
+</svg>
+          <figcaption>Raising <code>2</code> to <code>9</code> makes
+          <code>[0,1]</code> fall back on its sibling leaf. A min cannot be
+          adjusted by a delta &mdash; each ancestor must re-read both children,
+          which is exactly what <code>merge</code> does.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Diff this against the previous file and only
+        <code>sum</code>&rarr;<code>mn</code>, <code>+</code>&rarr;<code>min</code>
+        and <code>0</code>&rarr;<code>INF</code> change; <code>main</code> is
+        identical except for the field it prints. <code>INF</code> is
+        <code>2e18</code> as a <code>ll</code> constant &mdash; comfortably above
+        any input value, and never added to anything, so it cannot overflow the way
+        a sentinel in a sum tree would.</p>
+        <div class="src-meta"><span class="path">arrays/Dynamic_Range_Minimum_Queries.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Dynamic Range Minimum Queries
+// Link: CSES 1649
+// Pattern: segment tree, same as templates/segment_tree.cpp — point
+// update (set) + range min query, merge/identity swapped for min
+// Time: O((n + q) log n)  Space: O(n)
+//
+// Array supports point updates (set position k to u) interleaved with range
+// minimum queries.
+//
+// Example:
+//     3 2 4 5 1 1 5 3, min(1,4)=2, min(5,6)=1, set(2,3), min(1,4)=3
+
+#include &lt;iostream&gt;
+using namespace std;
+typedef long long ll;
+
+const int MAXN = 200020;
+const ll INF = 2e18;
+
+struct node {
+    ll mn;
+    node() { mn = INF; }
+};
+
+node t[4 * MAXN];
+ll arr[MAXN];
+int n;
+
+node merge(node a, node b) {
+    node res;
+    res.mn = min(a.mn, b.mn);
+    return res;
+}
+
+void build(ll id, ll l, ll r) {
+    if (l == r) {
+        t[id].mn = arr[l];
+        return;
+    }
+    ll mid = (l + r) / 2;
+    build(2 * id, l, mid);
+    build(2 * id + 1, mid + 1, r);
+    t[id] = merge(t[2 * id], t[2 * id + 1]);
+}
+
+void update(ll id, ll l, ll r, ll pos, ll val) {
+    if (pos &lt; l || pos &gt; r) return;
+    if (l == r) {
+        t[id].mn = val;
+        return;
+    }
+    ll mid = (l + r) / 2;
+    update(2 * id, l, mid, pos, val);
+    update(2 * id + 1, mid + 1, r, pos, val);
+    t[id] = merge(t[2 * id], t[2 * id + 1]);
+}
+
+node query(ll id, ll l, ll r, ll lq, ll rq) {
+    if (l &gt; rq || r &lt; lq) return node();
+    if (l &gt;= lq &amp;&amp; r &lt;= rq) return t[id];
+    ll mid = (l + r) / 2;
+    node left = query(2 * id, l, mid, lq, rq);
+    node right = query(2 * id + 1, mid + 1, r, lq, rq);
+    return merge(left, right);
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int q;
+    cin &gt;&gt; n &gt;&gt; q;
+
+    for (int i = 0; i &lt; n; i++) cin &gt;&gt; arr[i];
+    build(1, 0, n - 1);
+
+    for (int i = 0; i &lt; q; i++) {
+        int type;
+        cin &gt;&gt; type;
+        if (type == 1) {
+            int k;
+            ll u;
+            cin &gt;&gt; k &gt;&gt; u;
+            update(1, 0, n - 1, k - 1, u);
+        } else {
+            int a, b;
+            cin &gt;&gt; a &gt;&gt; b;
+            cout &lt;&lt; query(1, 0, n - 1, a - 1, b - 1).mn &lt;&lt; '\n';
+        }
+    }
+
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>The trap is treating this
+      as a new problem and re-deriving it under time pressure. It is a two-line diff
+      from the sum version. The one real hazard is copying that version's
+      <code>node() { sum = 0; }</code> across as <code>node() { mn = 0; }</code>
+      &mdash; then every query that only partially overlaps a node returns
+      <code>0</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"point updates + range
+      min/max" &rarr; identical tree to the sum version, swap
+      <code>merge</code> and the identity; do not reach for a BIT.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 3 ===================== -->
+  <section class="family" id="f3">
+    <div class="family-head"><h2>3&nbsp;&middot; Order statistics on a segment tree</h2></div>
+    <p class="family-note">The tree stops being a range-aggregate structure and
+    becomes a searchable index. Store <code>1</code> for alive and <code>0</code>
+    for removed; then <code>node.sum</code> is a survivor count, and one extra
+    descent turns "which element has rank <code>k</code> right now?" into
+    <code>O(log n)</code>. Any repeated remove-by-rank problem lands here.</p>
+
+<!-- ============ ENTRY ============ -->
+    <article class="entry" id="josephus-queries">
+      <div class="entry-head"><h3>Josephus Queries</h3><span class="badge num">O(n log n)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          <code>n</code> children stand in a circle. Repeatedly skip
+          <code>k</code> survivors and remove the next one. Print the order in
+          which they leave.
+          <div class="formal">rem = survivors,  idx = rank just after the last removal
+nextRank = (idx + k) mod rem + 1
+remove findKth(nextRank);  idx &larr; nextRank &minus; 1;  rem &larr; rem &minus; 1</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Work in <em>ranks among survivors</em>, not positions. Ranks stay
+              dense <code>1..rem</code> after every removal; positions do not.</li>
+          <li>In rank space the step is pure arithmetic:
+              <code>(idx + k) % rem + 1</code>. The <code>% rem</code> collapses
+              every lap, so <code>k</code> up to <code>10&#8313;</code> costs nothing.</li>
+          <li>Removing rank <code>r</code> shifts everyone after it down by one, so
+              the survivor now standing "just after" the gap is again rank
+              <code>r</code> &mdash; hence <code>idx = nextRank &minus; 1</code>
+              feeding the next <code>+1</code>.</li>
+          <li>Rank &rarr; position is the only hard step, and a sum tree over 0/1
+              alive markers does it: descend, going left while the left child holds
+              at least <code>k</code> survivors.</li>
+          <li>Removal is a point update to <code>0</code> &mdash; the same
+              <code>update</code> as the dynamic problems, no new code.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Circular
+            list or <code>vector</code>: walk <code>k mod rem</code> links each
+            round and erase the node.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(n)</span> per removal &mdash; the walk is up to a
+            full lap, and <code>vector::erase</code> is linear anyway &rarr;
+            <span class="cost">O(n&sup2;)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n &le; 2&middot;10&#8309;</code> &rarr;
+            <span class="cost">4&middot;10&#185;&#8304;</span> link steps, with
+            <code>k &le; 10&#8313;</code> making every round a worst case.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            Sum tree over alive markers plus a <code>findKth</code> descent:
+            <span class="cost">O(log n)</span> per removal &rarr;
+            <span class="cost">O(n log n)</span> total.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 600 200" role="img" aria-label="Alive markers for seven children after two removals, with ranks relabelled">
+  <text class="s-td" x="10" y="20">n = 7, k = 2     already removed: 3, 6     rem = 5, idx = 4</text>
+  <rect class="s-box"  x="30"  y="36" width="64" height="34" rx="4"/>
+  <rect class="s-good" x="108" y="36" width="64" height="34" rx="4"/>
+  <rect class="s-warn" x="186" y="36" width="64" height="34" rx="4"/>
+  <rect class="s-box"  x="264" y="36" width="64" height="34" rx="4"/>
+  <rect class="s-box"  x="342" y="36" width="64" height="34" rx="4"/>
+  <rect class="s-warn" x="420" y="36" width="64" height="34" rx="4"/>
+  <rect class="s-box"  x="498" y="36" width="64" height="34" rx="4"/>
+  <text class="s-t" x="62"  y="58" text-anchor="middle">1</text>
+  <text class="s-t" x="140" y="58" text-anchor="middle">1</text>
+  <text class="s-t" x="218" y="58" text-anchor="middle">0</text>
+  <text class="s-t" x="296" y="58" text-anchor="middle">1</text>
+  <text class="s-t" x="374" y="58" text-anchor="middle">1</text>
+  <text class="s-t" x="452" y="58" text-anchor="middle">0</text>
+  <text class="s-t" x="530" y="58" text-anchor="middle">1</text>
+  <text class="s-td" x="62"  y="30" text-anchor="middle">child 1</text>
+  <text class="s-td" x="140" y="30" text-anchor="middle">child 2</text>
+  <text class="s-td" x="218" y="30" text-anchor="middle">child 3</text>
+  <text class="s-td" x="296" y="30" text-anchor="middle">child 4</text>
+  <text class="s-td" x="374" y="30" text-anchor="middle">child 5</text>
+  <text class="s-td" x="452" y="30" text-anchor="middle">child 6</text>
+  <text class="s-td" x="530" y="30" text-anchor="middle">child 7</text>
+  <text class="s-ta" x="62"  y="88" text-anchor="middle">rank 1</text>
+  <text class="s-ta" x="140" y="88" text-anchor="middle">rank 2</text>
+  <text class="s-td" x="218" y="88" text-anchor="middle">&mdash;</text>
+  <text class="s-ta" x="296" y="88" text-anchor="middle">rank 3</text>
+  <text class="s-ta" x="374" y="88" text-anchor="middle">rank 4</text>
+  <text class="s-td" x="452" y="88" text-anchor="middle">&mdash;</text>
+  <text class="s-ta" x="530" y="88" text-anchor="middle">rank 5</text>
+  <text class="s-tm" x="10" y="122">nextRank = (idx + k) % rem + 1 = (4 + 2) % 5 + 1 = 2</text>
+  <text class="s-tm" x="10" y="146">findKth(2) walks down to position 1 (0-indexed) &rarr; child 2 leaves</text>
+  <text class="s-tm" x="10" y="170">then update(pos 1, 0);  idx = 1;  rem = 4</text>
+  <text class="s-td" x="10" y="192">node.sum over any range = how many of its children are still alive</text>
+</svg>
+          <figcaption>Dead positions stay in the array as <code>0</code>s, so
+          positions never move; only the ranks are relabelled, and the tree does
+          the relabelling implicitly through its sums.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Everything above <code>main</code> is the standing sum
+        tree plus the six-line <code>findKth</code>. The line that repays a second
+        read is <code>ll nextRank = (idx + k) % rem + 1;</code> &mdash;
+        <code>idx</code> is a rank, <code>rem</code> is the count <em>before</em>
+        this removal, and the <code>+1</code> converts a 0-based offset into the
+        1-based <code>k</code> that <code>findKth</code> expects. Positions are
+        0-indexed throughout and only become 1-indexed at the final
+        <code>order[i] + 1</code> print.</p>
+        <div class="src-meta"><span class="path">arrays/Josephus_Queries.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Josephus Queries (children in a circle)
+// Link: CSES 2163
+// Pattern: segment tree order-statistics query — find the k-th alive
+// element by rank in O(log n), instead of O(n) list simulation
+// Time: O(n log n)  Space: O(n)
+//
+// n children in a circle, indices 1..n. Repeatedly skip k, remove the next
+// child. Print the removal order. n up to 2e5, k up to 1e9.
+//
+// Example:
+//     n=7, k=2 -&gt; 3 6 2 7 5 1 4
+
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+typedef long long ll;
+
+const int MAXN = 200020;
+
+struct node {
+    ll sum;
+    node() { sum = 0; }
+};
+
+node t[4 * MAXN];
+ll arr[MAXN];
+int n;
+
+node merge(node a, node b) {
+    node res;
+    res.sum = a.sum + b.sum;
+    return res;
+}
+
+void build(ll id, ll l, ll r) {
+    if (l == r) {
+        t[id].sum = arr[l];
+        return;
+    }
+    ll mid = (l + r) / 2;
+    build(2 * id, l, mid);
+    build(2 * id + 1, mid + 1, r);
+    t[id] = merge(t[2 * id], t[2 * id + 1]);
+}
+
+void update(ll id, ll l, ll r, ll pos, ll val) {
+    if (pos &lt; l || pos &gt; r) return;
+    if (l == r) {
+        t[id].sum = val;
+        return;
+    }
+    ll mid = (l + r) / 2;
+    update(2 * id, l, mid, pos, val);
+    update(2 * id + 1, mid + 1, r, pos, val);
+    t[id] = merge(t[2 * id], t[2 * id + 1]);
+}
+
+// 0-indexed position of the k-th alive element (1-indexed k).
+ll findKth(ll id, ll l, ll r, ll k) {
+    if (l == r) return l;
+    ll mid = (l + r) / 2;
+    if (t[2 * id].sum &gt;= k) return findKth(2 * id, l, mid, k);
+    return findKth(2 * id + 1, mid + 1, r, k - t[2 * id].sum);
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    ll k;
+    cin &gt;&gt; n &gt;&gt; k;
+
+    for (int i = 0; i &lt; n; i++) arr[i] = 1;
+    build(1, 0, n - 1);
+
+    vector&lt;ll&gt; order(n);
+    ll idx = 0;
+    int rem = n;
+    for (int step = 0; step &lt; n; step++) {
+        ll nextRank = (idx + k) % rem + 1;
+        ll removed = findKth(1, 0, n - 1, nextRank);
+        order[step] = removed;
+
+        update(1, 0, n - 1, removed, 0);
+        idx = nextRank - 1;
+        rem--;
+    }
+
+    for (int i = 0; i &lt; n; i++) cout &lt;&lt; order[i] + 1 &lt;&lt; (i + 1 &lt; n ? ' ' : '\n');
+
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>The state is a
+      <em>rank</em>, not a position &mdash; mixing the two is the whole difficulty.
+      <code>% rem</code> uses the survivor count before the removal, and
+      <code>rem--</code> happens after. The rank of the next starting point is
+      <code>nextRank - 1</code>, not <code>nextRank</code>, because the removed
+      child's rank is inherited by the survivor behind it.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"repeatedly delete the
+      k-th remaining element / need the current rank-k item fast" &rarr; 0/1 alive
+      segment tree with a <code>findKth</code> descent.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 4 ===================== -->
+  <section class="family" id="f4">
+    <div class="family-head"><h2>4&nbsp;&middot; Binary search on the answer</h2></div>
+    <p class="family-note">No structure is built over the array at all. The search
+    runs over the <em>answer space</em> &mdash; a cap in seconds, a cap on a block
+    sum &mdash; and the array only appears inside a boolean
+    <code>feasible(x)</code>. The whole method rests on that predicate being
+    monotone: false up to some threshold, true from there on. Find the phrase
+    "minimise the maximum" or "maximise the minimum" and this is the shape.</p>
+
+<!-- ============ ENTRY ============ -->
+    <article class="entry" id="array-division">
+      <div class="entry-head"><h3>Array Division</h3><span class="badge num">O(n log C)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Cut <code>a[0..n&minus;1]</code> (all positive) into <code>k</code>
+          contiguous blocks so that the largest block sum is as small as possible.
+          Report that sum.
+          <div class="formal">minimise  max&#8322; &sum; block&#8322;   over contiguous partitions into &le; k blocks
+
+feasible(x)  &hArr;  greedy blocks under cap x  &le;  k
+answer = min { x : feasible(x) }</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Guess the answer instead of constructing it: fix a cap <code>x</code>
+              and ask only "can it be done within <code>x</code>?"</li>
+          <li><code>feasible</code> is monotone &mdash; a looser cap never needs
+              more blocks &mdash; so the feasible set is a suffix of the number
+              line and binary search finds its left edge.</li>
+          <li>For a fixed cap, greedily extending the current block until it would
+              overflow uses the fewest blocks possible, so
+              <code>cnt &le; k</code> settles feasibility in one pass.</li>
+          <li>Any single element exceeding <code>x</code> makes <code>x</code>
+              infeasible outright, whatever the block count says.</li>
+          <li>"Exactly <code>k</code>" and "at most <code>k</code>" agree here:
+              values are positive, so splitting a block further never raises the
+              maximum.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">DP over
+            <code>(prefix length, blocks used)</code>:
+            <code>dp[i][j] = min over split p of max(dp[p][j&minus;1], sum(p+1..i))</code>.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(nk)</span> states,
+            <span class="cost">O(n)</span> transitions each &rarr;
+            <span class="cost">O(n&sup2;k)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>n &le; 2&middot;10&#8309;</code>, <code>k &le; n</code> &rarr;
+            <span class="cost">4&middot;10&#185;&#8304;</span> states before a single
+            transition is considered.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            Binary search the cap, with an <span class="cost">O(n)</span> greedy
+            check &rarr; <span class="cost">O(n log C)</span>, about 60 iterations
+            for <code>C = 10&#185;&#8312;</code>.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 600 220" role="img" aria-label="Monotone feasibility over candidate caps and the greedy partition at the answer">
+  <text class="s-td" x="10" y="18">A = 2 4 7 3 5,  k = 3     candidate cap x:</text>
+  <rect class="s-warn" x="40"  y="28" width="64" height="30" rx="4"/>
+  <rect class="s-warn" x="108" y="28" width="64" height="30" rx="4"/>
+  <rect class="s-warn" x="176" y="28" width="64" height="30" rx="4"/>
+  <rect class="s-good" x="244" y="28" width="64" height="30" rx="4"/>
+  <rect class="s-good" x="312" y="28" width="64" height="30" rx="4"/>
+  <rect class="s-good" x="380" y="28" width="64" height="30" rx="4"/>
+  <rect class="s-good" x="448" y="28" width="64" height="30" rx="4"/>
+  <rect class="s-good" x="516" y="28" width="64" height="30" rx="4"/>
+  <text class="s-t" x="72"  y="48" text-anchor="middle">5</text>
+  <text class="s-t" x="140" y="48" text-anchor="middle">6</text>
+  <text class="s-t" x="208" y="48" text-anchor="middle">7</text>
+  <text class="s-t" x="276" y="48" text-anchor="middle">8</text>
+  <text class="s-t" x="344" y="48" text-anchor="middle">9</text>
+  <text class="s-t" x="412" y="48" text-anchor="middle">10</text>
+  <text class="s-t" x="480" y="48" text-anchor="middle">11</text>
+  <text class="s-t" x="548" y="48" text-anchor="middle">12</text>
+  <text class="s-td" x="72"  y="74" text-anchor="middle">no</text>
+  <text class="s-td" x="140" y="74" text-anchor="middle">no</text>
+  <text class="s-td" x="208" y="74" text-anchor="middle">no</text>
+  <text class="s-ta" x="276" y="74" text-anchor="middle">yes</text>
+  <text class="s-ta" x="344" y="74" text-anchor="middle">yes</text>
+  <text class="s-ta" x="412" y="74" text-anchor="middle">yes</text>
+  <text class="s-ta" x="480" y="74" text-anchor="middle">yes</text>
+  <text class="s-ta" x="548" y="74" text-anchor="middle">yes</text>
+  <path class="s-hi" d="M276 86 V96"/>
+  <text class="s-ta" x="276" y="110" text-anchor="middle">first feasible = answer</text>
+  <text class="s-td" x="10" y="134">greedy partition at cap 8:</text>
+  <rect class="s-box" x="40"  y="144" width="60" height="30" rx="4"/>
+  <rect class="s-box" x="106" y="144" width="60" height="30" rx="4"/>
+  <rect class="s-box" x="172" y="144" width="60" height="30" rx="4"/>
+  <rect class="s-box" x="238" y="144" width="60" height="30" rx="4"/>
+  <rect class="s-box" x="304" y="144" width="60" height="30" rx="4"/>
+  <text class="s-t" x="70"  y="164" text-anchor="middle">2</text>
+  <text class="s-t" x="136" y="164" text-anchor="middle">4</text>
+  <text class="s-t" x="202" y="164" text-anchor="middle">7</text>
+  <text class="s-t" x="268" y="164" text-anchor="middle">3</text>
+  <text class="s-t" x="334" y="164" text-anchor="middle">5</text>
+  <g class="s-hi">
+    <path d="M40 180 V186 H166 V180"/>
+    <path d="M172 180 V186 H232 V180"/>
+    <path d="M238 180 V186 H364 V180"/>
+  </g>
+  <text class="s-tm" x="103" y="202" text-anchor="middle">sum 6</text>
+  <text class="s-tm" x="202" y="202" text-anchor="middle">sum 7</text>
+  <text class="s-tm" x="301" y="202" text-anchor="middle">sum 8</text>
+  <text class="s-ta" x="400" y="202">3 blocks &le; k = 3, max = 8</text>
+</svg>
+          <figcaption>Feasibility flips once and never flips back &mdash; that is
+          the only property binary search needs. The lower row shows the greedy
+          check at the winning cap: extend while it fits, cut when it does not.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>check</code> is the whole problem;
+        <code>solve</code> is the textbook lower-bound search
+        (<code>ans = mid; r = mid - 1</code> on success). <code>cnt</code> starts at
+        <code>1</code> because the first block is already open, so it counts blocks,
+        not cuts. The declared return type is <code>ll</code> while the returns are
+        <code>true</code>/<code>false</code> &mdash; they convert to
+        <code>1</code>/<code>0</code> and the function is used as a boolean, so this
+        is cosmetic, not a bug. <code>r = 1e18</code> is a loose upper bound; the
+        true ceiling is <code>&sum; x&#7522; &le; 2&middot;10&#185;&#8308;</code>.</p>
+        <div class="src-meta"><span class="path">arrays/Array_Division.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll check(ll mid, const vector &lt; ll &gt; &amp;v, const ll &amp;n, const ll &amp;k)
+{
+    // check if we can divide the array into k such that the maximum sum in a subarray is less than or equal to mid
+    ll sum = 0 , cnt = 1 ;
+    for(ll i = 0 ; i &lt; n ; i++)
+    {
+        if(v[i] &gt; mid)
+        {
+            return false ;
+        }
+        else 
+        {
+            if(sum + v[i] &gt; mid)
+            {
+                cnt++ ;
+                sum = v[i] ;
+            }
+            else
+            {
+                sum += v[i] ;
+            }
+        }
+        
+    }
+    if( cnt &lt;= k)
+    {
+        return true ;
+    }
+    else
+    {
+        return false ;
+    }
+    
+}
+void solve() 
+{
+    ll n , k ; 
+    cin &gt;&gt; n &gt;&gt; k ; 
+    vector &lt; ll &gt; v(n) ;
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        cin &gt;&gt; v[i] ;
+    }
+    ll l = 1 , r = 1e18 , ans = 0 ;
+    while(l &lt;= r)
+    {
+        ll mid = l + (r - l) / 2 ;
+        if(check(mid, v, n, k))
+        {
+            ans = mid ;
+            r = mid - 1 ;
+        }
+        else
+        {
+            l = mid + 1 ;
+        }
+
+    }
+    cout &lt;&lt; ans &lt;&lt; endl ;
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>Drop the
+      <code>if (v[i] &gt; mid) return false;</code> guard and the greedy happily
+      opens a fresh block that <em>already</em> exceeds the cap &mdash; on
+      <code>[10, 1]</code> with <code>k = 3</code>, <code>check(5)</code> would
+      return true and the search would settle below <code>10</code>. Also note
+      <code>l + (r - l) / 2</code>: with <code>r = 10&#185;&#8312;</code> the plain
+      <code>(l + r) / 2</code> still fits, but this form is the habit that survives
+      a larger bound.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"split into k parts,
+      minimise the largest part" (also: pages/books, painters, cargo in D days)
+      &rarr; binary search the cap, greedy-count the blocks.</div>
+    </article>
+
+<!-- ============ ENTRY ============ -->
+    <article class="entry" id="factory-machines">
+      <div class="entry-head"><h3>Factory Machines</h3><span class="badge num">O(n log C)</span></div>
+
+      <!-- 1 ................................................ THE ASK -->
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          <code>n</code> machines run in parallel; machine <code>i</code> needs
+          <code>k&#7522;</code> seconds per product. Find the least time in which
+          <code>t</code> products in total are finished.
+          <div class="formal">products(x) = &sum; &lfloor; x / k&#7522; &rfloor;   (non-decreasing in x)
+answer = min { x : products(x) &ge; t }</div>
+        </div>
+      </div>
+
+      <!-- 2 ....................................... KEY OBSERVATIONS -->
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>"You can freely decide their schedule" is a red herring &mdash; a
+              machine never benefits from idling, so in <code>x</code> seconds it
+              makes exactly <code>&lfloor; x / k&#7522; &rfloor;</code>.</li>
+          <li>That makes the machines independent: the total is a plain sum, with
+              nothing to allocate.</li>
+          <li><code>products(x)</code> is non-decreasing in <code>x</code>, so
+              "<code>products(x) &ge; t</code>" is monotone &mdash; binary search
+              the time.</li>
+          <li>Upper bound: <code>t &middot; min k&#7522; &le;
+              10&#8313; &middot; 10&#8313; = 10&#185;&#8312;</code>, which is where
+              <code>hi = 1e18</code> comes from.</li>
+          <li>The feasibility sum must be capped as it grows &mdash; at
+              <code>x = 10&#185;&#8312;</code> over <code>2&middot;10&#8309;</code>
+              machines it would reach <code>10&sup2;&sup3;</code>.</li>
+        </ol>
+      </div>
+
+      <!-- 3 ..................................... BRUTE FORCE → WHY -->
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Advance time
+            product by product &mdash; a heap of next-completion timestamps, popped
+            <code>t</code> times.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">
+            <span class="cost">O(t log n)</span>, or
+            <span class="cost">O(answer)</span> if ticking second by second.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">
+            <code>t &le; 10&#8313;</code> &rarr;
+            <span class="cost">10&#8313;</span> heap pops; the answer itself reaches
+            <span class="cost">10&#185;&#8312;</span>, so a per-second loop is
+            hopeless.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">
+            Binary search <code>x</code> with an <span class="cost">O(n)</span>
+            feasibility sum &rarr; <span class="cost">O(n log C)</span>, about
+            <code>2&middot;10&#8309; &times; 60</code> operations.</span></div>
+        </div>
+      </div>
+
+      <!-- 4 ................................................ DIAGRAM -->
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 600 210" role="img" aria-label="Products made by three machines as the time budget grows, crossing the target at eight seconds">
+  <text class="s-td" x="10" y="20">k = 3 2 5,  t = 7</text>
+  <text class="s-td" x="10" y="52">x</text>
+  <text class="s-td" x="10" y="92">made</text>
+  <rect class="s-box" x="60"  y="32" width="64" height="28" rx="4"/>
+  <rect class="s-box" x="132" y="32" width="64" height="28" rx="4"/>
+  <rect class="s-box" x="204" y="32" width="64" height="28" rx="4"/>
+  <rect class="s-box" x="276" y="32" width="64" height="28" rx="4"/>
+  <rect class="s-box" x="348" y="32" width="64" height="28" rx="4"/>
+  <rect class="s-box" x="420" y="32" width="64" height="28" rx="4"/>
+  <rect class="s-box" x="492" y="32" width="64" height="28" rx="4"/>
+  <text class="s-t" x="92"  y="52" text-anchor="middle">4</text>
+  <text class="s-t" x="164" y="52" text-anchor="middle">5</text>
+  <text class="s-t" x="236" y="52" text-anchor="middle">6</text>
+  <text class="s-t" x="308" y="52" text-anchor="middle">7</text>
+  <text class="s-t" x="380" y="52" text-anchor="middle">8</text>
+  <text class="s-t" x="452" y="52" text-anchor="middle">9</text>
+  <text class="s-t" x="524" y="52" text-anchor="middle">10</text>
+  <rect class="s-warn" x="60"  y="72" width="64" height="28" rx="4"/>
+  <rect class="s-warn" x="132" y="72" width="64" height="28" rx="4"/>
+  <rect class="s-warn" x="204" y="72" width="64" height="28" rx="4"/>
+  <rect class="s-warn" x="276" y="72" width="64" height="28" rx="4"/>
+  <rect class="s-good" x="348" y="72" width="64" height="28" rx="4"/>
+  <rect class="s-good" x="420" y="72" width="64" height="28" rx="4"/>
+  <rect class="s-good" x="492" y="72" width="64" height="28" rx="4"/>
+  <text class="s-t" x="92"  y="92" text-anchor="middle">3</text>
+  <text class="s-t" x="164" y="92" text-anchor="middle">4</text>
+  <text class="s-t" x="236" y="92" text-anchor="middle">6</text>
+  <text class="s-t" x="308" y="92" text-anchor="middle">6</text>
+  <text class="s-t" x="380" y="92" text-anchor="middle">7</text>
+  <text class="s-t" x="452" y="92" text-anchor="middle">8</text>
+  <text class="s-t" x="524" y="92" text-anchor="middle">10</text>
+  <path class="s-hi" d="M380 104 V116"/>
+  <text class="s-ta" x="380" y="130" text-anchor="middle">first x with made &ge; t</text>
+  <text class="s-tm" x="10" y="158">x = 8:  8/3 + 8/2 + 8/5  =  2 + 4 + 1  =  7  &ge;  7</text>
+  <text class="s-tm" x="10" y="180">x = 7:  7/3 + 7/2 + 7/5  =  2 + 3 + 1  =  6  &lt;  7</text>
+  <text class="s-td" x="10" y="202">made(x) never decreases &rarr; one clean threshold to binary search for</text>
+</svg>
+          <figcaption>The counts are integer divisions, so the curve is a
+          staircase &mdash; flat between 6 and 7 seconds &mdash; but it never goes
+          down, which is all the predicate needs.</figcaption>
+        </figure>
+      </div>
+
+      <!-- 5 ......................................... IMPLEMENTATION -->
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Same skeleton as Array Division: a boolean
+        <code>check</code>, then <code>ans = mid; hi = mid - 1</code> on success.
+        The load-bearing line is <code>if (total &gt;= t) return true;</code>
+        <em>inside</em> the accumulation loop &mdash; it is an overflow guard first
+        and an early exit second, keeping <code>total</code> below
+        <code>t + x &asymp; 10&#185;&#8312;</code> instead of letting it run to
+        <code>&sum; x / k&#7522;</code>. <code>ans</code> is seeded to
+        <code>-1</code> and is always overwritten, since <code>hi = 1e18</code> is
+        feasible for every legal input.</p>
+        <div class="src-meta"><span class="path">arrays/Factory_Machines.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll check(ll x, vector&lt;ll&gt; &amp;v, ll t) 
+{
+    // check if we can make atleast t products in x seconds
+    ll total = 0 ;
+    for (ll i = 0; i &lt; v.size(); i++)
+    {
+        total += (x / v[i]) ;
+        if (total &gt;= t) 
+        {
+            return true ;
+        }
+    }
+    
+    return false;
+}
+void solve() 
+{
+
+    ll n ; 
+    cin &gt;&gt; n ;
+    ll t ;
+    cin &gt;&gt; t ;
+    vector&lt;ll&gt; v(n) ;
+    for (ll i = 0; i &lt; n; i++)
+    {
+        cin &gt;&gt; v[i] ;
+    }
+    ll lo = 1, hi = 1e18, ans = -1 ;
+    while (lo &lt;= hi)
+    {
+        ll mid = (lo + hi) / 2 ;
+        if (check(mid, v, t)) 
+        {
+            ans = mid ;
+            hi = mid - 1 ;
+        }
+        else 
+        {
+            lo = mid + 1 ;
+        }
+    }
+    cout &lt;&lt; ans &lt;&lt; endl ;
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>The overflow is real and the
+      code does handle it &mdash; but only because the
+      <code>total &gt;= t</code> test sits inside the loop. Hoist it below the loop
+      "for tidiness" and <code>2&middot;10&#8309;</code> machines with
+      <code>k&#7522; = 1</code> at <code>x = 10&#185;&#8312;</code> accumulate
+      <code>2&middot;10&sup2;&sup3;</code>, wrapping <code>long long</code> negative
+      and making <code>check</code> answer false for a feasible time. Secondary:
+      <code>mid = (lo + hi) / 2</code> peaks at <code>2&middot;10&#185;&#8312;</code>
+      here, which fits only because <code>hi</code> is <code>10&#185;&#8312;</code>
+      and not <code>LLONG_MAX</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"independent workers /
+      machines in parallel, shortest time to reach a total" &rarr; binary search the
+      time, feasibility is <code>&sum; &lfloor;x / rate&rfloor; &ge; target</code>,
+      capped as it accumulates.</div>
+    </article>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+  <div class="excluded">
+    <h4>Excluded from this ledger</h4>
+    <ul>
+      <li><code>arrays/Sum_of_Divisors.cpp</code> &mdash; a 1-byte file containing
+      the single character <code>l</code>. <code>g++ -fsyntax-only</code> reports
+      <code>error: unknown type name 'l'</code> and
+      <code>error: expected unqualified-id</code>. Not repaired here; the working
+      solution for this problem lives at <code>math/Sum_of_Divisors.cpp</code>.</li>
+    </ul>
+  </div>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/arrays_5_range_queries.js"></script>
+</body>
+</html>

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Windows &amp; Prefix Sums &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<body data-base=".." data-slug="arrays_3_windows_prefix">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; Arrays</div>
+  <h1>Windows &amp; Prefix Sums</h1>
+  <p class="dek">These problems all maintain a window or a prefix-sum table over a subarray, counting or maximizing under constraints that arise from element identity (distinct values) or arithmetic (target sum, divisibility). The two techniques &mdash; sliding window and prefix sums &mdash; are distinguished by whether the constraint is monotone in window size.</p>
+  <p class="stats"><b>6</b> problems &middot; <b>3</b> families</p>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <a href="#recognition">Recognition rules</a>
+  <div class="toc-fam"><a href="#f1">1 &middot; Duplicate-free window</a></div>
+  <div class="toc-fam"><a href="#f2">2 &middot; Prefix + map</a></div>
+  <div class="toc-fam"><a href="#f3">3 &middot; Positive-only window</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recognition">
+    <div class="section-head"><h2>Recognition rules</h2>
+      <p>The judgment calls that separate these problems from each other.
+      Every rule must be demonstrated by at least two entries on this page.</p></div>
+    <div class="rules">
+      <div class="rule"><span class="n">1</span>
+        <p>Monotonicity dictates the tool. A sliding window works if adding an element always makes a valid state strictly worse (or closer to invalid). If negative values or arbitrary divisibility exist, monotonicity breaks, so Subarray Sums II and Subarray Divisibility must use prefix sums instead.</p></div>
+      <div class="rule"><span class="n">2</span>
+        <p>CSES anti-hash tests mean <code>unordered_map</code> on plain integer keys will TLE. Playlist, Distinct Subarrays, Distinct Values Subarrays II, and Subarray Sums II all rely on <code>std::map</code> (or sorting where possible) to prevent worst-case hash collisions.</p></div>
+      <div class="rule"><span class="n">3</span>
+        <p>Counting all valid subarrays starting at <code>tail</code> is exactly <code>head - tail + 1</code>. Distinct Subarrays and Distinct Values Subarrays II accumulate this value at every outer step, whereas Playlist simply takes the max of this length.</p></div>
+      <div class="rule"><span class="n">4</span>
+        <p>Negative prefix sums require modulo fixing. Subarray Divisibility forces the use of <code>(pre[i] % n + n) % n</code> to map negative remainders back to positive ones. Normal sum constraints just lookup <code>pre[i] - x</code>.</p></div>
+      <div class="rule"><span class="n">5</span>
+        <p>Tracking the exact number of distinct elements in a map requires strict cleanups. In Distinct Values Subarrays II, when <code>freq[v[t]]</code> hits 0, it must be erased so <code>freq.size()</code> stays accurate. Playlist does not need this because it only checks <code>freq[x] == 0</code>.</p></div>
+    </div>
+  </section>
+
+  <!-- ===================== FAMILY 1 ===================== -->
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1 &middot; Duplicate-free window</h2></div>
+    <p class="family-note">Maintaining a two-pointer window where elements are distinct or bounded by a distinct count. The constraint is monotone in window size, allowing a greedy slide.</p>
+
+    <article class="entry" id="playlist">
+      <div class="entry-head"><h3>Playlist</h3><span class="badge num">O(n log n)</span></div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Find the longest contiguous subarray with all distinct elements.
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Extending the window with a duplicate makes it invalid. This is monotonic, so two pointers work.</li>
+          <li>Keep extending <code>head</code> as long as <code>freq[a[head+1]] == 0</code>.</li>
+          <li>Record the maximum length <code>head - tail + 1</code> at each valid state.</li>
+          <li>When invalid, increment <code>tail</code> and decrement its frequency to make room.</li>
+        </ol>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Check all <code>(i, j)</code> pairs and use a set to verify distinctness.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&sup3;)</span> or <span class="cost">O(n&sup2;)</span> with a running set.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n = 2&middot;10&#8309;</code></span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Two-pointer sliding window with a frequency map.</span></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 520 190" role="img" aria-label="Two pointer window extending until duplicate">
+  <text class="s-td" x="8" y="16">1 2 1 3 2 7 4 2</text>
+  <rect class="s-box" x="40" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-box" x="85" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-hi" x="130" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-hi" x="175" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-hi" x="220" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-hi" x="265" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-hi" x="310" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-box" x="355" y="50" width="40" height="30" rx="4"/>
+  <text class="s-t" x="60" y="70" text-anchor="middle">1</text>
+  <text class="s-t" x="105" y="70" text-anchor="middle">2</text>
+  <text class="s-t" x="150" y="70" text-anchor="middle">1</text>
+  <text class="s-t" x="195" y="70" text-anchor="middle">3</text>
+  <text class="s-t" x="240" y="70" text-anchor="middle">2</text>
+  <text class="s-t" x="285" y="70" text-anchor="middle">7</text>
+  <text class="s-t" x="330" y="70" text-anchor="middle">4</text>
+  <text class="s-t" x="375" y="70" text-anchor="middle">2</text>
+  <text class="s-ta" x="150" y="100" text-anchor="middle">tail</text>
+  <text class="s-ta" x="330" y="100" text-anchor="middle">head</text>
+  <text class="s-td" x="8" y="140">Longest window: 5 elements</text>
+</svg>
+          <figcaption>The window extends until it hits a duplicate, then tail advances to clear it.</figcaption>
+        </figure>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Using <code>std::map</code> dodges CSES anti-hash tests.</p>
+        <div class="src-meta"><span class="path">arrays/Playlist.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Playlist
+// Link: CSES 1141
+// Pattern: two-pointer window (tail/head), freq map keeps window duplicate-free
+// Time: O(n log n)  Space: O(n)
+//
+// map (not unordered_map) to sidestep CSES's anti-hash test on plain int keys.
+//
+// Longest contiguous subsequence with no repeated song id.
+//
+// Example:
+//     1 2 1 3 2 7 4 2 -&gt; 5   (window: 1 3 2 7 4)
+
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;map&gt;
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int n;
+    cin &gt;&gt; n;
+
+    vector&lt;int&gt; a(n);
+    for (auto&amp; x : a) cin &gt;&gt; x;
+
+    map&lt;int, int&gt; freq;
+    int tail = 0, head = -1;
+    long long ans = 0;
+
+    while (tail &lt; n) {
+        while (head + 1 &lt; n &amp;&amp; freq[a[head + 1]] == 0) {
+            head++;
+            freq[a[head]]++;
+        }
+        ans = max(ans, (long long)(head - tail + 1));
+
+        if (tail &gt; head) {
+            tail++;
+            head = tail - 1;
+        } else {
+            freq[a[tail]]--;
+            tail++;
+        }
+    }
+
+    cout &lt;&lt; ans &lt;&lt; '\n';
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>Do not use <code>unordered_map</code>, as malicious inputs will cause <span class="cost">O(n&sup2;)</span> hash collisions.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"longest contiguous subarray with distinct elements" &rarr; distinct-element window.</div>
+    </article>
+
+    <article class="entry" id="distinct-subarrays">
+      <div class="entry-head"><h3>Distinct Subarrays</h3><span class="badge num">O(n log n)</span></div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Count the total number of subarrays where every element is distinct.
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>The same distinct-element window from Playlist is used.</li>
+          <li>For any valid window spanning <code>[tail, head]</code>, every subarray starting exactly at <code>tail</code> and ending anywhere up to <code>head</code> is also distinct.</li>
+          <li>There are <code>head - tail + 1</code> such subarrays starting at <code>tail</code>. Accumulating this directly counts all valid subarrays exactly once without combinatorial formulas.</li>
+        </ol>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate all subarrays and check each for distinctness.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&sup3;)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n = 2&middot;10&#8309;</code></span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Accumulate window lengths during a two-pointer scan.</span></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 520 190" role="img" aria-label="Accumulating subarrays from window">
+  <text class="s-td" x="8" y="16">1 2 1 3</text>
+  <rect class="s-hi" x="40" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-hi" x="85" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-box" x="130" y="50" width="40" height="30" rx="4"/>
+  <text class="s-t" x="60" y="70" text-anchor="middle">1</text>
+  <text class="s-t" x="105" y="70" text-anchor="middle">2</text>
+  <text class="s-t" x="150" y="70" text-anchor="middle">1</text>
+  <text class="s-ta" x="60" y="100" text-anchor="middle">tail</text>
+  <text class="s-ta" x="105" y="100" text-anchor="middle">head</text>
+  <text class="s-td" x="8" y="140">ans += (1-0+1) = 2 subarrays: [1] and [1, 2]</text>
+</svg>
+          <figcaption>Each step accumulates all subarrays starting at tail.</figcaption>
+        </figure>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The core difference is <code>ans += head - tail + 1</code>.</p>
+        <div class="src-meta"><span class="path">arrays/Distinct_Subarrays.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: Distinct Subarrays (count)
+// Link: CSES 2428
+// Pattern: same duplicate-free window as Playlist, but accumulate
+// head-tail+1 (subarrays starting at tail) every outer step instead of
+// tracking the max
+// Time: O(n log n)  Space: O(n)
+//
+// Count subarrays where every element is distinct.
+//
+// Example:
+//     1 2 1 3 -&gt; 8
+
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;map&gt;
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    int n;
+    cin &gt;&gt; n;
+
+    vector&lt;int&gt; a(n);
+    for (auto&amp; v : a) cin &gt;&gt; v;
+
+    map&lt;int, int&gt; freq;
+    int tail = 0, head = -1;
+    long long ans = 0;
+
+    while (tail &lt; n) {
+        while (head + 1 &lt; n &amp;&amp; freq[a[head + 1]] == 0) {
+            head++;
+            freq[a[head]]++;
+        }
+        ans += head - tail + 1;
+
+        if (tail &gt; head) {
+            tail++;
+            head = tail - 1;
+        } else {
+            freq[a[tail]]--;
+            tail++;
+        }
+    }
+
+    cout &lt;&lt; ans &lt;&lt; '\n';
+    return 0;
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>Count only subarrays starting at <code>tail</code>. Using a combinatorics formula leads to double-counting overlap regions.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"count total subarrays with distinct elements" &rarr; accumulate length of duplicate-free window.</div>
+    </article>
+
+    <article class="entry" id="distinct-values-subarrays-ii">
+      <div class="entry-head"><h3>Distinct Values Subarrays II</h3><span class="badge num">O(n log n)</span></div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Count the number of subarrays that have at most <code>k</code> distinct values.
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Extending a window can only increase or maintain the number of distinct elements, which is monotonic.</li>
+          <li>We can safely absorb <code>v[h+1]</code> if <code>freq.size() &lt; k</code> OR if it's already in the window.</li>
+          <li>To rely on <code>freq.size()</code>, keys with a zero count must be erased, not just decremented.</li>
+        </ol>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate subarrays and count distinct elements using a set.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&sup2;)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n = 2&middot;10&#8309;</code></span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Window accumulation with exact freq size tracking.</span></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 520 190" role="img" aria-label="Window with at most k distinct values">
+  <text class="s-td" x="8" y="16">k = 2. Array: 1 2 3 1 1</text>
+  <rect class="s-box" x="40" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-box" x="85" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-box" x="130" y="50" width="40" height="30" rx="4"/>
+  <text class="s-t" x="60" y="70" text-anchor="middle">1</text>
+  <text class="s-t" x="105" y="70" text-anchor="middle">2</text>
+  <text class="s-t" x="150" y="70" text-anchor="middle">3</text>
+  <text class="s-td" x="8" y="110">Cannot extend past [1, 2] since 3 introduces a 3rd distinct value.</text>
+</svg>
+          <figcaption>The window tracks exact distinct element counts, rejecting extensions that exceed k.</figcaption>
+        </figure>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Note the strict <code>freq.erase(v[t])</code> when count hits zero.</p>
+        <div class="src-meta"><span class="path">arrays/Distinct_Values_Subarrays_II.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ;
+    ll k ;
+    cin &gt;&gt; k ;
+    vector &lt; ll &gt; v(n) ;
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        cin &gt;&gt; v[i] ;
+    }
+    ll t = 0 , h = -1 , ans = 0 ;
+    map &lt; ll , ll &gt; freq ;
+    while(t &lt; n)
+    {
+        while( h + 1 &lt; n &amp;&amp; (freq.size() &lt; k || (freq.size() == k &amp;&amp; freq.find(v[h + 1]) != freq.end())))
+        {
+            h++ ;
+            freq[v[h]]++ ;
+        }
+        ans += (h - t + 1) ;
+        if( t &gt; h)
+        {
+            t++ ; 
+            h = t - 1 ; 
+        }
+        else 
+        {
+            freq[v[t]]-- ;
+            if(freq[v[t]] == 0)
+            {
+                freq.erase(v[t]) ;
+            }
+            t++ ;
+        }
+    }
+    cout &lt;&lt; ans &lt;&lt; endl ;
+   
+
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>Failure to <code>erase</code> keys hitting 0 means <code>freq.size()</code> stays artificially high.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"subarrays with at most k distinct values" &rarr; accumulate length of size-k window.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 2 ===================== -->
+  <section class="family" id="f2">
+    <div class="family-head"><h2>2 &middot; Prefix + map</h2></div>
+    <p class="family-note">When constraints involve negative numbers or divisibility, monotonicity breaks down (the sum can go up and down). Two pointers die. Prefix sums mapped by frequency solve this by tracking what was seen.</p>
+
+    <article class="entry" id="subarray-sums-ii">
+      <div class="entry-head"><h3>Subarray Sums II</h3><span class="badge num">O(n log n)</span></div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Count the number of subarrays having sum exactly <code>x</code>. Elements can be negative.
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Negative numbers mean the sum goes down. Two pointers cannot reliably expand/contract.</li>
+          <li>A subarray <code>v[l..r]</code> summing to <code>x</code> means <code>pre[r] - pre[l-1] = x</code>.</li>
+          <li>Rearranging gives <code>pre[l-1] = pre[r] - x</code>. We just look up how many times we've seen this target prefix.</li>
+        </ol>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate all pairs and sum them.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&sup2;)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n = 2&middot;10&#8309;</code></span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Single pass with a prefix frequency map.</span></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 520 190" role="img" aria-label="Prefix sum target lookup">
+  <text class="s-td" x="8" y="16">x = 7. Prefix sums needed.</text>
+  <rect class="s-box" x="40" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-box" x="85" y="50" width="40" height="30" rx="4"/>
+  <text class="s-t" x="60" y="70" text-anchor="middle">pre[i]</text>
+  <text class="s-ta" x="60" y="100" text-anchor="middle">10</text>
+  <text class="s-td" x="8" y="140">To get sum 7 ending here, we need pre[l-1] = 10 - 7 = 3. freq[3] gives the count.</text>
+</svg>
+          <figcaption>Looking backward in time to see if a valid starting point exists.</figcaption>
+        </figure>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Keep <code>pre[0] = 0</code> to naturally handle prefixes starting at the first element.</p>
+        <div class="src-meta"><span class="path">arrays/Subarray_Sums_II.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ;
+    ll x ;
+    cin &gt;&gt; x ;
+    vector &lt; ll &gt; pre(n + 1) ;
+    vector &lt; ll &gt; v(n + 1) ;
+    pre[0] = 0 ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+       cin &gt;&gt; v[i] ;
+    }
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        pre[i] = pre[i - 1] + v[i] ;
+    }
+    map &lt; ll , ll &gt; freq ; 
+    ll ans = 0 ;
+    for(ll i = 0 ; i &lt;= n ; i++)
+    {
+
+        if(freq.find(pre[i] - x) != freq.end())
+        {
+            ans += freq[pre[i] - x] ;
+        }
+        freq[pre[i]]++ ;
+
+    }
+    cout &lt;&lt; ans &lt;&lt; endl ;
+
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>Sliding window will confidently output wrong answers if negative elements exist. </div>
+      <div class="callout trigger"><strong>Recognize</strong>"subarray sum with negative elements" &rarr; prefix sum frequency map.</div>
+    </article>
+
+    <article class="entry" id="subarray-divisibility">
+      <div class="entry-head"><h3>Subarray Divisibility</h3><span class="badge num">O(n)</span></div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Count the number of subarrays whose sum is divisible by <code>n</code>.
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li><code>pre[r] - pre[l-1] &equiv; 0 (mod n)</code> reduces to <code>pre[r] &equiv; pre[l-1] (mod n)</code>.</li>
+          <li>Two prefixes with the same remainder modulo <code>n</code> form a divisible subarray.</li>
+          <li>Negative numbers cause negative remainders in C++. Fix with <code>(pre[i] % n + n) % n</code>.</li>
+        </ol>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate all pairs.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&sup2;)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n = 2&middot;10&#8309;</code></span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Prefix modulo frequency map.</span></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 520 190" role="img" aria-label="Prefix modulo remainders">
+  <text class="s-td" x="8" y="16">Sum modulo n.</text>
+  <rect class="s-box" x="40" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-box" x="85" y="50" width="40" height="30" rx="4"/>
+  <text class="s-t" x="60" y="70" text-anchor="middle">pre[i]</text>
+  <text class="s-ta" x="60" y="100" text-anchor="middle">R=3</text>
+  <text class="s-td" x="8" y="140">A previous prefix with R=3 means their difference has R=0.</text>
+</svg>
+          <figcaption>Any two points with the same remainder bridge a valid subarray.</figcaption>
+        </figure>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Since remainders are exactly <code>0..n-1</code>, a direct <code>vector&lt;ll&gt; freq(n)</code> provides <span class="cost">O(n)</span> lookup without maps.</p>
+        <div class="src-meta"><span class="path">arrays/Subarray_Divisibility.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ;
+    vector &lt; ll &gt; pre(n + 1) ;
+    vector &lt; ll &gt; v(n + 1) ;
+    pre[0] = 0 ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        cin &gt;&gt; v[i] ;
+        pre[i] = pre[i - 1] + v[i] ;
+    }
+    vector &lt; ll &gt; freq(n, 0) ;
+    ll ans = 0 ;
+    ll sum = 0 ;
+    for(ll i = 0 ; i &lt;= n ; i++)
+    {
+        sum = (pre[i] % n + n) % n ;
+        if(freq[sum] &gt; 0)
+        {
+            ans += freq[sum] ;
+        }
+        freq[sum]++ ;
+    }
+    cout &lt;&lt; ans &lt;&lt; endl ;
+   
+
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong><code>pre[i] % n</code> yields negative numbers in C++ if <code>pre[i]</code> is negative.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"divisible subarray" &rarr; matching prefix remainders.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 3 ===================== -->
+  <section class="family" id="f3">
+    <div class="family-head"><h2>3 &middot; Positive-only window</h2></div>
+    <p class="family-note">When elements are strictly positive, the sum is monotonically increasing with length, allowing us to safely slide a two-pointer window.</p>
+
+    <article class="entry" id="subarray-sums-i">
+      <div class="entry-head"><h3>Subarray Sums I</h3><span class="badge num">O(n)</span></div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">
+          Count the number of subarrays having sum exactly <code>x</code>. Elements are strictly POSITIVE.
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Because elements are positive, extending the window strictly increases the sum. Monotonicity holds.</li>
+          <li>We extend while <code>sum + v[h+1] &le; x</code>.</li>
+          <li>If the sum hits <code>x</code> exactly, it is counted.</li>
+        </ol>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate pairs.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&sup2;)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n = 2&middot;10&#8309;</code></span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Two-pointer window.</span></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 520 190" role="img" aria-label="Positive sum monotonic window">
+  <text class="s-td" x="8" y="16">x = 7. Positive elements only.</text>
+  <rect class="s-hi" x="40" y="50" width="40" height="30" rx="4"/>
+  <rect class="s-hi" x="85" y="50" width="40" height="30" rx="4"/>
+  <text class="s-t" x="60" y="70" text-anchor="middle">2</text>
+  <text class="s-t" x="105" y="70" text-anchor="middle">4</text>
+  <text class="s-td" x="8" y="110">Sum is 6. Next is 1, hitting exactly 7.</text>
+</svg>
+          <figcaption>Expanding the window always moves us closer to the target (or blows past it).</figcaption>
+        </figure>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The <span class="cost">O(n)</span> two-pointer is lighter than a prefix map since it requires no hash lookups.</p>
+        <div class="src-meta"><span class="path">arrays/Subarray_Sums_I.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ;
+    ll x ; 
+    cin &gt;&gt; x ;
+    vector &lt; ll &gt; v(n) ;
+    for (ll i = 0 ; i &lt; n ; i++)
+    {
+        cin &gt;&gt; v[i] ;
+    }
+    ll  t = 0 , h = -1 , sum = 0 , ans = 0 ;
+    while(t &lt; n)
+    {
+        while(h + 1 &lt; n &amp;&amp; sum + v[h + 1] &lt;= x)
+        {
+            h++ ;
+            sum += v[h] ;
+        }
+        if(sum == x)
+        {
+            ans++ ;
+        }
+        if (  t &gt; h )
+        {
+            h = t - 1 ;
+            t++ ; 
+        }
+        else
+        {
+            sum -= v[t] ;
+            t++ ;
+        }
+    }
+    cout &lt;&lt; ans &lt;&lt; endl ;
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+
+      <div class="callout gotcha"><strong>Gotcha</strong>This only works because values are strictly positive. Zeros can cause counting subtleties, and negatives break it entirely.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"subarray sum with positive-only elements" &rarr; monotonic sliding window.</div>
+    </article>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+  <div class="excluded">
+    <h4>Excluded from this ledger</h4>
+    <ul>
+      <li>None</li>
+    </ul>
+  </div>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/arrays_3_windows_prefix.js"></script>
+</body>
+</html>
