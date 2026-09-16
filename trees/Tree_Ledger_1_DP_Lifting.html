@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tree DP &amp; Lifting &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<body data-base=".." data-slug="trees_1_dp_lifting">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; Trees</div>
+  <h1>Tree DP &amp; Lifting</h1>
+  <p class="dek">Problems about the tree's own shape: subtree aggregates, answers for
+  every node via rerooting, and ancestor/LCA queries via binary lifting. Reach for this
+  page when the input is n&minus;1 edges and the question is about nodes or paths.</p>
+  <p class="stats"><b>9</b> problems &middot; <b>3</b> families</p>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <a href="#recognition">Recognition rules</a>
+  <div class="toc-fam"><a href="#f1">1 &middot; Subtree DP</a></div>
+  <div class="toc-fam"><a href="#f2">2 &middot; Rerooting</a></div>
+  <div class="toc-fam"><a href="#f3">3 &middot; Binary lifting &amp; LCA</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recognition">
+    <div class="section-head"><h2>Recognition rules</h2>
+      <p>The judgment calls that separate these problems from each other.</p></div>
+    <div class="rules">
+      <div class="rule"><span class="n">1</span>
+        <p>If a node's answer depends only on its subtree, one post-order DFS does it: children first, then combine. See Subordinates and Tree Matching. Counting Paths uses the same idea for its final pass.</p></div>
+      <div class="rule"><span class="n">2</span>
+        <p>If the answer for <em>every</em> node depends on the whole tree, don't run n DFS passes. Run an in-DP (downward) and then an out-DP pushed from parent to child. See Tree Distances I and II.</p></div>
+      <div class="rule"><span class="n">3</span>
+        <p>A child often needs the parent's total without its own share. For a sum, subtract it (Tree Distances II, <code>other_children_matching</code> in Tree Matching). For a max, keep the top two values (Tree Distances I).</p></div>
+      <div class="rule"><span class="n">4</span>
+        <p>"k levels up" or "lowest common" with q &le; 2&middot;10&#8309; queries means a binary lifting table: <code>up[v][j] = up[up[v][j&minus;1]][j&minus;1]</code>, with node <code>0</code> standing for "above the root". See Company Queries I and II, Distance Queries and Counting Paths.</p></div>
+      <div class="rule"><span class="n">5</span>
+        <p>Reduce path questions to the LCA. Distance is <code>d[a]+d[b]&minus;2d[lca]</code> (Distance Queries). To count paths through each node, add +1 at both ends, &minus;1 at the lca and &minus;1 at its parent, then sum over subtrees (Counting Paths).</p></div>
+    </div>
+  </section>
+
+  <!-- ===================== FAMILY 1 ===================== -->
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1 &middot; Subtree DP</h2></div>
+    <p class="family-note">One DFS. A node's value is computed from its children's finished values on the way back up. The state is the node, plus one flag when the node itself can be used or left free.</p>
+
+    <article class="entry" id="subordinates">
+      <div class="entry-head"><h3>Subordinates</h3><span class="badge num">O(n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Tree rooted at 1, with each node's parent given. For every node, count the nodes strictly below it.<div class="formal">ans[v] = sts[v] &minus; 1,   sts[v] = 1 + &sum; sts[c]  over children c</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Subordinates of v = the subtree of v, minus v itself.</li>
+          <li>Subtree size is 1 plus the sizes of the child subtrees.</li>
+          <li>In post-order, every child is finished before its parent reads it.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">DFS each node's subtree separately.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&sup2;)</span> on a chain.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">One post-order DFS summing child sizes: <span class="cost">O(n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 150" role="img" aria-label="Subtree sizes for bosses 1 1 2 3"><path class="s-edge" d="M150 24 L90 74 M150 24 L210 74 M90 74 L90 124 M210 74 L210 124"/><circle class="s-box" cx="150" cy="24" r="14"/><text class="s-t" x="150" y="28" text-anchor="middle">1</text><circle class="s-box" cx="90" cy="74" r="14"/><text class="s-t" x="90" y="78" text-anchor="middle">2</text><circle class="s-box" cx="210" cy="74" r="14"/><text class="s-t" x="210" y="78" text-anchor="middle">3</text><circle class="s-box" cx="90" cy="124" r="14"/><text class="s-t" x="90" y="128" text-anchor="middle">4</text><circle class="s-box" cx="210" cy="124" r="14"/><text class="s-t" x="210" y="128" text-anchor="middle">5</text><text class="s-ta" x="170" y="28">sts 5 &rarr; 4</text><text class="s-ta" x="110" y="78">sts 2 &rarr; 1</text><text class="s-ta" x="230" y="78">sts 2 &rarr; 1</text><text class="s-ta" x="110" y="128">sts 1 &rarr; 0</text><text class="s-ta" x="230" y="128">sts 1 &rarr; 0</text></svg>
+          <figcaption>Sample <code>1 1 2 3</code>. Leaves return 1, and each parent adds its children's sizes. Output is <code>sts &minus; 1</code>: 4 1 1 0 0.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Edges are stored only from parent to child (<code>g[x].push_back(i)</code>), so <code>child != par</code> never fails. It is harmless. <code>depth</code> and <code>p</code> are unused.</p>
+        <div class="src-meta"><span class="path">trees/Subordinates.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+vector &lt; vector &lt; ll &gt; &gt; g ;
+vector &lt; ll &gt; sts ;
+vector &lt; ll &gt; p; 
+
+
+
+void dfs(ll node , ll par , ll depth)
+{
+
+    sts[node] = 1 ;
+    for(auto child : g[node])
+    {
+        if(child != par)
+        {
+            dfs(child , node , depth + 1) ;
+            sts[node] += sts[child] ;
+        }
+    } 
+}
+void solve() 
+{
+    ll n ;
+    cin &gt;&gt; n ;
+    g.resize(n+1) ;
+    sts.resize(n+1) ;
+    p.resize(n+1) ;
+
+    for(ll i = 2 ; i &lt;= n ; i++)
+    {
+        ll x ;
+        cin &gt;&gt; x ;
+        g[x].push_back(i) ;
+    }
+    dfs(1 , 0 , 0) ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        cout &lt;&lt; sts[i] - 1 &lt;&lt; " " ;
+    }
+    cout &lt;&lt; endl ;
+
+    
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The output is <code>sts[i] &minus; 1</code>, not <code>sts[i]</code>, because an employee is not their own subordinate. On a chain the recursion is 2&middot;10&#8309; deep. That works on CSES's stack but can overflow a smaller one.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"for each node, an aggregate over everything below it" &rarr; post-order DFS, children first.</div>
+    </article>
+
+    <article class="entry" id="tree-matching">
+      <div class="entry-head"><h3>Tree Matching</h3><span class="badge num">O(n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Choose the most edges such that no two chosen edges share a node.<div class="formal">dp[v][0] = &sum; max(dp[c][0], dp[c][1])
+dp[v][1] = max over c of  dp[v][0] &minus; max(dp[c][0], dp[c][1]) + 1 + dp[c][0]</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>In its subtree, v is either unmatched (state 0) or matched to exactly one child (state 1).</li>
+          <li>If v is unmatched, every child takes its better state.</li>
+          <li>If v is matched to c, then c must be in state 0 and every other child is unchanged. So swap c's term in the sum.</li>
+          <li>The swap is a subtraction from <code>dp[v][0]</code>, so there is no inner loop: <span class="cost">O(deg)</span> per node.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Try every subset of edges.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(2&#8319;&#8315;&#185; &middot; n)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 2&middot;10&#8309;</code>. It is dead by n = 40.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Two-state tree DP: <span class="cost">O(n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 150" role="img" aria-label="Tree matching dp on sample"><path class="s-edge" d="M150 24 L210 74 M210 74 L250 124"/><path class="s-hi" d="M150 24 L90 74 M210 74 L170 124"/><circle class="s-good" cx="150" cy="24" r="14"/><text class="s-t" x="150" y="28" text-anchor="middle">1</text><circle class="s-good" cx="90" cy="74" r="14"/><text class="s-t" x="90" y="78" text-anchor="middle">2</text><circle class="s-good" cx="210" cy="74" r="14"/><text class="s-t" x="210" y="78" text-anchor="middle">3</text><circle class="s-good" cx="170" cy="124" r="14"/><text class="s-t" x="170" y="128" text-anchor="middle">4</text><circle class="s-box" cx="250" cy="124" r="14"/><text class="s-t" x="250" y="128" text-anchor="middle">5</text><text class="s-ta" x="170" y="20">(1, 2)</text><text class="s-ta" x="20" y="78">(0, 0)</text><text class="s-ta" x="230" y="70">(0, 1)</text><text class="s-ta" x="120" y="146">(0,0)</text><text class="s-ta" x="268" y="128">(0,0)</text></svg>
+          <figcaption>Each node shows (dp0, dp1). Node 3 matched to a leaf gives 1. At node 1, matching to 2 gives 1 + 0 + (1 &minus; 0) = 2. Answer 2, using edges 1&ndash;2 and 3&ndash;4.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">There are two loops over the children. The first loop must finish <code>dp[node][0]</code> before the second one uses it. <code>other_children_matching</code> is the whole sum minus this child's best, and that subtraction is the swap.</p>
+        <div class="src-meta"><span class="path">trees/Tree_Matching.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+vector &lt; vector &lt; ll &gt; &gt; g ;
+vector &lt; vector &lt; ll &gt; &gt; dp ;
+
+void dfs(ll node, ll par)
+{
+    // dp[node][0] = maximum matching in the subtree rooted at node when node is not matched
+    // dp[node][1] = maximum matching in the subtree rooted at node when node is matched with one of its children
+    dp[node][0] = 0 ;
+    dp[node][1] = 0 ;
+    
+    for(auto child : g[node])
+    {
+        if(child != par)
+        {
+            dfs(child , node) ;
+            // this should fill up node's children's dp values first, then we can calculate node's dp values based on its children's dp values
+            dp[node][0] += max(dp[child][0] , dp[child][1]) ;
+        }
+    }
+    // now we have dp[node][0] filled, we can calculate dp[node][1] by considering matching node with one of its children
+
+    for(auto child : g[node])
+    {
+        if(child != par)
+        {
+            // if we match node with child, then we cannot take dp[child][1] (because child is matched), but we can take dp[child][0] (because child is not matched)
+            // and for all other children, we can take the maximum of dp[other_child][0] and dp[other_child][1]
+            ll matched_with_child = 1 + dp[child][0] ; // 1 for the edge between node and child
+            // now add the maximum matching from all other children
+            ll other_children_matching = dp[node][0] - max(dp[child][0] , dp[child][1]) ; // subtract the contribution of this child from dp[node][0]
+            dp[node][1] = max(dp[node][1] , matched_with_child + other_children_matching) ;
+        }
+    }
+}
+
+void solve() 
+{
+    ll n ;
+    cin &gt;&gt; n ;
+    g.resize(n+1) ;
+    dp.resize(n+1 , vector &lt; ll &gt; (2 , 0)) ;
+    for(ll i = 1 ; i &lt; n ; i++)
+    {
+        ll x , y ;
+        cin &gt;&gt; x &gt;&gt; y ;
+        g[x].push_back(y) ;
+        g[y].push_back(x) ;
+    }
+    dfs(1 , 0) ;
+    cout &lt;&lt; max(dp[1][0] , dp[1][1]) &lt;&lt; endl ; 
+    
+    
+
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>When v is matched with c, add <code>dp[c][0]</code>, not <code>max(dp[c][0], dp[c][1])</code>. The edge (v, c) already uses c.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"maximum set of edges or nodes in a tree with a local conflict rule" &rarr; <code>dp[v][used?]</code> in post-order.</div>
+    </article>
+
+    <article class="entry" id="tree-diameter">
+      <div class="entry-head"><h3>Tree Diameter</h3><span class="badge num">O(n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Find the longest path in the tree, counted in edges.<div class="formal">max over u, v of dist(u, v)</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>The farthest node from <em>any</em> start is one end of a diameter.</li>
+          <li>The farthest distance from that end is the diameter.</li>
+          <li>So run two depth DFS passes, with no DP.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">BFS from every node and take the global max.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&sup2;)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Double DFS: <span class="cost">O(n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 150" role="img" aria-label="Double DFS on sample tree"><path class="s-edge" d="M210 74 L250 124"/><path class="s-hi" d="M90 74 L150 24 L210 74 L170 124"/><circle class="s-good" cx="150" cy="24" r="14"/><text class="s-t" x="150" y="28" text-anchor="middle">1</text><circle class="s-warn" cx="90" cy="74" r="14"/><text class="s-t" x="90" y="78" text-anchor="middle">2</text><circle class="s-box" cx="210" cy="74" r="14"/><text class="s-t" x="210" y="78" text-anchor="middle">3</text><circle class="s-warn" cx="170" cy="124" r="14"/><text class="s-t" x="170" y="128" text-anchor="middle">4</text><circle class="s-box" cx="250" cy="124" r="14"/><text class="s-t" x="250" y="128" text-anchor="middle">5</text><text class="s-ta" x="170" y="20">start</text><text class="s-ta" x="80" y="146">pass 1: farthest = 4</text><text class="s-ta" x="4" y="78">pass 2: 3</text></svg>
+          <figcaption>Pass 1 from node 1: the deepest node is 4, the first one at depth 2. Pass 2 from node 4: node 2 is at depth 3. The diameter is 3.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The same <code>dfs</code> and <code>d[]</code> are reused. The second call overwrites every depth because the tree is connected. The first scan keeps the first strict maximum. The second scan only needs the value.</p>
+        <div class="src-meta"><span class="path">trees/Tree_Diameter.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+vector &lt; vector &lt; ll &gt; &gt; g ;
+vector &lt; ll &gt; d ;
+void dfs(ll node, ll par, ll depth)
+{
+    d[node] = depth ;
+    for(auto child : g[node])
+    {
+        if(child != par)
+        {
+            dfs(child , node , depth + 1) ;
+        }
+    } 
+}
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ;
+    g.resize(n+1) ;
+    d.resize(n+1) ;
+    for(ll i = 1 ; i &lt;= n-1 ; i++)
+    {
+        ll x , y ;
+        cin &gt;&gt; x &gt;&gt; y ;
+        g[x].push_back(y) ;
+        g[y].push_back(x) ;
+    }
+    dfs(1 , 0 , 0) ;
+    ll mx = 0 ;
+    ll node = 1 ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(d[i] &gt; mx)
+        {
+            mx = d[i] ;
+            node = i ;
+        }
+    }
+    dfs(node , 0 , 0) ;
+    mx = 0 ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        mx = max(mx , d[i]) ;
+    }
+    cout &lt;&lt; mx &lt;&lt; endl ;
+    
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The answer is the depth itself, counted in edges, not depth + 1. With n = 1, <code>node</code> stays 1 and the output is 0.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"longest path in an unweighted or non-negatively weighted tree" &rarr; DFS twice.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 2 ===================== -->
+  <section class="family" id="f2">
+    <div class="family-head"><h2>2 &middot; Rerooting</h2></div>
+    <p class="family-note">An answer for every node. <code>in[v]</code> covers v's subtree. <code>out[v]</code> covers everything else and is pushed from parent to child. The answer is <code>in</code> combined with <code>out</code>. The whole trick is how the parent excludes the child it is pushing into.</p>
+
+    <article class="entry" id="tree-distances-i">
+      <div class="entry-head"><h3>Tree Distances I</h3><span class="badge num">O(n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">For every node, find the distance to the node farthest from it.<div class="formal">ans[v] = max(in[v], out[v])
+in[v]  = max over c of (in[c] + 1)
+out[c] = max(out[v] + 1,  best in[] of c's siblings + 2)</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>The farthest node from v either lies in v's subtree or is reached through v's parent.</li>
+          <li>Going up from child c, the path either continues above v (<code>out[v]+1</code>) or turns down into a sibling (<code>in[s]+2</code>).</li>
+          <li>The best sibling excluding c is the top in[] value, or the second one when c holds the top. So keep two maxima.</li>
+          <li>Starting <code>mx2 = &minus;1</code> makes an only child get <code>&minus;1 + 2 = 1</code>, which is the distance to v itself.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">BFS from each node.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&sup2;)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">In-DP, then out-DP with the top two child values: <span class="cost">O(n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 150" role="img" aria-label="in and out values on sample"><path class="s-edge" d="M150 24 L90 74 M150 24 L210 74 M210 74 L170 124 M210 74 L250 124"/><circle class="s-box" cx="150" cy="24" r="14"/><text class="s-t" x="150" y="28" text-anchor="middle">1</text><circle class="s-box" cx="90" cy="74" r="14"/><text class="s-t" x="90" y="78" text-anchor="middle">2</text><circle class="s-box" cx="210" cy="74" r="14"/><text class="s-t" x="210" y="78" text-anchor="middle">3</text><circle class="s-box" cx="170" cy="124" r="14"/><text class="s-t" x="170" y="128" text-anchor="middle">4</text><circle class="s-box" cx="250" cy="124" r="14"/><text class="s-t" x="250" y="128" text-anchor="middle">5</text><text class="s-ta" x="170" y="20">in 2 out 0 &rarr; 2</text><text class="s-ta" x="4" y="100">in 0 out 3 &rarr; 3</text><text class="s-ta" x="228" y="70">in 1 out 2 &rarr; 2</text><text class="s-ta" x="100" y="146">in 0 out 3 &rarr; 3</text><text class="s-ta" x="224" y="146">in 0 out 3</text></svg>
+          <figcaption>At node 1 the children's in[] values are {0, 1}. Node 2 is not the top, so it uses <code>1+2 = 3</code>. Node 3 is the top, so it uses <code>0+2 = 2</code>. Output: 2 3 2 3 3.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>dfsout</code> finds mx1 and mx2 over the children first, then recurses with <code>max(outval + 1, use + 2)</code>. The child is excluded by value (<code>indp[child] == mx1</code>), not by identity.</p>
+        <div class="src-meta"><span class="path">trees/Tree_Distances_I.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll n ; 
+vector &lt; vector &lt; ll &gt; &gt; g ;
+vector &lt; ll &gt; indp ; 
+vector &lt; ll &gt; outdp ;
+void dfsin(ll node, ll par)
+{
+    indp[node] = 0 ;
+    // indp[node] = maximum distance from node to any of its descendants
+    for(auto child : g[node])
+    {
+        if(child != par)
+        {
+            dfsin(child , node) ;
+            indp[node] = max(indp[node] , indp[child] + 1) ;
+        }
+    } 
+}
+void dfsout(ll node, ll par, ll outval)
+{
+    // outdp[node] = maximum distance from node to any of its ancestors
+    outdp[node] = outval ;
+    // here outval is the maximum distance from node to any of its ancestors
+    ll mx1 = -1 , mx2 = -1 ;
+    for(auto child : g[node])
+    {
+        if(child != par)
+        {
+            if(indp[child] &gt;= mx1)
+            {
+                mx2 = mx1 ;
+                mx1 = indp[child] ;
+            }
+            else if(indp[child] &gt; mx2)
+            {
+                mx2 = indp[child] ;
+            }
+        }
+    }
+    // now we have the maximum and second maximum distances from node's children to its descendants
+    
+    for(auto child : g[node])
+    {
+        if(child != par)
+        {
+            ll use = mx1 ;
+            if(indp[child] == mx1)
+            {
+                use = mx2 ;
+            }
+            dfsout(child , node , max(outval + 1 , use + 2)) ;
+            
+        }
+    }
+
+}
+void solve() 
+{
+    cin &gt;&gt; n ;
+    g.resize(n+1) ;
+    indp.resize(n+1) ;
+    outdp.resize(n+1) ;
+    for(ll i = 1 ; i &lt;= n-1 ; i++)
+    {
+        ll x , y ;
+        cin &gt;&gt; x &gt;&gt; y ;
+        g[x].push_back(y) ;
+        g[y].push_back(x) ;
+    }
+    dfsin(1 , 0) ;
+    dfsout(1 , 0 , 0) ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        cout &lt;&lt; max(indp[i] , outdp[i]) &lt;&lt; " " ;
+    }
+    cout &lt;&lt; endl ;
+
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The <code>&gt;=</code> in <code>indp[child] &gt;= mx1</code> is what makes value-exclusion safe. When two children tie for the top, mx2 gets the same value, so each one still sees the other.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"for every node, the farthest distance or eccentricity" &rarr; in-DP plus out-DP with the top two values.</div>
+    </article>
+
+    <article class="entry" id="tree-distances-ii">
+      <div class="entry-head"><h3>Tree Distances II</h3><span class="badge num">O(n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">For every node, sum the distances to all other nodes.<div class="formal">in[v]  = &sum; (in[c] + sts[c])
+out[c] = out[v] + (n &minus; sts[v]) + (in[v] &minus; in[c] &minus; sts[c]) + (sts[v] &minus; sts[c])
+ans[v] = in[v] + out[v]</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Every node under c is one step farther from v than from c, which is why <code>+ sts[c]</code>.</li>
+          <li>From c, the n &minus; sts[v] nodes outside v's subtree are one step farther than from v.</li>
+          <li>v's other branches contribute their in[] total, plus one step for each of their sts[v] &minus; sts[c] nodes. That count includes v.</li>
+          <li>For a sum, excluding a child is subtraction, so there is no top-2 trick.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">BFS from each node and sum.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&sup2;)</span></span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Subtree sizes plus rerooting: <span class="cost">O(n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 150" role="img" aria-label="sum of distances rerooting"><path class="s-edge" d="M150 24 L90 74 M150 24 L210 74 M210 74 L170 124 M210 74 L250 124"/><circle class="s-box" cx="150" cy="24" r="14"/><text class="s-t" x="150" y="28" text-anchor="middle">1</text><circle class="s-box" cx="90" cy="74" r="14"/><text class="s-t" x="90" y="78" text-anchor="middle">2</text><circle class="s-box" cx="210" cy="74" r="14"/><text class="s-t" x="210" y="78" text-anchor="middle">3</text><circle class="s-box" cx="170" cy="124" r="14"/><text class="s-t" x="170" y="128" text-anchor="middle">4</text><circle class="s-box" cx="250" cy="124" r="14"/><text class="s-t" x="250" y="128" text-anchor="middle">5</text><text class="s-ta" x="170" y="20">sts5 in6 out0 = 6</text><text class="s-ta" x="4" y="100">in0 out9 = 9</text><text class="s-ta" x="228" y="70">sts3 in2 out3 = 5</text><text class="s-ta" x="110" y="146">out8 = 8</text><text class="s-ta" x="236" y="146">out8 = 8</text></svg>
+          <figcaption>out[3] = 0 + (5&minus;5) + (6&minus;2&minus;3) + (5&minus;3) = 3. out[4] = 3 + (5&minus;3) + (2&minus;0&minus;1) + (3&minus;1) = 8. Output: 6 9 5 8 8.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>dfsin</code> fills sizes and in[] together. <code>use</code> is built in two lines: first the part above v, then v's other branches. Those are exactly the four terms of the formula.</p>
+        <div class="src-meta"><span class="path">trees/Tree_Distances_II.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll n ; 
+vector &lt; vector &lt; ll &gt; &gt; g ;
+vector &lt; ll &gt; indp ;
+vector &lt; ll &gt; outdp ;
+vector &lt; ll &gt; sts ;
+void dfsin(ll node, ll par)
+{
+    indp[node] = 0 ;
+    sts[node] = 1 ;
+
+    // indp[node] = sum of distances from node to all its descendants
+    for(auto child : g[node])
+    {
+        if(child != par)
+        {
+            dfsin(child , node) ;
+            indp[node] += (indp[child] + sts[child]) ;
+            sts[node] += sts[child] ;
+        }
+    } 
+}
+void dfsout(ll node, ll par, ll outval)
+{
+    // outdp[node] = sum of distances from node to all the other nodes in the tree that are not in the subtree rooted at node
+    outdp[node] = outval ;
+    // here outval is the sum of distances from node to all the other nodes in the tree that are not in the subtree rooted at node
+    for(auto child : g[node])
+    {
+        if(child != par)
+        {
+            ll use = outval + ( n - sts[node] ) ; 
+            use += (indp[node] - (indp[child] + sts[child])) + (sts[node] - sts[child]) ;
+            dfsout(child , node , use) ;
+        }
+    }
+}
+void solve() 
+{
+
+    cin &gt;&gt; n ;
+    g.resize(n+1) ;
+    indp.resize(n+1) ;
+    outdp.resize(n+1) ;
+    sts.resize(n+1) ;
+    for(ll i = 1 ; i &lt;= n-1 ; i++)
+    {
+        ll x , y ;
+        cin &gt;&gt; x &gt;&gt; y ;
+        g[x].push_back(y) ;
+        g[y].push_back(x) ;
+    }
+    dfsin(1 , 0) ;
+    dfsout(1 , 0 , 0) ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        cout &lt;&lt; indp[i] + outdp[i] &lt;&lt; " " ;
+    }
+    cout &lt;&lt; endl ;
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>On a chain the sums reach about n&sup2;/2 &asymp; 2&middot;10&#185;&#8304;, so <code>ll</code> is required. The <code>(sts[v] &minus; sts[c])</code> term counts v itself, so don't add a separate +1 for it.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"for every node, the sum of distances to all nodes" &rarr; subtree sizes plus rerooting.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 3 ===================== -->
+  <section class="family" id="f3">
+    <div class="family-head"><h2>3 &middot; Binary lifting &amp; LCA</h2></div>
+    <p class="family-note">Table <code>up[v][j]</code> holds the 2<sup>j</sup>-th ancestor of v, and 0 is the sink above the root. Any jump of k steps uses the set bits of k. The LCA step: bring both nodes to equal depth, then jump from high j to low while the ancestors still differ.</p>
+
+    <article class="entry" id="company-queries-i">
+      <div class="entry-head"><h3>Company Queries I</h3><span class="badge num">O((n+q) log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">For each query, find x's ancestor k levels up, or &minus;1 if it doesn't exist.<div class="formal">up[v][0] = parent(v),   up[v][j] = up[ up[v][j&minus;1] ][j&minus;1]</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>k is a sum of powers of two, so make one table jump per set bit.</li>
+          <li>A 2<sup>j</sup> jump is two 2<sup>j&minus;1</sup> jumps.</li>
+          <li><code>up[0][*] = 0</code>, so overshooting the root stays at 0. That means &minus;1.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Follow the parent pointer k times.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(k)</span> per query.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">A chain with <code>n, q = 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Binary lifting: <span class="cost">O(n log n)</span> to build, <span class="cost">O(log n)</span> per query.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 360 130" role="img" aria-label="k = 3 jumps from node 4"><path class="s-edge" d="M40 60 L120 60 M140 60 L220 60 M240 60 L320 60"/><circle class="s-box" cx="30" cy="60" r="14"/><text class="s-t" x="30" y="64" text-anchor="middle">4</text><circle class="s-box" cx="130" cy="60" r="14"/><text class="s-t" x="130" y="64" text-anchor="middle">3</text><circle class="s-box" cx="230" cy="60" r="14"/><text class="s-t" x="230" y="64" text-anchor="middle">1</text><circle class="s-warn" cx="330" cy="60" r="14"/><text class="s-t" x="330" y="64" text-anchor="middle">0</text><path class="s-hi" d="M30 44 Q80 10 130 44"/><text class="s-ta" x="60" y="18">bit 0: +1</text><path class="s-hi" d="M130 76 Q230 126 330 76"/><text class="s-ta" x="200" y="124">bit 1: +2</text><text class="s-td" x="4" y="100">k = 3 = 11&#8322;</text></svg>
+          <figcaption>Query (4, 3): bit 0 jumps 4 &rarr; 3, and bit 1 jumps 3 &rarr; 0. That is the sink, so print &minus;1. Query (4, 2) jumps 4 &rarr; 1 in one step.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Parents come straight from input, so no DFS is needed. The level loop <code>i</code> is outermost, so level i&minus;1 is complete for every node before level i reads it. The query stops early once x reaches 0.</p>
+        <div class="src-meta"><span class="path">trees/Company_Queries_I.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+
+
+void solve() 
+{
+    ll n , q ;
+    cin &gt;&gt; n &gt;&gt; q ;
+    vector &lt; vector &lt; ll &gt; &gt; up(n+1 , vector &lt; ll &gt; (25 , 0)) ;
+    up[1][0] = 0 ;
+    for(ll i = 2 ; i &lt;= n ; i++)
+    {
+        ll x ;
+        cin &gt;&gt; x ;
+        up[i][0] = x ;
+    }
+    for(ll i = 1 ; i &lt;= 20 ; i++)
+    {
+        for (ll node = 1 ; node &lt;= n ; node++)
+        {
+            up[node][i] = up[up[node][i-1]][i-1] ;
+        }
+    }
+    while(q--)
+    {
+        ll x , k ;
+        cin &gt;&gt; x &gt;&gt; k ;
+        for(ll i = 0 ; i &lt;= 20 ; i++)
+        {
+            if(k &amp; (1 &lt;&lt; i))
+            {
+                x = up[x][i] ;
+                
+            }
+            if(x == 0) break ;
+
+        }
+        if(x == 0) cout &lt;&lt; -1 &lt;&lt; endl ;
+        else cout &lt;&lt; x &lt;&lt; endl ;
+    }
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The loop order must be level outer, node inner. Swapping them reads <code>up[&middot;][i&minus;1]</code> entries that aren't filled yet. The table allocates 25 columns but uses 0..20, and 2&#178;&#8304; &gt; n covers every k.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"k-th ancestor or k steps up, many queries" &rarr; binary lifting on the set bits of k.</div>
+    </article>
+
+    <article class="entry" id="company-queries-ii">
+      <div class="entry-head"><h3>Company Queries II</h3><span class="badge num">O((n+q) log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">For each query (a, b), find their lowest common ancestor.<div class="formal">lca(a, b) = the deepest v that is an ancestor of both</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Lift the deeper node by <code>d[a] &minus; d[b]</code>. If the two nodes are now equal, that node is the LCA.</li>
+          <li>From j = 19 down to 0, jump both while <code>up[a][j] &ne; up[b][j]</code>. That can never cross the LCA.</li>
+          <li>Afterwards, a and b are children of the LCA, so the answer is <code>up[a][0]</code>.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Walk both nodes up one parent at a time.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n)</span> per query.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">A chain with <code>n, q = 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Lift to equal depth, then descend the jumps: <span class="cost">O(log n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 150" role="img" aria-label="LCA of 4 and 5"><path class="s-edge" d="M150 24 L90 74 M150 24 L210 74"/><path class="s-hi" d="M210 74 L170 124 M210 74 L250 124"/><circle class="s-box" cx="150" cy="24" r="14"/><text class="s-t" x="150" y="28" text-anchor="middle">1</text><circle class="s-box" cx="90" cy="74" r="14"/><text class="s-t" x="90" y="78" text-anchor="middle">2</text><circle class="s-good" cx="210" cy="74" r="14"/><text class="s-t" x="210" y="78" text-anchor="middle">3</text><circle class="s-warn" cx="170" cy="124" r="14"/><text class="s-t" x="170" y="128" text-anchor="middle">4</text><circle class="s-warn" cx="250" cy="124" r="14"/><text class="s-t" x="250" y="128" text-anchor="middle">5</text><text class="s-ta" x="228" y="70">lca</text><text class="s-td" x="4" y="146">diff = 0; every up[&middot;][j&ge;1] equal; up[&middot;][0] = 3</text></svg>
+          <figcaption>Query (4, 5): both are at depth 2. The high jumps all agree, so neither node moves. The parents match, so the answer is 3.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The DFS only computes depth, because <code>up[i][0]</code> comes straight from input. After the descent, the code checks <code>a == b</code> first (b was an ancestor of a) and otherwise takes the shared parent. The final <code>else</code> is unreachable.</p>
+        <div class="src-meta"><span class="path">trees/Company_Queries_II.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+vector &lt; vector &lt; ll &gt; &gt; g; 
+vector &lt; ll &gt; d ; 
+vector &lt; vector &lt; ll &gt; &gt; up ;
+void dfs(ll node , ll parent, ll depth)
+{
+    d[node] = depth ; 
+    for (auto child : g[node])
+    {
+        if (child != parent)
+        {
+            dfs(child , node , depth + 1) ; 
+        }
+    }
+}
+void solve() 
+{
+    ll n , q ; 
+    cin &gt;&gt; n &gt;&gt; q ;
+    g.resize(n+1) ;
+    d.resize(n+1) ;
+    up.resize(n+1 , vector &lt; ll &gt; (20 , 0)) ;
+
+    for (ll i = 2 ; i &lt;= n ; i++)
+    {
+        ll x ;
+        cin &gt;&gt; x ;
+        g[x].push_back(i) ;
+        g[i].push_back(x) ;
+        up[i][0] = x ;
+    }
+    dfs(1 , 0 , 0) ;
+
+    // binary lifting
+    for(ll sa = 1 ; sa &lt; 20 ; sa++)
+    {
+        for(ll node = 1 ; node &lt;= n ; node++)
+        {
+            up[node][sa] = up[up[node][sa-1]][sa-1] ;
+        }
+    }
+
+    while(q--)
+    {
+        ll a , b ; 
+        cin &gt;&gt; a &gt;&gt; b ; 
+        if (d[a] &lt; d[b]) swap(a , b) ; 
+        // a is deeper than b
+        // lift a to the same depth as b
+        ll diff = d[a] - d[b] ;
+        for(ll sa = 0 ; sa &lt; 20 ; sa++)
+        {
+            if (diff &amp; (1 &lt;&lt; sa))
+            {
+                a = up[a][sa] ;
+            }
+        }
+        for(ll sa = 19 ; sa &gt;= 0 ; sa--)
+        {
+            // if the ancestor 2^sa edges away towards root for a and 2^sa edges away towards root for b are different, then we can lift both a and b to their respective ancestors
+            if (up[a][sa] != up[b][sa])
+            {
+                a = up[a][sa] ;
+                b = up[b][sa] ;
+            }
+            // if the ancestore 2^sa edges away from a and 2^sa edges away from b are the same, then we cannot lift both a and b to their respective ancestors, because they will be the same, so we continue to the next sa which is smaller that is we have overshot our target 
+            else
+            {
+                continue ; 
+            }
+        }
+        // now a and b are at the same depth and their ancestors 2^sa edges away towards root are the same, so we can lift both a and b to their respective ancestors which are the same, so we can return either a or b as the answer
+        if(a == b)
+        {
+            cout &lt;&lt; a &lt;&lt; endl ; 
+        }
+        // if a and b are not the same, then we can return their parent as the answer
+        // why is the parent of a and b the lowest common boss of a and b? because we have lifted both a and b to their respective ancestors which are the same, so their parent is the lowest common boss of a and b
+        else if(up[a][0] == up[b][0])
+        {
+            a = up[a][0] ;
+            cout &lt;&lt; a &lt;&lt; endl ;
+        }
+        else 
+        {
+             cout &lt;&lt; "Pranjal is Gay" &lt;&lt; endl ;
+        }
+        
+    }
+
+        
+    
+    
+
+    
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Check <code>a == b</code> before taking the parent. When b is an ancestor of a, equal depth already lands on b. The descent doesn't move either node because every ancestor matches, and returning <code>up[a][0]</code> would be one level too high.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"lowest common boss or ancestor, many queries" &rarr; equalise depth, then descend jumps while the ancestors differ.</div>
+    </article>
+
+    <article class="entry" id="distance-queries">
+      <div class="entry-head"><h3>Distance Queries</h3><span class="badge num">O((n+q) log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">For each query (a, b), find the number of edges between a and b.<div class="formal">dist(a, b) = d[a] + d[b] &minus; 2&middot;d[lca(a, b)]</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>The a&ndash;b path goes up to the LCA and back down.</li>
+          <li>Root depths measure both halves once the LCA's depth is subtracted twice.</li>
+          <li>The LCA is found exactly as in Company Queries II.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">BFS from a for each query.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n)</span> per query.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n, q = 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Depths plus LCA: <span class="cost">O(log n)</span> per query.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 150" role="img" aria-label="distance 2 to 5"><path class="s-edge" d="M210 74 L170 124"/><path class="s-hi" d="M90 74 L150 24 L210 74 L250 124"/><circle class="s-good" cx="150" cy="24" r="14"/><text class="s-t" x="150" y="28" text-anchor="middle">1</text><circle class="s-warn" cx="90" cy="74" r="14"/><text class="s-t" x="90" y="78" text-anchor="middle">2</text><circle class="s-box" cx="210" cy="74" r="14"/><text class="s-t" x="210" y="78" text-anchor="middle">3</text><circle class="s-box" cx="170" cy="124" r="14"/><text class="s-t" x="170" y="128" text-anchor="middle">4</text><circle class="s-warn" cx="250" cy="124" r="14"/><text class="s-t" x="250" y="128" text-anchor="middle">5</text><text class="s-ta" x="170" y="20">lca, d = 0</text><text class="s-ta" x="4" y="100">d = 1</text><text class="s-ta" x="268" y="128">d = 2</text></svg>
+          <figcaption>Query (2, 5): lca = 1, so 1 + 2 &minus; 2&middot;0 = 3.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">This table is indexed <code>up[level][node]</code>, the reverse of Company Queries II, with the same recurrence. The parent is recorded in the DFS because the input is an edge list. <code>node_a</code> and <code>node_b</code> save the originals before lifting overwrites a and b.</p>
+        <div class="src-meta"><span class="path">trees/Distance_Queries.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll n , q ; 
+vector &lt; vector &lt; ll &gt; &gt; g;
+vector &lt; ll &gt; d ;
+vector &lt; vector &lt; ll &gt; &gt; up ;
+void dfs(ll node , ll parent, ll depth)
+{
+    d[node] = depth ; 
+    up[0][node] = parent ;
+    for (auto child : g[node])
+    {
+        if (child != parent)
+        {
+            dfs(child , node , depth + 1) ; 
+        }
+    }
+}
+void solve() 
+{
+    cin &gt;&gt; n &gt;&gt; q ;
+    g.resize(n+1) ;
+    d.resize(n+1) ;
+    up.resize(20 , vector &lt; ll &gt; (n + 1, 0)) ;
+    for(ll i = 1 ; i &lt; n ; i++)
+    {
+        ll x , y ; 
+        cin &gt;&gt; x &gt;&gt; y ; 
+        g[x].push_back(y) ;
+        g[y].push_back(x) ;
+    }
+    dfs(1 , 0 , 0) ;
+    for(ll sa = 1 ; sa &lt; 20 ; sa++)
+    {
+        for(ll node = 1 ; node &lt;= n ; node++)
+        {
+            up[sa][node] = up[sa-1][up[sa-1][node]] ;
+        }
+    }
+    while(q--)
+    {
+        ll a , b ;
+        cin &gt;&gt; a &gt;&gt; b ;
+        if (d[a] &lt; d[b]) swap(a , b) ;
+        ll node_a = a , node_b = b ;
+        // a is deeper than b
+        // lift a to the same depth as b
+        ll diff = d[a] - d[b] ;
+        for(ll sa = 0 ; sa &lt; 20 ; sa++)
+        {
+            if (diff &amp; (1 &lt;&lt; sa))
+            {
+                a = up[sa][a] ;
+            }
+        }
+        for(ll sa = 19 ; sa &gt;= 0 ; sa--)
+        {
+            // if the ancestor 2^sa edges away towards root for a and 2^sa edges away towards root for b are different, then we can lift both a and b to their respective ancestors
+            if (up[sa][a] != up[sa][b])
+            {
+                a = up[sa][a] ;
+                b = up[sa][b] ;
+            }
+            // if the ancestore 2^sa edges away from a and 2^sa edges away from b are the same, then we cannot lift both a and b to their respective ancestors, because they will be the same, so we continue to the next sa which is smaller that is we have overshot our target 
+            else
+            {
+                continue ; 
+            }
+        }
+        // now a and b are at the same depth and their ancestors are the same, so
+        if(a != b)
+        {
+            a = up[0][a] ;
+            b = up[0][b] ;
+        }
+        ll lca = a ;
+        cout &lt;&lt; d[node_a] + d[node_b] - 2 * d[lca] &lt;&lt; endl ;
+    }
+
+    
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Copy a and b before lifting, because the formula needs the original depths. After the loop, a and b both equal the lca, so <code>d[a] + d[b] &minus; 2d[lca]</code> would always be 0.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"distance between two tree nodes, many queries" &rarr; root depths plus LCA.</div>
+    </article>
+
+    <article class="entry" id="counting-paths">
+      <div class="entry-head"><h3>Counting Paths</h3><span class="badge num">O((n+m) log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Given m paths, count for each node how many paths pass through it.<div class="formal">diff[a] += 1, diff[b] += 1, diff[lca] &minus;= 1, diff[par(lca)] &minus;= 1
+ans[v] = &sum; diff[u]  over u in subtree(v)</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>After subtree sums, +1 at a marks every node from a up to the root.</li>
+          <li>The two marks overlap from the LCA upward. &minus;1 at the lca leaves it counted once, and &minus;1 at par(lca) clears everything above.</li>
+          <li>This is a 1D difference array, with "prefix" replaced by "subtree".</li>
+          <li>Subtree sums are post-order accumulation: add each child into its parent after the child is final.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Walk each path and increment every node on it.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n)</span> per path.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n, m = 2&middot;10&#8309;</code> on a chain &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Four marks per path using the LCA, then one accumulation pass: <span class="cost">O((n+m) log n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 320 150" role="img" aria-label="tree difference array"><path class="s-edge" d="M150 24 L90 74 M150 24 L210 74 M210 74 L170 124 M210 74 L250 124"/><circle class="s-good" cx="150" cy="24" r="14"/><text class="s-t" x="150" y="28" text-anchor="middle">1</text><circle class="s-box" cx="90" cy="74" r="14"/><text class="s-t" x="90" y="78" text-anchor="middle">2</text><circle class="s-good" cx="210" cy="74" r="14"/><text class="s-t" x="210" y="78" text-anchor="middle">3</text><circle class="s-box" cx="170" cy="124" r="14"/><text class="s-t" x="170" y="128" text-anchor="middle">4</text><circle class="s-box" cx="250" cy="124" r="14"/><text class="s-t" x="250" y="128" text-anchor="middle">5</text><text class="s-ta" x="170" y="20">diff &minus;1 &rarr; 3</text><text class="s-ta" x="4" y="100">+1 &rarr; 1</text><text class="s-ta" x="228" y="70">+1 &rarr; 3</text><text class="s-ta" x="110" y="146">+1 &rarr; 1</text><text class="s-ta" x="236" y="146">+1 &rarr; 1</text></svg>
+          <figcaption>Paths 1&ndash;3, 2&ndash;5 and 1&ndash;4 all have lca 1, whose parent is 0 and is skipped. Net diff is &minus;1 +1 +1 +1 +1. Subtree sums give 3 1 3 1 1.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>topo</code> records nodes in post-order, since each node is pushed after its children. Iterating it adds every node into its parent only after the node itself is final. The root adds into <code>cnt[0]</code>, which is a harmless sink.</p>
+        <div class="src-meta"><span class="path">trees/Counting_Paths.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+vector &lt; vector &lt; ll &gt; &gt; g;
+vector &lt; ll &gt; d ;
+vector &lt; vector &lt; ll &gt; &gt; up ;
+vector &lt; ll &gt; topo ;
+vector &lt; ll &gt; cnt ; 
+ll n , q ; 
+void dfs(ll node , ll parent, ll depth)
+{
+    d[node] = depth ; 
+    up[0][node] = parent ;
+    for (auto child : g[node])
+    {
+        if (child != parent)
+        {
+            dfs(child , node , depth + 1) ; 
+        }
+    }
+    topo.push_back(node) ;
+}
+void solve() 
+{
+    cin &gt;&gt; n &gt;&gt; q ; 
+    g.resize(n+1) ;
+    d.resize(n+1) ;
+    up.resize(20 , vector &lt; ll &gt; (n + 1, 0)) ;
+    cnt.assign(n + 1, 0) ;
+    for(ll i = 1 ; i &lt; n ; i++)
+    {
+        ll x , y ; 
+        cin &gt;&gt; x &gt;&gt; y ; 
+        g[x].push_back(y) ;
+        g[y].push_back(x) ;
+    }
+    dfs(1 , 0 , 0) ;
+    for(ll sa = 1 ; sa &lt; 20 ; sa++)
+    {
+        for(ll node = 1 ; node &lt;= n ; node++)
+        {
+            up[sa][node] = up[sa - 1][up[sa - 1][node]] ;
+        }
+    }
+    while(q--)
+    {
+        ll a , b ;
+        cin &gt;&gt; a &gt;&gt; b ;
+        if (d[a] &lt; d[b]) swap(a , b) ;
+        ll node_a = a , node_b = b ;
+        ll diff = d[a] - d[b] ;
+        for(ll sa = 0 ; sa &lt; 20 ; sa++)
+        {
+            if (diff &amp; (1 &lt;&lt; sa))
+            {
+                a = up[sa][a] ;
+            }
+        }
+        for(ll sa = 19 ; sa &gt;= 0 ; sa--)
+        {
+
+            if (up[sa][a] != up[sa][b])
+            {
+                a = up[sa][a] ;
+                b = up[sa][b] ;
+            }
+        }
+        if(a != b)
+        {
+            a = up[0][a] ;
+            b = up[0][b] ;
+        }
+        ll lca = a ;
+        ll parent = up[0][lca] ;
+        cnt[node_a]++ ;
+        cnt[node_b]++ ;
+        cnt[lca]-- ;
+        if(parent != 0)
+        {
+            cnt[parent]-- ;
+        }
+
+
+        
+
+
+
+
+    }
+    for(auto&amp; node : topo)
+    {
+        cnt[up[0][node]] += cnt[node] ;
+    }
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        cout &lt;&lt; cnt[i] &lt;&lt; " " ;
+    }
+    cout &lt;&lt; endl ;
+    
+
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Put &minus;1 at <em>both</em> the lca and its parent, not &minus;2 at the lca. &minus;2 zeroes the lca itself, even though the path passes through it. When lca is the root its parent is 0, which is guarded.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"for each node or edge, how many of m paths cover it" &rarr; tree difference array: +1 at a and b, &minus;1 at lca and parent(lca), then subtree sums.</div>
+    </article>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/trees_1_dp_lifting.js"></script>
+</body>
+</html>

@@ -88,5 +88,9 @@ topic cards, and every table update themselves.
 - **Arrays**: 100% MIGRATED. All 5 child ledgers (`Array_Ledger_1_Linear_Scan.html` through `Array_Ledger_5_Range_Queries.html`) and all 5 data JS files (`arrays_1` through `arrays_5`) are complete. The old monolithic `arrays/Array_Ledger.html` has been deleted.
 - **DP**: MIGRATED. `dp/DP_Ledger_1_Sums_Knapsack.html` (10) and `dp/DP_Ledger_2_Tables_Intervals.html` (9), data files `dp_1`/`dp_2`. `dp/Counting_Towers.cpp` excluded (does not compile). Old `dp/DP_Ledger.html` deleted.
 - **Graphs**: MIGRATED. `Graph_Ledger_1_Traversal.html` (9), `Graph_Ledger_2_Shortest_Paths.html` (7), `Graph_Ledger_3_Structure.html` (9), data files `graphs_1`–`graphs_3`. Excluded: `Planets_Queries_II` and `Planets_Cycles` (don't compile) and `Nested_Ranges_Count` (no output on sample). Misfiled `Concert_Tickets`, `Movie_Festival`, `Sum_of_Two_Values` moved to `arrays/` and added to `Array_Ledger_2`/`_4`. Old `graphs/Graph_Ledger.html` deleted.
-- **Other topics** (trees, math, linked_list, strings): No ledgers yet.
-- **LEDGER.html**: Loads the array (`arrays_1`–`arrays_5`), DP (`dp_1`, `dp_2`) and graph (`graphs_1`–`graphs_3`) data files. Remaining topics get script tags as their child ledgers are built.
+- **Trees**: MIGRATED. `Tree_Ledger_1_DP_Lifting.html` (9), `Tree_Ledger_2_Segment_Trees.html` (5), data files `trees_1`/`trees_2`. Excluded: `Path_Queries` (unfinished, doesn't compile), `Salary_Queries` (empty template).
+- **Math**: MIGRATED. `Math_Ledger_1_Number_Theory.html` (9), data file `math_1`. Excluded: `Divisor_Analysis` (doesn't compile), `Filled_Subgrid_Count_I` and `Planets_Cycles` (empty files).
+- **Linked list**: MIGRATED. `Linked_List_Ledger_1_Pointer_Surgery.html` (3), data file `linked_list_1`.
+- **Strings**: MIGRATED. `String_Ledger_1_Scans.html` (1), data file `strings_1`. No recognition rules until a second problem exists.
+- **ICPC/**: not a ledger topic (contest scratch files); not covered.
+- **LEDGER.html**: Loads every data file above. A new child ledger adds one script tag there.

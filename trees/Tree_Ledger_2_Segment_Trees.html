@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Segment Trees &amp; Flattening &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<body data-base=".." data-slug="trees_2_segment_trees">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; Trees</div>
+  <h1>Segment Trees &amp; Flattening</h1>
+  <p class="dek">Range structures filed under <code>trees/</code>: a segment tree over an
+  Euler tour, descending a segment tree to find a position, lazy range updates, and
+  the static 2D case where prefix sums are enough. Reach for this page when there are
+  q &le; 2&middot;10&#8309; queries over an array or a flattened tree.</p>
+  <p class="stats"><b>5</b> problems &middot; <b>4</b> families</p>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <a href="#recognition">Recognition rules</a>
+  <div class="toc-fam"><a href="#f1">1 &middot; Euler tour + segment tree</a></div>
+  <div class="toc-fam"><a href="#f2">2 &middot; Segment tree descent</a></div>
+  <div class="toc-fam"><a href="#f3">3 &middot; Lazy propagation</a></div>
+  <div class="toc-fam"><a href="#f4">4 &middot; 2D prefix sums</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recognition">
+    <div class="section-head"><h2>Recognition rules</h2>
+      <p>The judgment calls that separate these problems from each other.</p></div>
+    <div class="rules">
+      <div class="rule"><span class="n">1</span>
+        <p>No updates means precompute, not a segment tree (Forest Queries). If updates are mixed with queries, use a segment tree (Subtree Queries, Hotel Queries, List Removals, Range Update Queries).</p></div>
+      <div class="rule"><span class="n">2</span>
+        <p>Point update with a range read needs no lazy tags (Subtree Queries, Hotel Queries). Range update with a point read needs lazy tags (Range Update Queries).</p></div>
+      <div class="rule"><span class="n">3</span>
+        <p>"First position where &hellip;" or "k-th remaining" means descend the tree and pick the left child whenever the left aggregate is enough. Hotel Queries checks max &ge; r. List Removals checks count &ge; k and passes k &minus; left to the right.</p></div>
+      <div class="rule"><span class="n">4</span>
+        <p>Never shift the array. A removed element becomes a 0 leaf (List Removals), and a shrinking capacity overwrites its leaf (Hotel Queries). Original indices stay valid.</p></div>
+      <div class="rule"><span class="n">5</span>
+        <p>A tree question becomes an array question once the subtree is a contiguous range <code>[tin, tout]</code> (Subtree Queries). After that, the same <code>build/update/query/merge</code> skeleton as Hotel Queries applies unchanged.</p></div>
+    </div>
+  </section>
+
+  <!-- ===================== FAMILY 1 ===================== -->
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1 &middot; Euler tour + segment tree</h2></div>
+    <p class="family-note">A DFS visits a subtree as one contiguous stretch of time. Relabel nodes by entry time and every subtree becomes an array range.</p>
+
+    <article class="entry" id="subtree-queries">
+      <div class="entry-head"><h3>Subtree Queries</h3><span class="badge num">O((n+q) log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">A rooted tree has node values. Queries are either set v<sub>s</sub> = x, or sum the values in the subtree of s.<div class="formal">subtree(s) &harr; positions [tin[s], tout[s]] in DFS order
+query = &sum; arr[tin[s] .. tout[s]]</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>A DFS enters s, visits the whole subtree, then leaves, so the subtree occupies consecutive entry times.</li>
+          <li>tin = the entry time. tout = the largest entry time inside the subtree.</li>
+          <li>An update is a point write at <code>tin[s]</code>, and a query is a range sum. That is a plain segment tree.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">DFS the subtree for each query.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n)</span> per query.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n, q = 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Flatten, then use a sum segment tree: <span class="cost">O(log n)</span> per operation.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 360 110" role="img" aria-label="Euler tour array for sample"><text class="s-td" x="4" y="16">tin order &rarr; node / value</text><rect class="s-box" x="20" y="30" width="56" height="40" rx="4"/><rect class="s-box" x="84" y="30" width="56" height="40" rx="4"/><rect class="s-fill" x="148" y="30" width="56" height="40" rx="4"/><rect class="s-fill" x="212" y="30" width="56" height="40" rx="4"/><rect class="s-fill" x="276" y="30" width="56" height="40" rx="4"/><text class="s-tm" x="48" y="46" text-anchor="middle">1</text><text class="s-tm" x="112" y="46" text-anchor="middle">2</text><text class="s-tm" x="176" y="46" text-anchor="middle">3</text><text class="s-tm" x="240" y="46" text-anchor="middle">4</text><text class="s-tm" x="304" y="46" text-anchor="middle">5</text><text class="s-t" x="48" y="63" text-anchor="middle">4</text><text class="s-t" x="112" y="63" text-anchor="middle">2</text><text class="s-t" x="176" y="63" text-anchor="middle">5</text><text class="s-t" x="240" y="63" text-anchor="middle">2</text><text class="s-t" x="304" y="63" text-anchor="middle">1 &rarr; 3</text><text class="s-ta" x="148" y="92">subtree(3) = [tin 3, tout 5]: 8, then 10</text></svg>
+          <figcaption>With edges 1&ndash;2, 1&ndash;3, 3&ndash;4, 3&ndash;5, the DFS order is 1 2 3 4 5. Subtree of 3 is positions 3..5: 5+2+1 = 8. After setting node 5 to 3, it is 10.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>s[timer] = val[node]</code> lays the values out in tin order, and <code>build</code> reads <code>s</code>. <code>update</code> <em>sets</em> the leaf rather than adding to it, which matches the problem's "change the value". <code>encode</code> and <code>encode_tree</code> just name the tin and [tin, tout] mappings.</p>
+        <div class="src-meta"><span class="path">trees/Subtree_Queries.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll n , q ;
+vector &lt; vector &lt; ll &gt; &gt; g;
+vector &lt; ll &gt; tin ;
+vector &lt; ll &gt; tout ; 
+vector &lt; ll &gt; val ;
+vector &lt; ll &gt; s ; 
+ll timer = 1 ; 
+void dfs(ll node , ll parent)
+{
+    tin[node] = timer ; 
+    s[timer] = val[node] ;
+    timer++ ;
+    for (auto child : g[node])
+    {
+        if (child != parent)
+        {
+            dfs(child , node) ; 
+            
+        }
+    }
+    tout[node] = timer - 1 ; 
+
+}
+
+struct node{
+    ll sum ;
+    node()
+    {
+        sum = 0 ; 
+    }
+}; 
+vector &lt; node &gt; st ; 
+node merge(node a, node b)
+{
+    node res ; 
+    res.sum = a.sum + b.sum ; 
+    return res ; 
+}
+void build(ll id, ll l , ll r)
+// build both inclusive only
+{
+    if(l == r)
+    {
+        st[id].sum = s[l] ; 
+        return ; 
+    }
+    ll mid = l + (r - l) / 2 ;
+    build(2 * id , l , mid) ;
+    build(2 * id + 1 , mid + 1 , r) ;
+    st[id] = merge(st[2 * id] , st[2 * id + 1]) ;
+}
+
+void update(ll id , ll l , ll r , ll pos , ll val)
+{
+    if(pos &lt; l || pos &gt; r)
+    {
+        return ; 
+    }
+    else if(l == r &amp;&amp; l == pos)
+    {
+        st[id].sum = val ; 
+        return ; 
+    }
+    else
+    {
+        ll mid = l + (r - l) / 2 ;
+        update(2 * id , l , mid , pos , val) ; 
+        update(2 * id + 1 , mid + 1 , r , pos , val) ;
+        st[id] = merge(st[2 * id] , st[2 * id + 1]) ;
+
+    }
+    
+    
+}
+
+node query( ll id , ll l , ll r , ll lq , ll rq)
+{
+    if(rq &lt; l)
+    {
+        return node() ; 
+    }
+    else if(lq &gt; r)
+    {
+        return node() ; 
+    }
+    else if(lq &lt;= l &amp;&amp; r &lt;= rq)
+    {
+        return st[id] ; 
+    }
+    else 
+    {
+        ll mid = l + (r - l) / 2 ;
+        node left = query(2 * id , l , mid , lq , rq) ; 
+        node right = query(2 * id + 1 , mid + 1 , r , lq , rq) ;
+        return merge(left , right) ;
+    }
+}
+ll encode( ll node)
+{
+    return tin[node] ; 
+}
+pll encode_tree(ll node)
+{
+    return {tin[node] , tout[node]} ; 
+}
+void solve() 
+{
+    cin &gt;&gt; n &gt;&gt; q ;
+    val.resize(n+1) ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        cin &gt;&gt; val[i] ;
+    }
+    tin.resize(n+1) ;
+    tout.resize(n+1) ;
+    g.resize(n+1) ;
+    for(ll i = 1 ; i &lt; n ; i++)
+    {
+        ll x , y ; 
+        cin &gt;&gt; x &gt;&gt; y ; 
+        g[x].push_back(y) ;
+        g[y].push_back(x) ;
+    }
+    s.resize(n+1) ;
+    dfs(1 , 0) ;
+    st.resize(4 * n + 5) ;
+    build(1 , 1 , n) ;
+    while(q--)
+    {
+        ll type ; 
+        cin &gt;&gt; type ; 
+        if(type == 1)
+        {
+            ll s , x ; 
+            cin &gt;&gt; s &gt;&gt; x ; 
+            update(1 , 1 , n , encode(s) , x) ;
+        }
+        else
+        {
+            ll s ; 
+            cin &gt;&gt; s ; 
+            pll enc = encode_tree(s) ;
+            node ans = query(1 , 1 , n , enc.fr , enc.sc) ;
+            cout &lt;&lt; ans.sum &lt;&lt; endl ;
+        }
+    }
+    
+
+
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong><code>tout[node] = timer &minus; 1</code>, because timer has already moved past the last node visited. Inside <code>solve</code>, the local <code>ll s</code> shadows the global vector <code>s</code>. That is only harmless because <code>build</code> has already run.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"update a node, query its whole subtree" &rarr; Euler tour flatten plus a segment tree.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 2 ===================== -->
+  <section class="family" id="f2">
+    <div class="family-head"><h2>2 &middot; Segment tree descent</h2></div>
+    <p class="family-note">The query is a position, not an aggregate. At each node, check whether the left child's aggregate is enough and go left or right. That is one root-to-leaf walk, <span class="cost">O(log n)</span>, with no outer binary search.</p>
+
+    <article class="entry" id="hotel-queries">
+      <div class="entry-head"><h3>Hotel Queries</h3><span class="badge num">O((n+m) log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">For each group of size r, find the first hotel with at least r free rooms, print its index and subtract r. If there is none, print 0.<div class="formal">i* = min { i : h[i] &ge; r },   h[i*] &minus;= r</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>If max(left half) &ge; r, the first fit is in the left half. Otherwise it is in the right half.</li>
+          <li>So a max segment tree answers "first fit" with one descent.</li>
+          <li>Subtracting is a point update of the leaf's new value.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Scan from hotel 1 for each group.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n)</span> per group.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n, m = 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Max segment tree plus descent: <span class="cost">O(log n)</span> per group.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 420 150" role="img" aria-label="descent for r = 4"><rect class="s-box" x="170" y="8" width="80" height="26" rx="4"/><text class="s-t" x="210" y="25" text-anchor="middle">max 6</text><rect class="s-good" x="70" y="52" width="80" height="26" rx="4"/><text class="s-t" x="110" y="69" text-anchor="middle">[1,4] 4</text><rect class="s-box" x="270" y="52" width="80" height="26" rx="4"/><text class="s-t" x="310" y="69" text-anchor="middle">[5,8] 6</text><rect class="s-warn" x="20" y="96" width="70" height="26" rx="4"/><text class="s-t" x="55" y="113" text-anchor="middle">[1,2] 3</text><rect class="s-good" x="110" y="96" width="70" height="26" rx="4"/><text class="s-t" x="145" y="113" text-anchor="middle">[3,4] 4</text><path class="s-hi" d="M190 34 L130 52 M110 78 L145 96"/><path class="s-edge" d="M230 34 L290 52 M90 78 L55 96"/><text class="s-ta" x="190" y="112">&rarr; leaf 3</text><text class="s-td" x="4" y="144">h = 3 2 4 1 5 5 2 6, r = 4</text></svg>
+          <figcaption>r = 4: the left half has max 4 &ge; 4, so go left. [1,2] has max 3 &lt; 4, so it is pruned. [3,4] leads to hotel 3. Groups 4 4 7 1 1 get hotels 3 5 0 1 1.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>query</code> tries left and then right, but it returns &minus;1 at once when <code>st[id].mx &lt; val</code>. So a failed branch costs O(1), and the walk stays O(log n). The empty node's <code>mx = -INF</code> never matters because every leaf is built.</p>
+        <div class="src-meta"><span class="path">trees/Hotel_Queries.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll n , q ;
+vector &lt; ll &gt; h ; 
+vector &lt; ll &gt; r ;
+struct stnode{
+    ll mx ; 
+    stnode()
+    {
+        mx = -INF; 
+    }
+};
+vector &lt; stnode &gt; st ;
+stnode merge(stnode a , stnode b)
+{
+    stnode res ;
+    res.mx = max(a.mx , b.mx) ;
+    return res ;
+}
+void build( ll id , ll l , ll r)
+{
+    if(l == r)
+    {
+        st[id].mx = h[l] ;
+        return ; 
+    }
+    else
+    {
+        ll mid = l + (r - l) / 2 ;
+        build(2 * id , l , mid) ; 
+        build(2 * id + 1 , mid + 1 , r) ;
+        st[id] = merge(st[2 * id] , st[2 * id + 1]) ;
+    }
+}
+void update(ll id, ll l, ll r, ll pos, ll val)
+{
+    if (pos &lt; l )
+    {
+        return ; 
+    }
+    else if(pos &gt; r)
+    {
+        return ; 
+    }
+    else if(l == r &amp;&amp; l == pos)
+    {
+        st[id].mx = val ; 
+        return ; 
+    }
+    else
+    {
+        ll mid = l + (r - l) / 2 ;
+        update(2 * id , l , mid , pos , val) ; 
+        update(2 * id + 1 , mid + 1 , r , pos , val) ;
+        st[id] = merge(st[2 * id] , st[2 * id + 1]) ;
+    }
+}
+ll query(ll id , ll l , ll r , ll val)
+{
+    if(st[id].mx &lt; val)
+    {
+        // if the maximum value in this segment is less than val, then there is no hotel in this segment that can accommodate the group, so we return 0
+        return -1 ;
+    }
+    else if(l == r)
+    {
+        // we are at a leaf node, so we return the index of the hotel
+        if(st[id].mx &gt;= val)
+        {
+            return l ; 
+        }
+        else
+        {
+            return -1 ; 
+        }
+        
+    }
+    else
+    {
+        ll mid = l + (r - l) / 2 ;
+        // we first check the left child, because we want to find the first hotel that can accommodate the group
+        ll left = query(2 * id , l , mid , val) ; 
+        if(left != -1)
+        {
+            return left ; 
+        }
+        else
+        {
+            return query(2 * id + 1 , mid + 1 , r , val) ;
+        }
+    }
+
+}
+void solve() 
+{
+    
+    cin &gt;&gt; n &gt;&gt; q ;
+    h.resize(n + 1) ;
+    r.resize(q + 1) ;
+    st.resize(4 * n + 5) ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        cin &gt;&gt; h[i] ;
+    }
+    build(1 , 1 , n) ;
+    for(ll i = 1 ; i &lt;= q ; i++)
+    {
+        cin &gt;&gt; r[i] ;
+        ll hotel = query(1 , 1 , n , r[i]) ;
+        if(hotel == -1)
+        {
+            cout &lt;&lt; 0 &lt;&lt; " " ;
+        }
+        else
+        {
+            cout &lt;&lt; hotel &lt;&lt; " " ;
+            h[hotel] -= r[i] ;
+            update(1 , 1 , n , hotel , h[hotel]) ;
+        }
+    }
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The <code>st[id].mx &lt; val</code> prune at the top of <code>query</code> is what makes it logarithmic. Without it, the left-first recursion is a full O(n) scan. The internal "no fit" is &minus;1, and the print converts it to 0.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"first position whose value is at least x, with updates" &rarr; max segment tree, descend left-first.</div>
+    </article>
+
+    <article class="entry" id="list-removals">
+      <div class="entry-head"><h3>List Removals</h3><span class="badge num">O(n log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Repeatedly remove the element at current position p and print it.<div class="formal">alive[i] &isin; {0,1};  remove min { j : &sum;<sub>i&le;j</sub> alive[i] = p }</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Keep the original indices and mark a removal by setting its leaf to 0.</li>
+          <li>Current position p = the p-th leaf that is still 1.</li>
+          <li>Descend: if the left count is &ge; k, go left. Otherwise go right with k &minus; left count.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v"><code>vector::erase</code> at p.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n)</span> per removal.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n = 2&middot;10&#8309;</code> &rarr; <span class="cost">~2&middot;10&#185;&#8304;</span> shifts.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Count segment tree plus k-th-one descent: <span class="cost">O(log n)</span> per removal.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 360 110" role="img" aria-label="alive flags after two removals"><rect class="s-warn" x="20" y="30" width="56" height="40" rx="4"/><rect class="s-box" x="84" y="30" width="56" height="40" rx="4"/><rect class="s-warn" x="148" y="30" width="56" height="40" rx="4"/><rect class="s-box" x="212" y="30" width="56" height="40" rx="4"/><rect class="s-good" x="276" y="30" width="56" height="40" rx="4"/><text class="s-t" x="48" y="48" text-anchor="middle">2</text><text class="s-t" x="112" y="48" text-anchor="middle">6</text><text class="s-t" x="176" y="48" text-anchor="middle">1</text><text class="s-t" x="240" y="48" text-anchor="middle">4</text><text class="s-t" x="304" y="48" text-anchor="middle">2</text><text class="s-tm" x="48" y="64" text-anchor="middle">0</text><text class="s-tm" x="112" y="64" text-anchor="middle">1</text><text class="s-tm" x="176" y="64" text-anchor="middle">0</text><text class="s-tm" x="240" y="64" text-anchor="middle">1</text><text class="s-tm" x="304" y="64" text-anchor="middle">1</text><text class="s-td" x="4" y="16">after removing p=3 (value 1) and p=1 (value 2)</text><text class="s-ta" x="20" y="96">p = 3 &rarr; third 1 is index 5 &rarr; print 2</text></svg>
+          <figcaption>The array never moves, only its 1s become 0s. The third removal, p = 3, walks to the third surviving leaf.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Every leaf is built as 1, and <code>update</code> writes 0. In <code>query</code>, the <code>l == r &amp;&amp; k != 1</code> branch can't be reached once the top-level <code>k &gt; st[id].sum</code> guard holds.</p>
+        <div class="src-meta"><span class="path">trees/List_Removals.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll n ; 
+vector &lt; ll &gt; arr ;
+struct stnode{
+    ll sum ;
+    stnode()
+    {
+        sum = 0 ; 
+    }
+};
+vector &lt; stnode &gt; st ;
+stnode merge(stnode a , stnode b)
+{
+    stnode res ;
+    res.sum = a.sum + b.sum ;
+    return res ;
+}
+void build(ll id , ll l , ll r)
+{
+    if(l == r)
+    {
+        st[id].sum = 1 ; 
+    }
+    else   
+    {
+        ll mid = l + ( r - l) / 2 ;
+        build(2 * id , l , mid) ;
+        build(2 * id + 1 , mid + 1 , r) ;
+        st[id] = merge(st[2 * id] , st[2 * id + 1]) ;
+    }
+}
+void update(ll id , ll l , ll r , ll pos)
+{
+    if(pos &lt; l )
+    {
+        return ; 
+    }
+    else if (pos &gt; r)
+    {
+        return ; 
+    }
+    else if(l == r &amp;&amp; l == pos)
+    {
+        st[id].sum = 0 ; 
+        return ; 
+    }
+    else
+    {
+        ll mid = l + (r - l) / 2 ;
+        update(2 * id , l , mid , pos) ;
+        update(2 * id + 1 , mid + 1 , r , pos) ;
+        st[id] = merge(st[2 * id] , st[2 * id + 1]) ;
+    }
+}
+ll query(ll id , ll l , ll r , ll k)
+{
+    if(k &gt; st[id].sum)
+    {
+        // if k is greater than the number of elements in the current segment, then we cannot find the kth element in this segment, so we return -1
+        return -1 ; 
+    }
+    else if(l == r &amp;&amp; k == 1)
+    {
+        return l ; 
+    }
+    else if(l == r &amp;&amp; k != 1)
+    {
+        return -1 ; 
+    }
+    else
+    {
+        ll mid = l + (r - l) / 2 ;
+        if(st[2 * id].sum &gt;= k)
+        {
+            return query(2 * id , l , mid , k) ;
+        }
+        else
+        {
+            // if the number of elements in the left child is less than k, then we need to find the (k - st[2 * id].sum)th element in the right child, because we have already counted st[2 * id].sum elements in the left child
+            return query(2 * id + 1 , mid + 1 , r , k - st[2 * id].sum) ;
+        }
+    }
+}
+
+void solve() 
+{
+    
+    cin &gt;&gt; n ; 
+    arr.resize(n + 1) ;
+    st.resize(4 * n + 5) ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        cin &gt;&gt; arr[i] ;
+    }
+    build(1 , 1 , n) ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        ll k ; 
+        cin &gt;&gt; k ; 
+        ll index = query(1 , 1 , n , k) ;
+        cout &lt;&lt; arr[index] &lt;&lt; " " ;
+        update(1 , 1 , n , index) ;
+    }
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Going right, pass <code>k &minus; st[2&middot;id].sum</code>, not k. The left child's survivors come first.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"remove or find by <em>current</em> position in a shrinking list" &rarr; 0/1 count tree, k-th one by descent.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 3 ===================== -->
+  <section class="family" id="f3">
+    <div class="family-head"><h2>3 &middot; Lazy propagation</h2></div>
+    <p class="family-note">A range update stops at the O(log n) nodes that fully cover the range and leaves a tag. Every later visit pushes the tag down first, so no node is read stale.</p>
+
+    <article class="entry" id="range-update-queries">
+      <div class="entry-head"><h3>Range Update Queries</h3><span class="badge num">O((n+q) log n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Queries either add u to every x<sub>i</sub> in [a, b], or print x<sub>k</sub>.<div class="formal">push: sum += (r&minus;l+1)&middot;lazy;  children.lazy += lazy;  lazy = 0</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>[a, b] splits into O(log n) fully covered nodes, so tag those and stop.</li>
+          <li>A tag on a node applies to its whole range, which is why <code>len&middot;lazy</code> goes into the sum.</li>
+          <li>Push on entry to both update and query, so anything read is current.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Loop from a to b on every update.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n)</span> per update.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n, q = 2&middot;10&#8309;</code> &rarr; <span class="cost">4&middot;10&#185;&#8304;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Lazy segment tree: <span class="cost">O(log n)</span> per operation. A difference array under a plain sum tree also works, with no tags.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 420 120" role="img" aria-label="cover nodes for 2..5"><text class="s-td" x="4" y="16">x = 3 2 4 5 1 1 5 3,  add 1 on [2,5]</text><rect class="s-box" x="20" y="30" width="44" height="30" rx="4"/><rect class="s-fill" x="68" y="30" width="44" height="30" rx="4"/><rect class="s-fill" x="116" y="30" width="92" height="30" rx="4"/><rect class="s-fill" x="212" y="30" width="44" height="30" rx="4"/><rect class="s-box" x="260" y="30" width="44" height="30" rx="4"/><rect class="s-box" x="308" y="30" width="44" height="30" rx="4"/><rect class="s-box" x="356" y="30" width="44" height="30" rx="4"/><text class="s-t" x="42" y="50" text-anchor="middle">3</text><text class="s-t" x="90" y="50" text-anchor="middle">2</text><text class="s-t" x="162" y="50" text-anchor="middle">4  5</text><text class="s-t" x="234" y="50" text-anchor="middle">1</text><text class="s-t" x="282" y="50" text-anchor="middle">1</text><text class="s-t" x="330" y="50" text-anchor="middle">5</text><text class="s-t" x="378" y="50" text-anchor="middle">3</text><text class="s-ta" x="72" y="80">[2,2] +1</text><text class="s-ta" x="130" y="80">[3,4] +1</text><text class="s-ta" x="212" y="80">[5,5] +1</text><text class="s-td" x="4" y="108">query k=4: push through [3,4] &rarr; 5 + 1 = 6</text></svg>
+          <figcaption>[2, 5] is covered by three nodes. Tags land on them only. Reading x<sub>4</sub> pushes the [3,4] tag into its leaf: 5 becomes 6.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">In the full-cover branch, <code>update</code> adds to <code>lazy</code> and pushes straight away, so this node's sum is already correct when the parent merges. <code>query</code> prints at the leaf instead of returning a value.</p>
+        <div class="src-meta"><span class="path">trees/Range_Update_Queries.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll n , q ; 
+vector &lt; ll &gt; arr ;
+
+struct stnode{
+    ll sum ; 
+    ll lazy ;
+    stnode()
+    {
+        sum = 0 ; 
+        lazy = 0 ; 
+    }
+};
+vector &lt; stnode &gt; st ;
+stnode merge(stnode a , stnode b)
+{
+    stnode res ;
+    res.sum = a.sum + b.sum ;
+    return res ;
+}
+void push(ll id , ll l , ll r)
+{
+    if(st[id].lazy != 0)
+    {
+        st[id].sum += (r - l + 1) * st[id].lazy ;
+        if(l != r)
+        {
+            st[2 * id].lazy += st[id].lazy ;
+            st[2 * id + 1].lazy += st[id].lazy ;
+        }
+        st[id].lazy = 0 ;
+    }
+}
+void build(ll id , ll l , ll r)
+{
+    if(l == r)
+    {
+        st[id].sum = arr[l] ; 
+        return ; 
+    }
+    else
+    {
+        ll mid = l + (r - l) / 2 ;
+        build(2 * id , l , mid) ; 
+        build(2 * id + 1 , mid + 1 , r) ;
+        st[id] = merge(st[2 * id] , st[2 * id + 1]) ;
+    }
+    
+}
+void update(ll id, ll l , ll r , ll lq , ll rq, ll val)
+{
+    push(id , l , r) ;
+    if(rq &lt; l || lq &gt; r)
+    {
+        return ; 
+    }
+    else if(lq &lt;= l &amp;&amp; r &lt;= rq)
+    {
+        st[id].lazy += val ;
+        // why do we need to push here? because we need to update the current node's sum value as well, since we are adding a lazy value to it. If we don't push here, the sum value will not be updated and will be incorrect when we query it later.
+        push(id , l , r) ;
+    }
+    else
+    {
+        ll mid = l + (r - l) / 2 ;
+        update(2 * id , l , mid , lq , rq, val) ; 
+        update(2 * id + 1 , mid + 1 , r , lq , rq, val) ;
+        st[id] = merge(st[2 * id] , st[2 * id + 1]) ;
+    }
+}
+void query(ll id , ll l , ll r , ll pos)
+{
+    push(id , l , r) ;
+    if(pos &lt; l || pos &gt; r)
+    {
+        return ; 
+    }
+    else if(l == r &amp;&amp; l == pos)
+    {
+        cout &lt;&lt; st[id].sum &lt;&lt; endl ;
+        return ; 
+    }
+    else
+    {
+        ll mid = l + (r - l) / 2 ;
+        query(2 * id , l , mid , pos) ; 
+        query(2 * id + 1 , mid + 1 , r , pos) ;
+    }
+}
+void solve() 
+{
+    cin &gt;&gt; n &gt;&gt; q ;
+    arr.resize(n+1) ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        cin &gt;&gt; arr[i] ;
+    }
+    st.resize(4 * n + 5) ;
+    build(1 , 1 , n) ;
+    while(q--)
+    {
+        ll type ; 
+        cin &gt;&gt; type ; 
+        if(type == 1)
+        {
+            ll a , b , u ; 
+            cin &gt;&gt; a &gt;&gt; b &gt;&gt; u ;
+            update(1 , 1 , n , a , b , u) ;
+        }
+        else
+        {
+            ll k ; 
+            cin &gt;&gt; k ; 
+            query(1 , 1 , n , k) ;
+        }
+    }
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Push <em>before</em> the out-of-range return in <code>update</code>. Otherwise the parent's <code>merge</code> reads a sibling's sum that still has a pending tag.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"add to a range, read a point or range, interleaved" &rarr; lazy segment tree.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 4 ===================== -->
+  <section class="family" id="f4">
+    <div class="family-head"><h2>4 &middot; 2D prefix sums</h2></div>
+    <p class="family-note">A static grid needs no tree. Precompute once, and each rectangle is four corners with inclusion&ndash;exclusion.</p>
+
+    <article class="entry" id="forest-queries">
+      <div class="entry-head"><h3>Forest Queries</h3><span class="badge num">O(n&sup2; + q)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">For each query, count the trees (<code>*</code>) inside a rectangle of a fixed n&times;n grid.<div class="formal">ps[i][j] = f[i][j] + ps[i&minus;1][j] + ps[i][j&minus;1] &minus; ps[i&minus;1][j&minus;1]
+ans = ps[y2][x2] &minus; ps[y1&minus;1][x2] &minus; ps[y2][x1&minus;1] + ps[y1&minus;1][x1&minus;1]</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>There are no updates, so the counts can be precomputed.</li>
+          <li>A rectangle is the big prefix minus the strip above and the strip to the left, plus the corner that was subtracted twice.</li>
+          <li>1-indexing with a zero row and column removes every bounds check.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Count the cells for each query.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&sup2;)</span> per query.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n = 1000, q = 2&middot;10&#8309;</code> &rarr; <span class="cost">2&middot;10&#185;&#185;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">2D prefix sums: <span class="cost">O(n&sup2;)</span> build, <span class="cost">O(1)</span> per query.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 260 180" role="img" aria-label="rectangle 2 2 3 4"><g><rect class="s-box" x="40" y="20" width="36" height="36"/><rect class="s-good" x="76" y="20" width="36" height="36"/><rect class="s-box" x="112" y="20" width="36" height="36"/><rect class="s-box" x="148" y="20" width="36" height="36"/><rect class="s-good" x="40" y="56" width="36" height="36"/><rect class="s-box" x="76" y="56" width="36" height="36"/><rect class="s-good" x="112" y="56" width="36" height="36"/><rect class="s-good" x="148" y="56" width="36" height="36"/><rect class="s-good" x="40" y="92" width="36" height="36"/><rect class="s-good" x="76" y="92" width="36" height="36"/><rect class="s-box" x="112" y="92" width="36" height="36"/><rect class="s-box" x="148" y="92" width="36" height="36"/><rect class="s-good" x="40" y="128" width="36" height="36"/><rect class="s-good" x="76" y="128" width="36" height="36"/><rect class="s-good" x="112" y="128" width="36" height="36"/><rect class="s-good" x="148" y="128" width="36" height="36"/></g><rect class="s-hi" x="76" y="56" width="108" height="72"/><text class="s-ta" x="190" y="96">3 trees</text><text class="s-td" x="4" y="14">y1 x1 y2 x2 = 2 2 3 4</text></svg>
+          <figcaption>Green cells are trees. Rows 2&ndash;3 and columns 2&ndash;4 contain 3.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>cin &gt;&gt; c</code> reads one non-space character at a time, so the row strings need no parsing. <code>f</code> and <code>ps</code> are both (n+1)&sup2;, and row and column 0 stay zero.</p>
+        <div class="src-meta"><span class="path">trees/Forest_Queries.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n , q ; 
+    cin &gt;&gt; n &gt;&gt; q ; 
+    vector &lt; vector &lt; ll &gt; &gt; f(n + 1 , vector &lt; ll &gt; (n + 1 , 0)) ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        for(ll j = 1 ; j &lt;= n ; j++)
+        {
+            char c ; 
+            cin &gt;&gt; c ; 
+            if(c == '*')
+            {
+                f[i][j] = 1 ; 
+            }
+        }
+    }
+    vector &lt; vector &lt; ll &gt; &gt; ps(n + 1 , vector &lt; ll &gt; (n + 1 , 0)) ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        for(ll j = 1 ; j &lt;= n ; j++)
+        {
+            ps[i][j] = f[i][j] + ps[i - 1][j] + ps[i][j - 1] - ps[i - 1][j - 1] ;
+        }
+    }
+    while(q--)
+    {
+        ll y1 , x1 , y2 , x2 ; 
+        cin &gt;&gt; y1 &gt;&gt; x1 &gt;&gt; y2 &gt;&gt; x2 ; 
+        cout &lt;&lt; ps[y2][x2] - ps[y1 - 1][x2] - ps[y2][x1 - 1] + ps[y1 - 1][x1 - 1] &lt;&lt; endl ;
+    }
+    
+   
+
+
+
+
+
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Add back <code>ps[y1&minus;1][x1&minus;1]</code>, because the two strips both subtracted it. Queries give <code>y</code> (row) first.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"static grid, many rectangle counts or sums" &rarr; 2D prefix sums.</div>
+    </article>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+  <div class="excluded">
+    <h4>Excluded from this ledger</h4>
+    <ul>
+      <li><code>trees/Path_Queries.cpp</code> &mdash; unfinished, does not compile. <code>g++ -O2 -std=c++17 trees/Path_Queries.cpp</code> &rarr; <code>fatal error: 'algodebug.h' file not found</code>. With that include removed: <code>error: use of undeclared identifier 'stnode'</code> (line 61, used before its struct), and <code>void query</code> has no body.</li>
+      <li><code>trees/Salary_Queries.cpp</code> &mdash; empty template, with no statement and an empty <code>solve()</code>. Also fails with <code>fatal error: 'algodebug.h' file not found</code>.</li>
+    </ul>
+  </div>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/trees_2_segment_trees.js"></script>
+</body>
+</html>

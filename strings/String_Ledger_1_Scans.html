@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>String Scans &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<body data-base=".." data-slug="strings_1_scans">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; Strings</div>
+  <h1>String Scans</h1>
+  <p class="dek">Single-pass scans over a string with O(1) state. There is only one problem
+  so far. Recognition rules start once a second problem gives something to contrast.</p>
+  <p class="stats"><b>1</b> problem &middot; <b>1</b> family</p>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <div class="toc-fam"><a href="#f1">1 &middot; Run-length scan</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== FAMILY 1 ===================== -->
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1 &middot; Run-length scan</h2></div>
+    <p class="family-note">Compare each character with the one before it. The current run either grows or restarts at 1.</p>
+
+    <article class="entry" id="dna-repetition">
+      <div class="entry-head"><h3>DNA Repetition</h3><span class="badge num">O(n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Find the length of the longest block of one repeated character.<div class="formal">max (r &minus; l + 1)  such that  s[l] = s[l+1] = &hellip; = s[r]</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li><code>s[i] == s[i&minus;1]</code> means the run extends. Otherwise s[i] starts a new run of length 1.</li>
+          <li>Update the best after every character, so there is no final flush.</li>
+          <li>Starting both counters at 1 handles n = 1 with an empty loop.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">From every l, extend while the character matches.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&sup2;)</span> on "AAAA&hellip;".</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 10&#8310;</code> &rarr; <span class="cost">10&#185;&#178;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">One pass with a running count: <span class="cost">O(n)</span>, <span class="cost">O(1)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 360 80" role="img" aria-label="runs in ATTCGGGA"><g><rect class="s-box" x="20" y="14" width="36" height="28" rx="4"/><rect class="s-box" x="60" y="14" width="36" height="28" rx="4"/><rect class="s-box" x="100" y="14" width="36" height="28" rx="4"/><rect class="s-box" x="140" y="14" width="36" height="28" rx="4"/><rect class="s-good" x="180" y="14" width="36" height="28" rx="4"/><rect class="s-good" x="220" y="14" width="36" height="28" rx="4"/><rect class="s-good" x="260" y="14" width="36" height="28" rx="4"/><rect class="s-box" x="300" y="14" width="36" height="28" rx="4"/></g><text class="s-t" x="38" y="33" text-anchor="middle">A</text><text class="s-t" x="78" y="33" text-anchor="middle">T</text><text class="s-t" x="118" y="33" text-anchor="middle">T</text><text class="s-t" x="158" y="33" text-anchor="middle">C</text><text class="s-t" x="198" y="33" text-anchor="middle">G</text><text class="s-t" x="238" y="33" text-anchor="middle">G</text><text class="s-t" x="278" y="33" text-anchor="middle">G</text><text class="s-t" x="318" y="33" text-anchor="middle">A</text><text class="s-ta" x="20" y="64">count: 1 1 2 1 1 2 3 1  &rarr; max 3</text></svg>
+          <figcaption>The count after each character. It resets to 1 on every change, and GGG reaches 3.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The loop starts at i = 1 with <code>count = maxCount = 1</code>. <code>size_t i</code> matches <code>s.size()</code>, which avoids a signed-comparison warning.</p>
+        <div class="src-meta"><span class="path">strings/DNA_Repetition.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// Problem: DNA Repetition (longest run of a single character)
+// Link: CSES 1069
+// Pattern: single-pass run-length scan — track current run vs previous char, keep a running max
+// Time: O(n)  Space: O(1)
+//
+// Longest maximal substring of a single repeated character.
+//
+// Example:
+//     ATTCGGGA -&gt; 3   (GGG)
+
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(0); cout.tie(0);
+
+    string s;
+    cin &gt;&gt; s;
+
+    int count = 1, maxCount = 1;
+    for (size_t i = 1; i &lt; s.size(); i++) {
+        if (s[i] == s[i - 1]) count++;
+        else count = 1;
+        maxCount = max(maxCount, count);
+    }
+
+    cout &lt;&lt; maxCount &lt;&lt; '\n';
+    return 0;
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>On a mismatch, reset to <code>1</code>, not 0. The mismatching character is already a run of length 1.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"longest block of equal adjacent elements" &rarr; running count, reset to 1 on change.</div>
+    </article>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/strings_1_scans.js"></script>
+</body>
+</html>
