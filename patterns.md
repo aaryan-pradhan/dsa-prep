@@ -64,7 +64,7 @@ re-check beats bookkeeping positions. See
 keeps the intermediate value small, whereas `a*b` first can overflow even
 when the true LCM wouldn't. Default to `long long` for all inputs/output in
 number-theory problems, since these judges size constraints to make `int`
-overflow silently. See `math/01_next_common_height`.
+overflow silently. See `mathematics/Next_Common_Height.cpp`.
 
 ## Arrays — merge intervals for union size
 
@@ -83,7 +83,7 @@ When every value should appear an even number of times (or a known full
 range appears once each) except one outlier, XOR the full expected range
 with the actual values in one pass. Matched pairs cancel (`x ^ x = 0`),
 leaving only the outlier — no extra storage, no sorting. See
-`math/03_missing_number`.
+`mathematics/Missing_Number.cpp`.
 
 ## Gotcha — unordered_set/unordered_map anti-hash TLE on CSES
 

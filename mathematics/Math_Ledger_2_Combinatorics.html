@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Combinatorics &amp; Prime Counting &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<body data-base=".." data-slug="math_2_combinatorics">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; Math</div>
+  <h1>Combinatorics &amp; Prime Counting</h1>
+  <p class="dek">Counting problems whose answer is one formula. Either it is a binomial coefficient mod p &mdash; which means precomputed factorials and their inverses &mdash; or a short recurrence, or a sum over prime factors. The whole difficulty is naming the formula; the code after that is four lines.</p>
+  <p class="stats"><b>7</b> problems &middot; <b>3</b> families</p>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <a href="#recognition">Recognition rules</a>
+  <div class="toc-fam"><a href="#f1">1 &middot; Factorials mod p</a></div>
+  <div class="toc-fam"><a href="#f2">2 &middot; Counting recurrences</a></div>
+  <div class="toc-fam"><a href="#f3">3 &middot; Prime-factor counting</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recognition">
+    <div class="section-head"><h2>Recognition rules</h2>
+      <p>The judgment calls that separate these problems from each other.</p></div>
+    <div class="rules">
+      <div class="rule"><span class="n">1</span>
+        <p>Answer is "count the arrangements, mod 10&#8313;+7" &rarr; the same <code>fact</code> / <code>invfact</code> block every time. Write it once, then the problem is one <code>ncr</code> call: Binomial Coefficients, Creating Strings II, Distributing Apples.</p></div>
+      <div class="rule"><span class="n">2</span>
+        <p>"Distribute m identical things into n distinct boxes" &rarr; stars and bars, C(m+n&minus;1, n&minus;1). Size <code>MAXN</code> for <em>m + n</em>, not for n: Distributing Apples.</p></div>
+      <div class="rule"><span class="n">3</span>
+        <p>No closed form but the n case reduces to n&minus;1 and n&minus;2 by a case split on one element &rarr; write the recurrence and iterate it: Christmas Party.</p></div>
+      <div class="rule"><span class="n">4</span>
+        <p>"Count pairs with gcd = 1" or any condition over divisors &rarr; count pairs sharing a divisor d for every d, then inclusion&ndash;exclusion by &omega;(d): Counting Coprime Pairs.</p></div>
+      <div class="rule"><span class="n">5</span>
+        <p>n up to 10&#185;&#178; but t small &rarr; sieve to &radic;n once, then trial-divide each query by the sieved primes: Next Prime. A sieve to n itself is not an option.</p></div>
+    </div>
+  </section>
+
+  <!-- ===================== FAMILY 1 ===================== -->
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1 &middot; Factorials mod p</h2></div>
+    <p class="family-note">Everything here runs on one precomputed block: <code>fact[i]</code>, and <code>invfact[i]</code> built <em>backwards</em> from a single modular inverse of <code>fact[MAXN-1]</code>, using <code>invfact[i] = invfact[i+1] &middot; (i+1)</code>. One <code>mpow</code>, not MAXN of them. After that <code>ncr</code> is three multiplications.</p>
+
+    <article class="entry" id="binomial-coefficients">
+      <div class="entry-head"><h3>Binomial Coefficients</h3><span class="badge num">O(MAX + t)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Answer t queries of C(a, b) modulo 10&#8313;+7.<div class="formal">C(n,r) = n! &middot; (r!)&#8315;&sup1; &middot; ((n&minus;r)!)&#8315;&sup1;  (mod p)</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>p = 10&#8313;+7 is prime, so by Fermat a&#8315;&sup1; &equiv; a^(p&minus;2). That is what <code>minv</code> is.</li>
+          <li>Computing an inverse per query is O(log p) each; computing MAXN of them is 10&#8310; &middot; 30 = 3&middot;10&#8311; multiplications. Instead invert only <code>fact[MAXN-1]</code> and walk down: <code>invfact[i] = invfact[i+1] &middot; (i+1)</code>, because (i!)&#8315;&sup1; = ((i+1)!)&#8315;&sup1; &middot; (i+1).</li>
+          <li>Guard r &gt; n and r &lt; 0 inside <code>ncr</code>, or <code>invfact[n-r]</code> indexes out of bounds.</li>
+          <li><code>fill()</code> runs once in <code>main</code>, not per test.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Pascal's triangle up to n, or a fresh <code>mpow</code> inverse per query.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&#178;)</span> memory for the triangle; <span class="cost">O(t log p)</span> for per-query inverses.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 10&#8310;</code> &rarr; the triangle is 10&#185;&#178; cells.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Two arrays of size MAXN, built in <span class="cost">O(MAXN)</span> with exactly one <code>mpow</code>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 360 110" role="img" aria-label="invfact built backwards from one inverse"><rect class="s-box" x="20" y="30" width="56" height="28" rx="4"/><rect class="s-box" x="86" y="30" width="56" height="28" rx="4"/><text class="s-td" x="152" y="48">&hellip;</text><rect class="s-box" x="176" y="30" width="72" height="28" rx="4"/><rect class="s-good" x="258" y="30" width="82" height="28" rx="4"/><text class="s-t" x="48" y="49" text-anchor="middle">inv[0]</text><text class="s-t" x="114" y="49" text-anchor="middle">inv[1]</text><text class="s-t" x="212" y="49" text-anchor="middle">inv[M&minus;2]</text><text class="s-t" x="299" y="49" text-anchor="middle">inv[M&minus;1]</text><path class="s-hi" d="M256 70 L200 70"/><path class="s-hi" d="M174 70 L144 70"/><path class="s-hi" d="M84 70 L78 70"/><text class="s-ta" x="20" y="96">one mpow at the right end; every other cell is &times;(i+1), leftwards.</text></svg>
+          <figcaption>The only modular exponentiation in the whole precomputation is the rightmost cell.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">This is the reusable block &mdash; <code>madd/msub/mmul/mpow/minv/mdiv</code>, then <code>fact</code>, <code>invfact</code>, <code>ncr</code>. The problem itself is the last two lines of <code>solve()</code>.</p>
+        <div class="src-meta"><span class="path">mathematics/Binomial_Coefficients.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+#define MAXN 1000005
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll madd(ll a , ll b)
+{
+    return (a + b) % MOD ;
+}
+ll msub(ll a , ll b)
+{
+    return (a - b + MOD) % MOD ;
+}
+ll mmul(ll a , ll b)
+{
+    return (a * b) % MOD ;
+}
+ll mpow(ll a , ll b)
+{
+    ll res = 1 ;
+    while(b)
+    {
+        if(b &amp; 1)
+        {
+            res = mmul(res , a) ;
+        }
+        a = mmul(a , a) ;
+        b &gt;&gt;= 1 ;
+    }
+    return res ;
+}
+ll minv(ll a)
+{
+    return mpow(a , MOD - 2) ;
+}
+ll mdiv(ll a , ll b)
+{
+    return mmul(a , minv(b)) ;
+}
+ll fact[MAXN] , invfact[MAXN] ;
+void fill()
+{
+    fact[0] = 1 ;
+    for(ll i = 1 ; i &lt; MAXN ; i++)
+    {
+        fact[i] = mmul(fact[i - 1] , i) ;
+    }
+    invfact[MAXN - 1] = minv(fact[MAXN - 1]) ;
+    for(ll i = MAXN - 2 ; i &gt;= 0 ; i--)
+    {
+        invfact[i] = mmul(invfact[i + 1] , (i + 1)) ;
+    }
+
+}
+ll ncr(ll n , ll r)
+{
+    if(r &gt; n || r &lt; 0)
+    {
+        return 0 ;
+    }
+    return mmul(fact[n] , mmul(invfact[r] , invfact[n - r])) ;
+}
+void solve() 
+{
+    ll a , b ; 
+    cin &gt;&gt; a &gt;&gt; b ;
+    cout &lt;&lt; ncr(a , b) &lt;&lt; endl ;
+    
+   
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    ll t ; 
+    cin &gt;&gt; t ;
+    fill() ;
+    while(t--)
+    {
+        solve() ; 
+    }
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong><code>fill()</code> shadows <code>std::fill</code>. It works because it is called unqualified with no arguments, but a stray <code>using</code> or an argument turns it into an overload-resolution error.</div>
+      <div class="callout trigger"><strong>Recognize</strong>Any "count mod 10&#8313;+7" with a binomial in it &rarr; drop in the factorial/inverse-factorial block, then one <code>ncr</code>.</div>
+    </article>
+
+    <article class="entry" id="creating-strings-ii">
+      <div class="entry-head"><h3>Creating Strings II</h3><span class="badge num">O(MAX + n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Count the distinct rearrangements of a string, modulo 10&#8313;+7.<div class="formal">n! / &prod;<sub>c = a&hellip;z</sub> cnt[c]!</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>n! counts all orderings; swapping two copies of the same letter gives the same string, so divide by cnt[c]! for each letter.</li>
+          <li>Division mod p is multiplication by the inverse &mdash; and <code>invfact</code> already holds every factorial inverse needed, so no <code>mdiv</code> call is required at all.</li>
+          <li><code>invfact[0] = 1</code>, so letters that do not occur contribute nothing and need no special case.</li>
+          <li>Same problem as Creating Strings, one constraint bump: n &le; 10&#8310; makes listing them impossible, so only the count is asked for.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Generate the permutations and count them, as in Creating Strings.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n!)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 10&#8310;</code>. The answer does not fit in memory, let alone time.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">The multinomial coefficient, evaluated with precomputed factorials.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Count into <code>b[26]</code>, fold the 26 inverse factorials, then multiply by <code>fact[n]</code> at the end.</p>
+        <div class="src-meta"><span class="path">mathematics/Creating_Strings_II.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+#define MAXN 1000005
+ll madd(ll a , ll b)
+{
+    return (a + b) % MOD ;
+}
+ll msub(ll a , ll b)
+{
+    return (a - b + MOD) % MOD ;
+}
+ll mmul(ll a , ll b)
+{
+    return (a * b) % MOD ;
+}
+ll mpow(ll a , ll b)
+{
+    ll res = 1 ;
+    while(b)
+    {
+        if(b &amp; 1)
+        {
+            res = mmul(res , a) ;
+        }
+        a = mmul(a , a) ;
+        b &gt;&gt;= 1 ;
+    }
+    return res ;
+}
+ll minv(ll a)
+{
+    return mpow(a , MOD - 2) ;
+}
+ll mdiv(ll a , ll b)
+{
+    return mmul(a , minv(b)) ;
+}
+ll fact[MAXN] , invfact[MAXN] ;
+void fill()
+{
+    fact[0] = 1 ;
+    for(ll i = 1 ; i &lt; MAXN ; i++)
+    {
+        fact[i] = mmul(fact[i - 1] , i) ;
+    }
+    invfact[MAXN - 1] = minv(fact[MAXN - 1]) ;
+    for(ll i = MAXN - 2 ; i &gt;= 0 ; i--)
+    {
+        invfact[i] = mmul(invfact[i + 1] , (i + 1)) ;
+    }
+
+}
+ll ncr(ll n , ll r)
+{
+    if(r &gt; n || r &lt; 0)
+    {
+        return 0 ;
+    }
+    return mmul(fact[n] , mmul(invfact[r] , invfact[n - r])) ;
+}
+void solve() 
+{
+    string s ; 
+    cin &gt;&gt; s ;
+    ll n = s.size() ;
+    vector &lt; ll &gt; b(26 , 0) ;
+    for(ll i = 0 ; i &lt; n ; i++)
+    {
+        b[s[i] - 'a']++ ;
+    }
+    ll ans = 1 ; 
+    for(ll i = 0 ; i &lt; 26 ; i++)
+    {
+        ans = mmul(ans , invfact[b[i]]) ;
+    }
+    ans = mmul(ans , fact[n]) ;
+    cout &lt;&lt; ans &lt;&lt; endl ;
+
+    
+
+   
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+    fill() ;
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Do not compute <code>fact[n]</code> and then divide by a product of factorials taken mod p &mdash; the quotient is not the modular answer. Multiply by inverses, which is what the code does.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"how many distinct arrangements" with repeats &rarr; multinomial n! / &prod; cnt&#7522;!.</div>
+    </article>
+
+    <article class="entry" id="distributing-apples">
+      <div class="entry-head"><h3>Distributing Apples</h3><span class="badge num">O(MAX)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Count the ways to give m identical apples to n distinct children, modulo 10&#8313;+7.<div class="formal">#{(x&#8321;&hellip;x&#8345;) &isin; &#8469;&#8319; : &sum; x&#7522; = m} = C(m + n &minus; 1, n &minus; 1)</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Write the m apples in a row as stars, and place n&minus;1 bars among them to cut the row into n groups. Every arrangement is one distribution.</li>
+          <li>Total symbols = m + (n&minus;1). Choosing where the bars go is C(m+n&minus;1, n&minus;1).</li>
+          <li>Children may get zero, which is exactly why bars are allowed to be adjacent &mdash; no extra constraint.</li>
+          <li>MAXN must cover m + n &minus; 1, so with n, m &le; 10&#8310; it is 2&middot;10&#8310;, not 10&#8310;.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">DP over (child, apples left): <code>dp[i][j] = &sum;<sub>k&le;j</sub> dp[i-1][j-k]</code>.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&middot;m)</span> even with prefix sums.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n,m &le; 10&#8310;</code> &rarr; <span class="cost">10&#185;&#178;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">The closed form. One <code>ncr</code>, <span class="cost">O(1)</span> after precomputation.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 340 100" role="img" aria-label="stars and bars for n=3 children, m=2 apples"><text class="s-td" x="20" y="24">m = 2 stars, n&minus;1 = 2 bars</text><g><rect class="s-good" x="20" y="34" width="28" height="28" rx="4"/><rect class="s-warn" x="52" y="34" width="28" height="28" rx="4"/><rect class="s-good" x="84" y="34" width="28" height="28" rx="4"/><rect class="s-warn" x="116" y="34" width="28" height="28" rx="4"/></g><text class="s-t" x="34" y="53" text-anchor="middle">&#9733;</text><text class="s-t" x="66" y="53" text-anchor="middle">|</text><text class="s-t" x="98" y="53" text-anchor="middle">&#9733;</text><text class="s-t" x="130" y="53" text-anchor="middle">|</text><text class="s-tm" x="160" y="53">&#8594; [1, 1, 0]</text><text class="s-ta" x="20" y="86">4 slots, choose 2 for the bars &#8594; C(4, 2) = 6</text></svg>
+          <figcaption>n = 3, m = 2. Each of the C(4,2) = 6 bar placements is one of the six distributions in the statement.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>st</code> and <code>br</code> name the stars and bars explicitly, so the <code>ncr(tot, br)</code> line reads as the identity rather than as index arithmetic.</p>
+        <div class="src-meta"><span class="path">mathematics/Distributing_Apples.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+const ll MAXN = 2000005 ;
+ll fact[MAXN] , invfact[MAXN] ;
+ll mcorr(ll a)
+{
+    return (a % MOD + MOD) % MOD ;
+}
+ll madd(ll a , ll b)
+{
+    return (a%MOD + b%MOD) % MOD ;
+}
+ll msub(ll a , ll b)
+{
+    return (a%MOD - b%MOD + MOD) % MOD ;
+}
+ll mmul(ll a , ll b)
+{
+    return (a%MOD * b%MOD) % MOD ;
+}
+ll mpow(ll a , ll b)
+{
+    ll res = 1 ;
+    while(b)
+    {
+        if(b &amp; 1)
+        {
+            res = mmul(res , a) ;
+        }
+        a = mmul(a , a) ;
+        b &gt;&gt;= 1 ;
+    }
+    return res ;
+}
+ll minv(ll a)
+{
+    return mpow(a , MOD - 2) ;
+}
+ll mdiv(ll a , ll b)
+{
+    return mmul(a , minv(b)) ;
+}
+void fill()
+{
+    fact[0] = 1 ;
+    for(ll i = 1 ; i &lt; MAXN ; i++)
+    {
+        fact[i] = mmul(fact[i - 1] , i) ;
+    }
+    invfact[MAXN - 1] = minv(fact[MAXN - 1]) ;
+    for(ll i = MAXN - 2 ; i &gt;= 0 ; i--)
+    {
+        invfact[i] = mmul(invfact[i + 1] , (i + 1)) ;
+    }
+}
+ll ncr(ll n , ll r)
+{
+    if(r &gt; n || r &lt; 0)
+    {
+        return 0 ;
+    }
+    return mmul(fact[n] , mmul(invfact[r] , invfact[n - r])) ;
+}
+void solve() 
+{
+
+    ll n , m ; 
+    cin &gt;&gt; n &gt;&gt; m ;
+    ll st = m ; 
+    ll br = n - 1 ;
+    ll tot = st + br ;
+    cout &lt;&lt; ncr(tot , br) &lt;&lt; endl ;
+    
+   
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+    fill() ;
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong><code>MAXN = 2000005</code>, not 1000005. Sizing it to 10&#8310; reads <code>fact[m+n-1]</code> past the end for large inputs and gives a wrong answer, not a crash.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"identical items into distinct boxes, empty allowed" &rarr; C(items + boxes &minus; 1, boxes &minus; 1).</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 2 ===================== -->
+  <section class="family" id="f2">
+    <div class="family-head"><h2>2 &middot; Counting recurrences</h2></div>
+    <p class="family-note">No closed form is available, but a case split on one element expresses the n case in terms of smaller ones. Derive the recurrence, then iterate it bottom-up.</p>
+
+    <article class="entry" id="christmas-party">
+      <div class="entry-head"><h3>Christmas Party</h3><span class="badge num">O(n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Count permutations of n items with no fixed point (derangements), modulo 10&#8313;+7.<div class="formal">D(n) = #{&pi; &isin; S&#8345; : &pi;(i) &ne; i for all i}</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Child i's gift goes to some child j &ne; i. There are (i&minus;1) choices of j.</li>
+          <li>Split on what j receives. If j gets i's gift, the two are paired off and the rest is D(i&minus;2). If j is forbidden from i's gift, the remaining i&minus;1 children form a derangement-shaped problem: D(i&minus;1).</li>
+          <li>Hence D(i) = (i&minus;1)&middot;(D(i&minus;1) + D(i&minus;2)), with D(1) = 0 and D(2) = 1.</li>
+          <li>n &le; 10&#8310; makes recursion a stack overflow; iterate upwards.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate permutations and reject those with a fixed point &mdash; or recurse on the formula without memoising.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n!)</span> for enumeration; the plain recursion is <span class="cost">O(&phi;&#8319;)</span> from the double call.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 10&#8310;</code>. Even the recursion blows the stack.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">One upward loop over a <code>dp</code> array, <span class="cost">O(n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The commented-out <code>rec</code> at the top is the derivation the loop was built from; it is kept as written. The two base cases are handled with <code>continue</code> inside the loop rather than before it.</p>
+        <div class="src-meta"><span class="path">mathematics/Christmas_Party.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll madd(ll a , ll b)
+{
+    return (a%MOD + b%MOD) % MOD ;
+}
+ll msub(ll a , ll b)
+{
+    return (a%MOD - b%MOD + MOD) % MOD ;
+}
+ll mmul(ll a , ll b)
+{
+    return (a%MOD * b%MOD) % MOD ;
+}
+ll mpow(ll a , ll b)
+{
+    ll res = 1 ;
+    while(b)
+    {
+        if(b &amp; 1)
+        {
+            res = mmul(res , a) ;
+        }
+        a = mmul(a , a) ;
+        b &gt;&gt;= 1 ;
+    }
+    return res ;
+}
+ll minv(ll a)
+{
+    return mpow(a , MOD - 2) ;
+}
+ll mdiv(ll a , ll b)
+{
+    return mmul(a , minv(b)) ;
+}
+
+// ll rec(ll i)
+// {
+//     // this returns the number of ways i can give gifts to child from 1 to i such that no child gets their own gift.
+//     if(i == 1)
+//     {
+//         return 0 ;
+//     }
+//     if(i == 2)
+//     {
+//         return 1 ;
+//     }
+//     // now give the gift of child i to child j where j &lt; i. Now there are two cases, either child j gives their gift to child i or not. If they do, then we have to find the number of ways to give gifts to children from 1 to i - 2. If they don't, then we have to find the number of ways to give gifts to children from 1 to i - 1. So the answer is rec(i - 1) + (i - 1) * rec(i - 2).
+//     return mmul(i - 1 , madd(rec(i - 1) , rec(i - 2))) ;
+// }
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ;
+    ll dp[n + 1] ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(i == 1)
+        {
+            dp[i] = 0 ;
+            continue ;
+        }
+        if(i == 2)
+        {
+            dp[i] = 1 ;
+            continue ;
+        }
+        ll ans = madd(dp[i - 1] , dp[i - 2]) ;
+        ans = mmul(ans , i - 1) ;
+        dp[i] = ans ;
+    }
+    
+    cout &lt;&lt; dp[n] &lt;&lt; endl ;
+   
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The multiplier is <code>i - 1</code>, not <code>i</code> &mdash; child i cannot pick themselves. And <code>ll dp[n+1]</code> is a VLA on the stack; at n = 10&#8310; that is 8 MB and only survives because the limit here is 512 MB. A global array is the safe form.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"nobody gets their own" / "no element in its own position" &rarr; derangements, D(i) = (i&minus;1)(D(i&minus;1)+D(i&minus;2)).</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 3 ===================== -->
+  <section class="family" id="f3">
+    <div class="family-head"><h2>3 &middot; Prime-factor counting</h2></div>
+    <p class="family-note">The answer is a sum indexed by primes or by divisors. A sieve up to the value bound &mdash; not up to n &mdash; is the shared setup; what differs is what is summed over it.</p>
+
+    <article class="entry" id="trailing-zeros">
+      <div class="entry-head"><h3>Trailing Zeros</h3><span class="badge num">O(log&#8325; n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">How many trailing zeros does n! have?<div class="formal">v&#8325;(n!) = &sum;<sub>i&ge;1</sub> &lfloor;n / 5&#8305;&rfloor;</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>A trailing zero is a factor of 10 = 2&middot;5. Factors of 2 are far more common than factors of 5, so the count of 5s is the binding one.</li>
+          <li>&lfloor;n/5&rfloor; numbers up to n are divisible by 5; &lfloor;n/25&rfloor; of them contribute a <em>second</em> 5; and so on. Summing the floors counts each multiplicity exactly once.</li>
+          <li>The loop is over powers of 5, so it runs at most log&#8325;(10&#8313;) &asymp; 13 times.</li>
+          <li>No factorial is ever computed. n! at n = 10&#8313; has no representation.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Compute n! and strip zeros, or loop i = 1&hellip;n dividing out 5s.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">n! is astronomically large; the per-i loop is <span class="cost">O(n log n)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 10&#8313;</code>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Legendre's formula: 13 divisions.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Three lines. <code>i *= 5</code> with <code>i &lt;= n</code> ends the loop naturally once the power exceeds n.</p>
+        <div class="src-meta"><span class="path">mathematics/Trailing_Zeros.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ; 
+    ll ans = 0 ; 
+    for(ll i = 5 ; i &lt;= n ; i *= 5)
+    {
+        ans += n / i ; 
+    }
+    cout &lt;&lt; ans &lt;&lt; endl ; 
+    
+   
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong><code>i</code> must be <code>ll</code>. With <code>int</code>, <code>i *= 5</code> overflows near 2&middot;10&#8313; and the loop condition can turn true again on a negative value.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"trailing zeros of n!" or "exponent of prime p in n!" &rarr; &sum; &lfloor;n/p&#8305;&rfloor;.</div>
+    </article>
+
+    <article class="entry" id="next-prime">
+      <div class="entry-head"><h3>Next Prime</h3><span class="badge num">O(X log log X + t&middot;g&middot;&pi;(&radic;n))</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">For each of t queries, print the smallest prime strictly greater than n, with n up to 10&#185;&#178;.<div class="formal">min {q &gt; n : q prime}</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>A sieve to 10&#185;&#178; is impossible. A sieve to 10&#8310; is 1 MB of <code>bool</code> and gives every prime up to &radic;(10&#185;&#178;) &mdash; enough to <em>test</em> any n by trial division.</li>
+          <li>Two regimes: if n is inside the sieved range, the answer is already in the prime list &mdash; <code>upper_bound</code>. Otherwise test candidates one at a time.</li>
+          <li>Candidates skip evens: start at n+1 or n+2 so the start is odd, then step by 2.</li>
+          <li>Trial division stops at <code>x*x &gt; ans</code>. Prime gaps near 10&#185;&#178; are ~300, so t = 20 queries cost at most a few thousand primality tests.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Sieve up to n, or trial-divide each candidate by every integer &le; &radic;n.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">10&#185;&#178; memory for the sieve; <span class="cost">O(&radic;n)</span> = 10&#8310; divisions per candidate otherwise.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">the sieve dies on memory immediately; trial division by all integers is ~80&times; slower than by primes only.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Sieve to &radic;(max n) once, reuse the prime list for every query.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>sieve()</code> marks composites; <code>main</code> then collects the primes into a vector before reading t. The <code>n &lt; 1000100</code> branch answers from the list directly.</p>
+        <div class="src-meta"><span class="path">mathematics/Next_Prime.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll unsigned long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+
+bool iscomposite[1000100] ;
+vector &lt; ll &gt; primes ;
+void sieve()
+{
+    for(ll i = 2 ; i &lt; 1000100 ; i++)
+    {
+        
+        if(!iscomposite[i])
+        {
+            
+            for(ll j = i * i ; j &lt; 1000100 ; j += i)
+            {
+                iscomposite[j] = true ;
+            }
+        }
+    }
+}
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ;
+    if(n &lt; 1000100)
+    {
+        cout &lt;&lt; *upper_bound(primes.begin() , primes.end() , n) &lt;&lt; endl ;
+    }
+    else
+    {
+        ll ans ;
+        if(n%2 == 0)
+        {
+            ans = n + 1 ;
+        }
+        else 
+        {
+            ans = n + 2 ;
+        }
+        while(true)
+        {
+            bool isprime = true ;
+            for(auto &amp;x : primes)
+            {
+                if(x * x &gt; ans)
+                {
+                    break ;
+                }
+                if(ans % x == 0)
+                {
+                    isprime = false ;
+                    break ;
+                }
+                
+            }
+            if(isprime)
+            {
+                cout &lt;&lt; ans &lt;&lt; endl ;
+                break ;
+            }
+            else 
+            {
+                ans += 2 ;
+            }
+        }
+    }
+
+    
+   
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+    sieve() ;
+    for(ll i = 2 ; i &lt; 1000100 ; i++)
+    {
+        if(!iscomposite[i])
+        {
+            primes.push_back(i) ;
+        }
+    }
+    
+ 
+    ll t ;
+    cin &gt;&gt; t ;
+    while(t--)
+    {
+        solve() ; 
+    }
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong><code>upper_bound</code>, not <code>lower_bound</code> &mdash; the answer must be strictly greater, so n = 2 gives 3. And <code>j = i * i</code> in the sieve needs <code>ll</code>: at i near 10&#8310;, <code>i*i</code> is 10&#185;&#178;.</div>
+      <div class="callout trigger"><strong>Recognize</strong>Value bound too large to sieve but queries few &rarr; sieve to &radic;(bound), trial-divide by the sieved primes.</div>
+    </article>
+
+    <article class="entry" id="counting-coprime-pairs">
+      <div class="entry-head"><h3>Counting Coprime Pairs</h3><span class="badge num">O(X log X)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Count pairs i &lt; j with gcd(x&#7522;, x&#11388;) = 1.<div class="formal">&sum;<sub>d squarefree</sub> (&minus;1)<sup>&omega;(d)</sup> &middot; C(cnt[d], 2),  cnt[d] = #{i : d | x&#7522;}</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Counting coprime pairs directly is hard; counting pairs that share a divisor d is easy &mdash; C(cnt[d], 2).</li>
+          <li>Those overlap, so inclusion&ndash;exclusion over the prime divisors: add for an even number of distinct primes, subtract for an odd number. That sign is the M&ouml;bius function.</li>
+          <li>Only squarefree d contribute. Replacing each x&#7522; by its <em>radical</em> (the product of its distinct primes) via <code>reduce</code> makes every surviving d automatically squarefree, so no explicit &mu; table is needed &mdash; <code>nopd(d)</code> counts the distinct primes and decides the sign.</li>
+          <li><code>cnt[d]</code> for all d comes from the harmonic sum <code>for d: for j = d, 2d, &hellip;: dp[d] += freq[j]</code> &mdash; X log X, not X&#178;.</li>
+          <li><code>spf</code> (smallest prime factor) from a linearish sieve makes <code>reduce</code> and <code>nopd</code> O(log x) each.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">All pairs, <code>__gcd</code> on each.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n&#178; log X)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 10&#8309;</code> &rarr; <span class="cost">5&#183;10&#8313;</span> gcd calls.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Count by divisor and fix the overcounting with M&ouml;bius signs: <span class="cost">O(X log X)</span> over the value range, independent of n.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 360 110" role="img" aria-label="inclusion exclusion by omega(d)"><rect class="s-good" x="20" y="30" width="72" height="30" rx="4"/><rect class="s-warn" x="100" y="30" width="72" height="30" rx="4"/><rect class="s-warn" x="180" y="30" width="72" height="30" rx="4"/><rect class="s-good" x="260" y="30" width="72" height="30" rx="4"/><text class="s-t" x="56" y="50" text-anchor="middle">d = 1</text><text class="s-t" x="136" y="50" text-anchor="middle">d = 2</text><text class="s-t" x="216" y="50" text-anchor="middle">d = 5</text><text class="s-t" x="296" y="50" text-anchor="middle">d = 10</text><text class="s-tm" x="56" y="76" text-anchor="middle">&omega;=0  +</text><text class="s-tm" x="136" y="76" text-anchor="middle">&omega;=1  &minus;</text><text class="s-tm" x="216" y="76" text-anchor="middle">&omega;=1  &minus;</text><text class="s-tm" x="296" y="76" text-anchor="middle">&omega;=2  +</text><text class="s-ta" x="20" y="100">pairs sharing 10 were subtracted twice, so add them back once.</text></svg>
+          <figcaption>The sign is decided by the number of distinct prime factors of d, which is what <code>nopd</code> returns.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>reduce</code> maps each input to its radical, <code>freq</code> counts radicals, <code>dp[d]</code> is the divisor-multiple sum, and the final loop applies the signs.</p>
+        <div class="src-meta"><span class="path">mathematics/Counting_Coprime_Pairs.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+const ll MAX = 1e6 + 5 ;
+ll spf[MAX] ;
+void sieve()
+{
+    for(ll i = 2 ; i &lt; MAX ; i++)
+    {
+        if(spf[i] == 0)
+        {
+            for(ll j = i ; j &lt; MAX ; j += i)
+            {
+                if(spf[j] == 0)
+                {
+                    spf[j] = i ;
+                }
+            }
+        }
+    }
+}
+ll reduce(ll a)
+{
+    ll ans = 1 ; 
+    while(a &gt; 1)
+    {
+        ll p = spf[a] ; 
+        ans *= p ; 
+        while(a % p == 0)
+        {
+            a /= p ; 
+        }
+    }
+    return ans ;
+}
+ll nopd(ll a)
+{
+    ll cnt = 0 ; 
+    while(a &gt; 1)
+    {
+        ll p = spf[a] ; 
+        cnt++ ; 
+        while(a % p == 0)
+        {
+            a /= p ; 
+        }
+    }
+    return cnt ;
+}
+
+void solve() 
+{
+    
+   ll n ; 
+   cin &gt;&gt; n ;
+   vector &lt; ll &gt; v(n) ;
+   ll maxi = 0 ;
+   for(ll i = 0 ; i &lt; n ; i++)
+   {
+        ll x ; 
+        cin &gt;&gt; x ; 
+        v[i] = reduce(x) ;
+        maxi = max(maxi , v[i]) ;
+   }
+   vector &lt; ll &gt; freq(maxi + 1 , 0) ;
+   for(ll i = 0 ; i &lt; n ; i++)
+   {
+        freq[v[i]]++ ; 
+   }
+   vector &lt; ll &gt; dp(maxi + 1 , 0) ;
+   for(ll d = 1 ; d &lt;= maxi ; d++)
+   {
+        for(ll j = d ; j &lt;= maxi ; j += d)
+        {
+            dp[d] += freq[j] ;   
+        }
+   }
+   
+    
+
+   ll ans = 0 ; 
+   for(ll d = 1 ; d &lt;= maxi ; d++)
+   {
+        ll cnt = dp[d] ; 
+        ll pairs = (cnt * (cnt - 1)) / 2 ; 
+        if(pairs == 0)
+        {
+            continue ; 
+        }
+        if(nopd(d) % 2 == 0)
+        {
+            ans += pairs ;
+        }
+        else
+        {
+            ans -= pairs ;
+        }
+        
+   }
+   cout &lt;&lt; ans &lt;&lt; endl ;
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+    sieve() ;
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The reduction to radicals is what makes the sign rule correct. Without it, a non-squarefree d such as 4 would get a &minus; sign from &omega;(4) = 1 and be counted, when &mu;(4) = 0 says it must not be.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"count pairs with gcd = 1" &rarr; count pairs per divisor with the harmonic sum, then alternate signs by the number of distinct primes.</div>
+    </article>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/math_2_combinatorics.js"></script>
+</body>
+</html>

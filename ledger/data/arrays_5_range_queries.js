@@ -44,5 +44,5 @@ LEDGER.add(
       time: 'O(n log C)' }
   ],
   [ { file: 'arrays/Sum_of_Divisors.cpp',
-      why: "1-byte file containing the single character 'l'; g++ -fsyntax-only reports \"unknown type name 'l'\". Working solution lives at math/Sum_of_Divisors.cpp." } ]
+      why: "1-byte file containing the single character 'l'; g++ -fsyntax-only reports \"unknown type name 'l'\". Working solution lives at mathematics/Sum_of_Divisors.cpp." } ]
 );

@@ -91,7 +91,7 @@
       <div class="sec">
         <div class="sec-label" data-n="5">Implementation</div>
         <p class="impl-note">The loop is <code>while (n != 1)</code>: print, then transform. The final <code>1</code> prints outside the loop, which also makes input 1 correct with no special case.</p>
-        <div class="src-meta"><span class="path">math/Weird_Algorithm.cpp</span><span>verbatim</span></div>
+        <div class="src-meta"><span class="path">mathematics/Weird_Algorithm.cpp</span><span>verbatim</span></div>
 <pre class="source"><code>// Problem: Weird Algorithm (Collatz sequence)
 // Link: CSES 1068
 // Pattern: simulate with a loop, print each state, exit right after the terminal value
@@ -161,7 +161,7 @@ int main() {
       <div class="sec">
         <div class="sec-label" data-n="5">Implementation</div>
         <p class="impl-note">The first loop XORs 1..n. The second XORs the n&minus;1 inputs as they are read. <code>x</code> is <code>long long</code>, which isn't needed because XOR never exceeds 2&#185;&#8312;.</p>
-        <div class="src-meta"><span class="path">math/Missing_Number.cpp</span><span>verbatim</span></div>
+        <div class="src-meta"><span class="path">mathematics/Missing_Number.cpp</span><span>verbatim</span></div>
 <pre class="source"><code>// Problem: Missing Number
 // Link: CSES 1083
 // Pattern: XOR 1..n with the given values — duplicates cancel, only the missing one survives
@@ -233,7 +233,7 @@ int main() {
       <div class="sec">
         <div class="sec-label" data-n="5">Implementation</div>
         <p class="impl-note">The loop runs while <code>(1LL &lt;&lt; i) &lt;= n</code>, so only bits that can be set are counted. It counts over 0..n, and 0 adds nothing. The commented-out popcount loop above it is the brute force.</p>
-        <div class="src-meta"><span class="path">math/Counting_Bits.cpp</span><span>verbatim</span></div>
+        <div class="src-meta"><span class="path">mathematics/Counting_Bits.cpp</span><span>verbatim</span></div>
 <pre class="source"><code>// orz
 #include &lt;bits/stdc++.h&gt;
 
@@ -341,7 +341,7 @@ signed main()
       <div class="sec">
         <div class="sec-label" data-n="5">Implementation</div>
         <p class="impl-note">This is a hand-written iterative <code>gcd</code>, not <code>std::gcd</code>. The one line that matters is <code>a / gcd(a, b) * b</code>: divide first.</p>
-        <div class="src-meta"><span class="path">math/Next_Common_Height.cpp</span><span>verbatim</span></div>
+        <div class="src-meta"><span class="path">mathematics/Next_Common_Height.cpp</span><span>verbatim</span></div>
 <pre class="source"><code>// Problem: Next Common Height (Nandu and Chandu)
 // Pattern: LCM of two step sizes — divide-before-multiply to avoid overflow
 // Time: O(log(min(a,b))) per test case  Space: O(1)
@@ -423,7 +423,7 @@ int main() {
       <div class="sec">
         <div class="sec-label" data-n="5">Implementation</div>
         <p class="impl-note"><code>mmul</code> does <code>(a*b) % MOD</code> without reducing the operands first. That is safe here only because every input a is &le; 10&#8313; &lt; MOD. This file has no pasted statement block (CSES 1095).</p>
-        <div class="src-meta"><span class="path">math/Exponentiation.cpp</span><span>verbatim</span></div>
+        <div class="src-meta"><span class="path">mathematics/Exponentiation.cpp</span><span>verbatim</span></div>
 <pre class="source"><code>// orz
 #include &lt;bits/stdc++.h&gt;
 
@@ -521,7 +521,7 @@ signed main()
       <div class="sec">
         <div class="sec-label" data-n="5">Implementation</div>
         <p class="impl-note"><code>mmul</code> and <code>mpow</code> take a default <code>mod = MOD</code> parameter, so one pair serves both levels. The two zero guards run before Fermat is applied. Case a = 0, b = 0, c = 0 gives b<sup>c</sup> = 1, so 0<sup>1</sup> = 0.</p>
-        <div class="src-meta"><span class="path">math/Exponentiation_II.cpp</span><span>verbatim</span></div>
+        <div class="src-meta"><span class="path">mathematics/Exponentiation_II.cpp</span><span>verbatim</span></div>
 <pre class="source"><code>// orz
 #include &lt;bits/stdc++.h&gt;
 
@@ -647,7 +647,7 @@ signed main()
       <div class="sec">
         <div class="sec-label" data-n="5">Implementation</div>
         <p class="impl-note"><code>pre()</code> runs once after reading t. <code>d</code> is a global <code>ll[1000001]</code>, which is 8 MB, zero-initialised, and off the stack. The commented-out <code>solve</code> is the √x brute force.</p>
-        <div class="src-meta"><span class="path">math/Counting_Divisors.cpp</span><span>verbatim</span></div>
+        <div class="src-meta"><span class="path">mathematics/Counting_Divisors.cpp</span><span>verbatim</span></div>
 <pre class="source"><code>// orz
 #include &lt;bits/stdc++.h&gt;
 
@@ -755,7 +755,7 @@ signed main()
       <div class="sec">
         <div class="sec-label" data-n="5">Implementation</div>
         <p class="impl-note"><code>freq</code> is sized to the actual max, not 10&#8310;. The downward loop <code>return</code>s on the first hit. g = 1 always has cnt = n &ge; 2, so the loop always prints.</p>
-        <div class="src-meta"><span class="path">math/Common_Divisors.cpp</span><span>verbatim</span></div>
+        <div class="src-meta"><span class="path">mathematics/Common_Divisors.cpp</span><span>verbatim</span></div>
 <pre class="source"><code>// orz
 #include &lt;bits/stdc++.h&gt;
 
@@ -862,7 +862,7 @@ block [l, r] with v = &lfloor;n/l&rfloor;, r = &lfloor;n/v&rfloor;:  v &middot; 
       <div class="sec">
         <div class="sec-label" data-n="5">Implementation</div>
         <p class="impl-note">Every helper reduces its operands before combining them, which is needed because <code>l</code> and <code>r</code> reach 10&#185;&#178;. <code>mdiv(&hellip;, 2)</code> multiplies by <code>mpow(2, MOD&minus;2)</code>. <code>l = r + 1</code> jumps to the next block.</p>
-        <div class="src-meta"><span class="path">math/Sum_of_Divisors.cpp</span><span>verbatim</span></div>
+        <div class="src-meta"><span class="path">mathematics/Sum_of_Divisors.cpp</span><span>verbatim</span></div>
 <pre class="source"><code>// orz
 #include &lt;bits/stdc++.h&gt;
 
@@ -958,9 +958,9 @@ signed main()
   <div class="excluded">
     <h4>Excluded from this ledger</h4>
     <ul>
-      <li><code>math/Divisor_Analysis.cpp</code> &mdash; does not compile. <code>g++ -O2 -std=c++17 math/Divisor_Analysis.cpp</code> &rarr; <code>163:19: error: no matching function for call to 'mpow'</code>. <code>exp</code> is never declared, so it resolves to <code>std::exp</code>. <code>product_of_divisors()</code> also has no <code>return</code>.</li>
-      <li><code>math/Filled_Subgrid_Count_I.cpp</code> &mdash; empty file (0 bytes).</li>
-      <li><code>math/Planets_Cycles.cpp</code> &mdash; empty file (0 bytes).</li>
+      <li><code>mathematics/Divisor_Analysis.cpp</code> &mdash; does not compile. <code>g++ -O2 -std=c++17 mathematics/Divisor_Analysis.cpp</code> &rarr; <code>163:19: error: no matching function for call to 'mpow'</code>. <code>exp</code> is never declared, so it resolves to <code>std::exp</code>. <code>product_of_divisors()</code> also has no <code>return</code>.</li>
+      <li><code>mathematics/Filled_Subgrid_Count_I.cpp</code> &mdash; empty file (0 bytes).</li>
+      <li><code>mathematics/Planets_Cycles.cpp</code> &mdash; empty file (0 bytes).</li>
     </ul>
   </div>
 </footer>

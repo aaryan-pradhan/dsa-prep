@@ -16,7 +16,7 @@ window.LEDGER = (function () {
     graphs:      { label: 'Graphs',      dir: 'graphs' },
     dp:          { label: 'DP',          dir: 'dp' },
     trees:       { label: 'Trees',       dir: 'trees' },
-    math:        { label: 'Math',        dir: 'math' },
+    mathematics: { label: 'Mathematics', dir: 'mathematics' },
     linked_list: { label: 'Linked List', dir: 'linked_list' },
     strings:     { label: 'Strings',     dir: 'strings' }
   };
