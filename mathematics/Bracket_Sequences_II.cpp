@@ -1,6 +1,6 @@
 // orz
 #include <bits/stdc++.h>
-#include "algodebug.h"
+
 #define ll long long 
 #define endl "\n"
 #define fr first
@@ -15,11 +15,86 @@
 #define pll pair<ll,ll>
 
 using namespace std;
+/*Time limit: 1.00 s
+Memory limit: 512 MB
 
+Your task is to calculate the number of valid bracket sequences of length n when a prefix of the sequence is given.
+Input
+The first input line has an integer n.
+The second line has a string of k characters: the prefix of the sequence.
+Output
+Print the number of sequences modulo 10^9+7.
+Constraints
+
+1 \le k \le n \le 10^6
+
+Example
+Input:
+6
+(()
+
+Output:
+2
+
+Explanation: There are two possible sequences: (())() and (()()).*/
+#define N 2000005
+ll madd(ll a, ll b) { return (a%MOD + b%MOD) % MOD; }
+ll mmul(ll a, ll b) { return (a%MOD * b%MOD) % MOD; }
+ll mpow(ll a, ll b) 
+{
+    ll res = 1;
+    while(b) 
+    {
+        if(b&1) res = mmul(res, a);
+        a = mmul(a, a);
+        b >>= 1;
+    }
+    return res;
+}
+ll minv(ll a) { return mpow(a, MOD-2); }
+ll msub(ll a, ll b) { return (a%MOD - b%MOD + MOD) % MOD; }
+ll mdiv(ll a, ll b) { return mmul(a, minv(b)); }
+ll mcorr(ll a) { return (a%MOD + MOD) % MOD; }
+ll fact[N], invfact[N];
+void fill()
+{
+    fact[0] = 1;
+    for(ll i=1; i<N; i++) fact[i] = mmul(fact[i-1], i);
+    invfact[N-1] = minv(fact[N-1]);
+    for(ll i=N-2; i>=0; i--) invfact[i] = mmul(invfact[i+1], i+1);
+}
+
+ll ncr(ll n, ll r) 
+{
+    if(r>n || r<0) return 0;
+    return mmul(fact[n], mmul(invfact[r], invfact[n-r]));
+}
 void solve() 
 {
+    ll n ;
+    cin >> n ;
+    ll b = 0 ; 
+    ll cnt = 0 ; 
+    for(ll i=0; i<n; i++)
+    {
+        char c ; 
+        cin >> c ; 
+        cnt++ ;
+        if(c=='(') b++ ; 
+        else b-- ; 
+        if(b<0)
+        {
+            cout << 0 << endl ;
+            return ; 
+        }
+    }
     
-   
+    ll rem = n - cnt ; 
+    
+
+
+    
+
 
 
 
@@ -33,6 +108,7 @@ signed main()
     ios_base::sync_with_stdio(false);
     cin.tie(0);
     cout.tie(0);
+    fill();
  
     solve() ; 
 }
