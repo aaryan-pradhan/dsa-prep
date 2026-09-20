@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recursion &amp; Construction &middot; The Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../ledger/ledger.css">
+</head>
+<body data-base=".." data-slug="arrays_6_recursion_construct">
+
+<header class="masthead">
+  <div class="kicker"><a href="../LEDGER.html">The Ledger</a> &middot; Arrays</div>
+  <h1>Recursion &amp; Construction</h1>
+  <p class="dek">Problems where the answer is <em>built</em>, not searched for in an array. Either n is small enough to enumerate every choice, or the output is a recursive list, or a one-line condition decides feasibility and the example is assembled by hand.</p>
+  <p class="stats"><b>8</b> problems &middot; <b>3</b> families</p>
+</header>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#master">Master table</a>
+  <a href="#recognition">Recognition rules</a>
+  <div class="toc-fam"><a href="#f1">1 &middot; Exhaustive recursion</a></div>
+  <div class="toc-fam"><a href="#f2">2 &middot; Recursive construction</a></div>
+  <div class="toc-fam"><a href="#f3">3 &middot; Constructive answers</a></div>
+</nav>
+
+<main>
+  <section id="master">
+    <div class="section-head"><h2>Master table</h2>
+      <p>The 60-second scan. Each name jumps to its entry.</p></div>
+    <div class="count" id="count"></div>
+    <div class="table-wrap">
+      <table class="master">
+        <thead><tr><th>Problem</th><th>Family</th><th>Invariant / recurrence</th><th>Time</th></tr></thead>
+        <tbody id="master-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="recognition">
+    <div class="section-head"><h2>Recognition rules</h2>
+      <p>The judgment calls that separate these problems from each other.</p></div>
+    <div class="rules">
+      <div class="rule"><span class="n">1</span>
+        <p>n &le; 20 and the question is "best over all subsets" &rarr; recurse take/skip, no DP needed: Apple Division. n &le; 8 and the question is "count the valid placements" &rarr; recurse one row at a time: Chessboard and Queens.</p></div>
+      <div class="rule"><span class="n">2</span>
+        <p>"Print all &hellip; in alphabetical order" &rarr; sort, then <code>next_permutation</code>. It skips duplicates for free, so no <code>set</code>: Creating Strings.</p></div>
+      <div class="rule"><span class="n">3</span>
+        <p>Output length is 2&#8319; or 2&#8319;&minus;1 &rarr; the answer is a recursion on the <em>output</em>, not a search: Gray Code, Tower of Hanoi. Build the list for n&minus;1, then glue.</p></div>
+      <div class="rule"><span class="n">4</span>
+        <p>"Print YES/NO, and an example if YES", n up to 10&#8313; or t up to 10&#8309; &rarr; there is a closed-form feasibility test. Find it first, construct second: Coin Piles, Raab Game I.</p></div>
+      <div class="rule"><span class="n">5</span>
+        <p>Rearrange characters under a symmetry constraint &rarr; count characters, check the parity condition, emit greedily: Palindrome Reorder.</p></div>
+    </div>
+  </section>
+
+  <!-- ===================== FAMILY 1 ===================== -->
+  <section class="family" id="f1">
+    <div class="family-head"><h2>1 &middot; Exhaustive recursion</h2></div>
+    <p class="family-note">The constraint is tiny on purpose. Enumerate every choice, score the leaf, keep the best or the count. The only design question is what to carry down the recursion and what to recompute at the bottom.</p>
+
+    <article class="entry" id="apple-division">
+      <div class="entry-head"><h3>Apple Division</h3><span class="badge num">O(2&#8319;&middot;n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Split n weights into two groups with the smallest possible difference of sums.<div class="formal">min<sub>T &sube; {1&hellip;n}</sub> |S &minus; 2&middot;&sum;<sub>i&isin;T</sub> p&#7522;|,  where S = &sum; p&#7522;</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Choosing group 1 fixes group 2. So the search space is subsets, not ordered pairs &mdash; 2&#8319;, and each split is generated twice (T and its complement), which costs nothing.</li>
+          <li>n &le; 20 &rArr; 2&#178;&#8304; &asymp; 10&#8310; leaves. Free.</li>
+          <li>Sums reach 20 &middot; 10&#8313; = 2&middot;10&#185;&#8304; &rArr; <code>ll</code>, not <code>int</code>.</li>
+          <li>The bitmask is only a carrier. This same recursion works with two running sums passed down; the mask version just re-reads them at the leaf.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Enumerate all 2&#8319; subsets &mdash; which is what this <em>is</em>.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(2&#8319;&middot;n)</span> here, because the leaf re-sums the mask.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">nothing. <code>n &le; 20</code> &rarr; <span class="cost">2&#183;10&#8311;</span> operations.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Accept the extra factor n. Carrying two running sums would give <span class="cost">O(2&#8319;)</span>, and is the version to write if n were 30.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>rec</code> takes index <code>i</code> and the mask of everything chosen so far. Both branches are unconditional; the work happens only at <code>i == n</code>. <code>ans</code> starts at <code>INF</code>.</p>
+        <div class="src-meta"><span class="path">arrays/Apple_Division.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll n ; 
+ll ans ; 
+vector &lt; ll &gt; v ;
+void rec(ll i , ll mask)
+{
+    if(i == n)
+    {
+        ll sum1 = 0 , sum2 = 0 ; 
+        for(ll j = 0 ; j &lt; n ; j++)
+        {
+            if(mask &amp; (1 &lt;&lt; j))
+            {
+                sum1 += v[j] ;
+            }
+            else
+            {
+                sum2 += v[j] ;
+            }
+        }
+        ans = min(ans , abs(sum1 - sum2)) ;
+        return ;
+    }
+    rec(i + 1 , mask | (1 &lt;&lt; i)) ;
+    rec(i + 1 , mask) ;
+}
+void solve() 
+{
+
+    cin &gt;&gt; n ;
+    for(ll i = 0 ; i &lt; n ; i++)
+    {
+        ll x ; 
+        cin &gt;&gt; x ; 
+        v.push_back(x) ;
+    }
+    ans = INF ;
+    rec(0 , 0) ;
+    cout &lt;&lt; ans &lt;&lt; endl ;
+
+    
+   
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong><code>1 &lt;&lt; j</code> is an <code>int</code> shift. It is safe here only because n &le; 20; at n &ge; 31 it is undefined behaviour and needs <code>1LL &lt;&lt; j</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"divide into two groups, minimise the difference", n &le; 20 &rarr; recurse take/skip over every element.</div>
+    </article>
+
+    <article class="entry" id="chessboard-and-queens">
+      <div class="entry-head"><h3>Chessboard and Queens</h3><span class="badge num">O(8! &middot; 8)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Count placements of 8 non-attacking queens on an 8&times;8 board where some squares are forbidden.<div class="formal">#{c&#8320;&hellip;c&#8327; : c&#7522; free, c&#7522; &ne; c&#11388;, |c&#7522; &minus; c&#11388;| &ne; |i &minus; j|}</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Exactly one queen per row. That is forced, not a choice: 8 queens, 8 rows, no two in a row. So the recursion is over rows, and only the column is picked.</li>
+          <li>Because rows are filled top-down, only squares <em>above</em> the current row can conflict. <code>check</code> looks up the column and the two upward diagonals and nothing else.</li>
+          <li>A reserved square blocks placement but not attacks. So it is a test on <code>v[row][col]</code> only &mdash; it never appears in <code>check</code>.</li>
+          <li>Marking reserved squares as <code>2</code> and queens as <code>1</code> keeps the two meanings in one grid, and <code>check</code> compares against <code>1</code>.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Choose 8 of the 64 squares, test each combination.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">C(64,8) &asymp; 4&#183;10&#8313;</span> combinations, each checked in 8&#178;.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">the 1 s limit, by three orders of magnitude.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">One queen per row prunes it to at most 8&#8312; = <span class="cost">1.6&#183;10&#8311;</span> paths, and conflicts cut that to well under 8!.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 300 150" role="img" aria-label="what check() scans above row 3"><g><rect class="s-box" x="20" y="14" width="30" height="30"/><rect class="s-box" x="50" y="14" width="30" height="30"/><rect class="s-fill" x="80" y="14" width="30" height="30"/><rect class="s-box" x="110" y="14" width="30" height="30"/><rect class="s-fill" x="140" y="14" width="30" height="30"/><rect class="s-box" x="170" y="14" width="30" height="30"/><rect class="s-fill" x="200" y="14" width="30" height="30"/><rect class="s-box" x="230" y="14" width="30" height="30"/></g><g><rect class="s-box" x="20" y="44" width="30" height="30"/><rect class="s-box" x="50" y="44" width="30" height="30"/><rect class="s-box" x="80" y="44" width="30" height="30"/><rect class="s-fill" x="110" y="44" width="30" height="30"/><rect class="s-fill" x="140" y="44" width="30" height="30"/><rect class="s-fill" x="170" y="44" width="30" height="30"/><rect class="s-box" x="200" y="44" width="30" height="30"/><rect class="s-box" x="230" y="44" width="30" height="30"/></g><g><rect class="s-box" x="20" y="74" width="30" height="30"/><rect class="s-box" x="50" y="74" width="30" height="30"/><rect class="s-box" x="80" y="74" width="30" height="30"/><rect class="s-box" x="110" y="74" width="30" height="30"/><rect class="s-good" x="140" y="74" width="30" height="30"/><rect class="s-box" x="170" y="74" width="30" height="30"/><rect class="s-box" x="200" y="74" width="30" height="30"/><rect class="s-box" x="230" y="74" width="30" height="30"/></g><text class="s-t" x="155" y="95" text-anchor="middle">Q</text><text class="s-ta" x="20" y="126">check(row=2, col=4): column 4 up, and both diagonals up. Rows below are empty.</text></svg>
+          <figcaption>Placing at row 2, column 4. Shaded cells are the only ones scanned &mdash; one column and two diagonals, all strictly above.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note"><code>rec(row)</code> <em>returns</em> the count for rows <code>row..7</code> instead of mutating a global, so the base case is a plain <code>return 1</code>. Place, recurse, unplace.</p>
+        <div class="src-meta"><span class="path">arrays/Chessboard_and_Queens.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+vector &lt; vector &lt; ll &gt; &gt; v(8, vector &lt; ll &gt;(8, 0)) ;
+ll ans = 0 ;
+bool check(ll row , ll col)
+{
+    for(ll i = 0 ; i &lt; row ; i++)
+    {
+        if(v[i][col] == 1)
+        {
+            return false ;
+        }
+    }
+    for(ll i = row - 1 , j = col - 1 ; i &gt;= 0 &amp;&amp; j &gt;= 0 ; i-- , j--)
+    {
+        if(v[i][j] == 1)
+        {
+            return false ;
+        }
+    }
+    for(ll i = row - 1 , j = col + 1 ; i &gt;= 0 &amp;&amp; j &lt; 8 ; i-- , j++)
+    {
+        if(v[i][j] == 1)
+        {
+            return false ;
+        }
+    }
+    return true ;
+}
+ll rec(ll row)
+{
+    // this function will return the number of ways to place queens from row to 7
+    if(row == 8)
+    {
+        return 1 ;
+    }
+    ll cnt = 0 ;
+    for(ll col = 0 ; col &lt; 8 ; col++)
+    {
+        if(v[row][col] == 0 &amp;&amp; check(row , col))
+        {
+            v[row][col] = 1 ;
+            cnt += rec(row + 1) ;
+            v[row][col] = 0 ;
+        }
+    }
+    return cnt ;
+}
+void solve() 
+{
+    for(ll i = 0 ; i &lt; 8 ; i++)
+    {
+        string s ; 
+        cin &gt;&gt; s ;
+        for(ll j = 0 ; j &lt; 8 ; j++)
+        {
+            if(s[j] == '*')
+            {
+                v[i][j] = 2 ;
+            }
+        }
+    }
+    ans = rec(0) ;
+    cout &lt;&lt; ans &lt;&lt; endl ;
+    
+    
+   
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The downward diagonals are never checked, and must not be &mdash; nothing has been placed below <code>row</code> yet. Checking them costs time and changes no answer.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"place k non-attacking pieces / count arrangements" on a small board &rarr; recurse one row at a time, place-recurse-unplace.</div>
+    </article>
+
+    <article class="entry" id="creating-strings">
+      <div class="entry-head"><h3>Creating Strings</h3><span class="badge num">O(n!&middot;n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Print every <em>distinct</em> rearrangement of a string, in alphabetical order, preceded by the count.<div class="formal">sorted set of all permutations of s,  |set| = n! / &prod;<sub>c</sub> cnt[c]!</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li><code>next_permutation</code> walks permutations in lexicographic order and skips duplicates automatically. It returns <code>false</code> once the sequence is the last (descending) one.</li>
+          <li>Therefore the string must be <em>sorted first</em>, so the walk starts at the smallest arrangement and covers all of them.</li>
+          <li>A <code>do &hellip; while</code>, not a <code>while</code>: the sorted string itself is the first answer and must be emitted before any call.</li>
+          <li>The count is required <em>before</em> the strings, so they have to be buffered in a vector rather than printed as they are produced.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Recurse over positions, insert every produced string into a <code>set&lt;string&gt;</code> to deduplicate.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n! &middot; n log(n!))</span> plus the memory of all n! strings, duplicates included.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">it survives <code>n &le; 8</code> (8! = 40320) &mdash; but it is strictly more code.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Use the stdlib walk: sorted order and deduplication both come free.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Four lines of logic. The vector exists only because the count has to be printed first.</p>
+        <div class="src-meta"><span class="path">arrays/Creating_Strings.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    string s ; 
+    cin &gt;&gt; s ;
+    sort(s.begin(), s.end()) ;
+    vector &lt; string &gt; v ;
+    do
+    {
+        v.push_back(s) ; 
+    }
+    while(next_permutation(s.begin(), s.end())) ;
+    cout &lt;&lt; v.size() &lt;&lt; endl ;
+    for(auto&amp; x : v)
+    {
+        cout &lt;&lt; x &lt;&lt; endl ;
+    }
+
+    
+   
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>Forgetting the <code>sort</code> silently loses every permutation smaller than the input. The loop still terminates, so the bug looks like a wrong count, not a crash.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"all distinct permutations, alphabetical" &rarr; <code>sort</code> + <code>do/while(next_permutation)</code>. Never hand-roll it.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 2 ===================== -->
+  <section class="family" id="f2">
+    <div class="family-head"><h2>2 &middot; Recursive construction</h2></div>
+    <p class="family-note">The output itself is defined by a recurrence. Solve for n&minus;1, then describe the n case as two copies of it with something glued between or in front. No search, no pruning &mdash; every step of the answer is forced.</p>
+
+    <article class="entry" id="gray-code">
+      <div class="entry-head"><h3>Gray Code</h3><span class="badge num">O(n&middot;2&#8319;)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">List all 2&#8319; bit strings of length n so that consecutive strings differ in exactly one bit.<div class="formal">hamming(g&#7522;, g&#7522;&#8330;&#8321;) = 1  for all i</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Take a valid list for n&minus;1. Prefix every entry with <code>0</code>; then prefix the <em>same list reversed</em> with <code>1</code>.</li>
+          <li>Inside each half the prefix is constant, so neighbours still differ in one bit &mdash; the n&minus;1 property carries over.</li>
+          <li>At the seam the two entries are the last of the first half and the last of the second half's source, i.e. the <em>same</em> (n&minus;1)-string. They differ only in the prefix. That is why the second half is reversed.</li>
+          <li>Base case <code>{"0", "1"}</code> is n = 1, so the loop starts at i = 2.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Backtrack over the 2&#8319; codes, at each step trying every unused string at Hamming distance 1.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">exponential with backtracking, and needs a <code>visited</code> set of size 2&#8319;.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 16</code> &rarr; 65536 codes; the search is survivable but pointless.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">The reflect-and-prefix recurrence produces the list directly, with no search at all.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 360 140" role="img" aria-label="Gray code n=1 to n=2 by reflection"><text class="s-td" x="20" y="24">n = 1</text><rect class="s-box" x="20" y="32" width="44" height="24" rx="4"/><rect class="s-box" x="20" y="58" width="44" height="24" rx="4"/><text class="s-t" x="42" y="49" text-anchor="middle">0</text><text class="s-t" x="42" y="75" text-anchor="middle">1</text><path class="s-hi" d="M74 44 L118 44"/><path class="s-hi" d="M74 70 L118 96"/><text class="s-td" x="140" y="24">n = 2</text><rect class="s-box" x="140" y="32" width="52" height="24" rx="4"/><rect class="s-box" x="140" y="58" width="52" height="24" rx="4"/><rect class="s-good" x="140" y="84" width="52" height="24" rx="4"/><rect class="s-good" x="140" y="110" width="52" height="24" rx="4"/><text class="s-t" x="166" y="49" text-anchor="middle">00</text><text class="s-t" x="166" y="75" text-anchor="middle">01</text><text class="s-t" x="166" y="101" text-anchor="middle">11</text><text class="s-t" x="166" y="127" text-anchor="middle">10</text><text class="s-tm" x="208" y="49">0 + "0"</text><text class="s-tm" x="208" y="75">0 + "1"</text><text class="s-tm" x="208" y="101">1 + "1"  &#8592; reversed</text><text class="s-tm" x="208" y="127">1 + "0"</text><text class="s-ta" x="208" y="16">seam: 01 &#8594; 11</text></svg>
+          <figcaption>The second half reads the n&minus;1 list backwards, so the two rows at the seam share their suffix and differ only in the new leading bit.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Iterative rather than recursive: <code>v</code> holds the (i&minus;1)-bit list and is rebuilt into <code>temp</code> each round. The second loop runs downwards, which is the reflection.</p>
+        <div class="src-meta"><span class="path">arrays/Gray_Code.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n ; 
+    cin &gt;&gt; n ;
+    vector &lt; string &gt; v = {"0", "1"} ;
+    for(ll i = 2 ; i &lt;= n ; i++)
+    {
+        vector &lt; string &gt; temp ;
+        for(ll j = 0 ; j &lt; v.size() ; j++)
+        {
+            temp.push_back("0" + v[j]) ;
+        }
+        for(ll j = v.size() - 1 ; j &gt;= 0 ; j--)
+        {
+            temp.push_back("1" + v[j]) ;
+        }
+        v = temp ;
+
+    }
+    for(auto&amp; x : v)
+    {
+        cout &lt;&lt; x &lt;&lt; endl ;
+    }
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The reverse loop uses <code>ll j</code>, not <code>size_t</code>. With an unsigned index <code>j &gt;= 0</code> is always true and the loop never ends.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"list all 2&#8319; of something, neighbours differ by one step" &rarr; build n&minus;1, prefix 0, then prefix 1 to the reversal.</div>
+    </article>
+
+    <article class="entry" id="tower-of-hanoi">
+      <div class="entry-head"><h3>Tower of Hanoi</h3><span class="badge num">O(2&#8319;)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Print the shortest move sequence that transfers n disks from stack 1 to stack 3, never placing a larger disk on a smaller one.<div class="formal">k = 2&#8319; &minus; 1 moves, each printed as "from to"</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>The bottom disk can only move once the other n&minus;1 are all on the spare stack. That single fact forces the whole recurrence.</li>
+          <li>So: move n&minus;1 from &rarr; aux (using to as spare), move disk n from &rarr; to, move n&minus;1 aux &rarr; to (using from as spare).</li>
+          <li>The roles of the three stacks rotate at each call. Getting the argument order right in the two recursive calls <em>is</em> the problem.</li>
+          <li>T(n) = 2T(n&minus;1) + 1 = 2&#8319; &minus; 1, and that is optimal, so no minimisation is needed &mdash; just print.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">BFS over board states to find the shortest path to the goal.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v">3&#8319; states &rarr; <span class="cost">4&#183;10&#8311;</span> at n = 16, each with a stack-configuration key.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v">memory, well before time.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">The optimum is known in closed form; emit it directly in <span class="cost">O(2&#8319;)</span>, which is the output size.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 340 120" role="img" aria-label="the three phases of rec(n, from, aux, to)"><rect class="s-fill" x="20" y="30" width="92" height="40" rx="5"/><rect class="s-good" x="124" y="30" width="72" height="40" rx="5"/><rect class="s-fill" x="208" y="30" width="112" height="40" rx="5"/><text class="s-t" x="66" y="47" text-anchor="middle">n&minus;1:</text><text class="s-t" x="66" y="63" text-anchor="middle">from &#8594; aux</text><text class="s-t" x="160" y="55" text-anchor="middle">disk n</text><text class="s-t" x="264" y="47" text-anchor="middle">n&minus;1:</text><text class="s-t" x="264" y="63" text-anchor="middle">aux &#8594; to</text><text class="s-td" x="20" y="22">phase 1</text><text class="s-td" x="124" y="22">phase 2</text><text class="s-td" x="208" y="22">phase 3</text><text class="s-ta" x="20" y="100">spare in phase 1 is &quot;to&quot;; spare in phase 3 is &quot;from&quot;.</text></svg>
+          <figcaption>The middle move is the only one that touches the largest disk. The two outer phases are the same problem one size smaller, with the stack roles permuted.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">Moves are collected into a global <code>vector&lt;pll&gt;</code> because the count must be printed before them. Parameter order is <code>(nod, from, aux, to)</code>.</p>
+        <div class="src-meta"><span class="path">arrays/Tower_of_Hanoi.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+ll n ; 
+vector &lt; pll &gt; ans ;
+void rec( ll nod , ll from , ll aux , ll to)
+{
+    // this function will move nod disks from stack a to stack c using stack b as auxiliary
+    if(nod==1)
+    {
+        ans.push_back({from,to}) ;
+        return ;
+    }
+    else 
+    {
+        rec(nod-1,from,to,aux) ;
+        ans.push_back({from,to}) ;
+        rec(nod-1,aux,from,to) ;
+    }
+
+    
+
+}
+void solve() 
+{
+    cin &gt;&gt; n ;
+    rec(n,1,2,3) ;
+    cout &lt;&lt; ans.size() &lt;&lt; endl ;
+    for(auto&amp; x : ans)
+    {
+        cout &lt;&lt; x.fr &lt;&lt; " " &lt;&lt; x.sc &lt;&lt; endl ;
+    }
+
+   
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>In the recursive calls the <em>third</em> and <em>fourth</em> arguments swap: <code>rec(nod-1, from, to, aux)</code> then <code>rec(nod-1, aux, from, to)</code>. Passing <code>(from, aux, to)</code> unchanged compiles and prints illegal moves.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"minimum moves, and print them" with n &le; 20 and an obvious blocking rule &rarr; solve n&minus;1, move the blocker, solve n&minus;1 again.</div>
+    </article>
+  </section>
+
+  <!-- ===================== FAMILY 3 ===================== -->
+  <section class="family" id="f3">
+    <div class="family-head"><h2>3 &middot; Constructive answers</h2></div>
+    <p class="family-note">A feasibility question with a witness attached. The constraints rule out search entirely, so the work is finding the exact condition, then writing down one example that meets it. If the condition is right, the construction is usually three lines.</p>
+
+    <article class="entry" id="coin-piles">
+      <div class="entry-head"><h3>Coin Piles</h3><span class="badge num">O(1)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Two piles of a and b coins. Each move removes (1,2) or (2,1). Can both piles reach zero?<div class="formal">&exist; x,y &ge; 0 :  x + 2y = a  and  2x + y = b</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>Every move removes exactly 3 coins in total &rArr; <code>(a + b) % 3 == 0</code> is necessary.</li>
+          <li>Solving the system gives x = (2b &minus; a)/3 and y = (2a &minus; b)/3. Both must be &ge; 0, which is exactly <code>2&middot;min(a,b) &ge; max(a,b)</code>.</li>
+          <li>Given divisibility by 3, that inequality is also sufficient &mdash; the two conditions together are the full answer.</li>
+          <li>a = b = 0 passes both and is correct (zero moves).</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Search over the number of each move type, or BFS the state (a, b).</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(a)</span> per test at best, <span class="cost">O(a&middot;b)</span> for BFS.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>a,b &le; 10&#8313;</code> with <code>t &le; 10&#8309;</code> &rarr; <span class="cost">10&#185;&#8308;</span>.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Solve the 2&times;2 system once, on paper. Both conditions are <span class="cost">O(1)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">One <code>if</code>. The whole derivation lives in the condition.</p>
+        <div class="src-meta"><span class="path">arrays/Coin_Piles.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll a , b ; 
+    cin &gt;&gt; a &gt;&gt; b ; 
+    if( (a + b) % 3 == 0 &amp;&amp; min(a, b) * 2 &gt;= max(a, b))
+    {
+        py ; 
+    }
+    else
+    {
+        pn ; 
+    }
+
+    
+   
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    ll t ;
+    cin &gt;&gt; t ;
+    while(t--)
+    {
+        solve() ; 
+    }
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The divisibility test alone accepts (3, 0): sum 3, but no legal move exists. The <code>2&middot;min &ge; max</code> half is not optional.</div>
+      <div class="callout trigger"><strong>Recognize</strong>t up to 10&#8309; with two integers up to 10&#8313; and a YES/NO answer &rarr; write the moves as a linear system and read off the conditions.</div>
+    </article>
+
+    <article class="entry" id="raab-game-i">
+      <div class="entry-head"><h3>Raab Game I</h3><span class="badge num">O(n)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Both players hold cards 1&hellip;n and play them in some order. Given n, a, b, produce two orderings where player 1 wins exactly a rounds and player 2 exactly b.<div class="formal">#{i : p&#7522; &gt; q&#7522;} = a,  #{i : q&#7522; &gt; p&#7522;} = b,  ties elsewhere</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>a + b &le; n, because each round produces at most one point.</li>
+          <li>If exactly one of a, b is zero it is impossible: some card of the winner must beat something, and the multiset is identical on both sides, so a total win-shutout forces all ties, i.e. a = b = 0.</li>
+          <li>Otherwise construct directly: leave n &minus; a &minus; b rounds as ties (same card both sides), and arrange the rest as a cyclic shift.</li>
+          <li>The construction pairs <code>i &harr; a+i</code> for the first b rounds (player 2 wins) and <code>b+i &harr; i</code> for the next a rounds (player 1 wins). Every card 1&hellip;n appears exactly once on each side.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Try permutations of player 2's hand against player 1's identity ordering.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n!)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 100</code>, <code>t &le; 1000</code>. Instantly.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Prove the two impossibility rules, then emit one witness in <span class="cost">O(n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="4">Diagram</div>
+        <figure class="diagram">
+<svg viewBox="0 0 360 120" role="img" aria-label="n=4, a=1, b=2 pairing"><text class="s-td" x="20" y="22">p1</text><text class="s-td" x="20" y="92">p2</text><g><rect class="s-box" x="60" y="30" width="34" height="26" rx="4"/><rect class="s-box" x="104" y="30" width="34" height="26" rx="4"/><rect class="s-box" x="148" y="30" width="34" height="26" rx="4"/><rect class="s-box" x="192" y="30" width="34" height="26" rx="4"/></g><g><rect class="s-good" x="60" y="70" width="34" height="26" rx="4"/><rect class="s-good" x="104" y="70" width="34" height="26" rx="4"/><rect class="s-warn" x="148" y="70" width="34" height="26" rx="4"/><rect class="s-box" x="192" y="70" width="34" height="26" rx="4"/></g><text class="s-t" x="77" y="48" text-anchor="middle">1</text><text class="s-t" x="121" y="48" text-anchor="middle">2</text><text class="s-t" x="165" y="48" text-anchor="middle">3</text><text class="s-t" x="209" y="48" text-anchor="middle">4</text><text class="s-t" x="77" y="88" text-anchor="middle">2</text><text class="s-t" x="121" y="88" text-anchor="middle">3</text><text class="s-t" x="165" y="88" text-anchor="middle">1</text><text class="s-t" x="209" y="88" text-anchor="middle">4</text><text class="s-tm" x="240" y="48">b = 2 wins</text><text class="s-tm" x="240" y="88">a = 1, then a tie</text></svg>
+          <figcaption>n = 4, a = 1, b = 2. The first b columns give player 2 a point, the next a columns give player 1 one, and the tail ties.</figcaption>
+        </figure>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">One pass over i = 1&hellip;n choosing which of the three regions i falls in. The inline comments record the index arithmetic for each region.</p>
+        <div class="src-meta"><span class="path">arrays/Raab_Game_I.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+    ll n ; 
+    ll a , b ;
+    cin &gt;&gt; n &gt;&gt; a &gt;&gt; b ;
+    if(a + b &gt; n)
+    {
+        pn ;
+        return ;
+    }
+    if(a == 0 &amp;&amp; b &gt; 0)
+    {
+        pn ;
+        return ;
+    }
+    if(b == 0 &amp;&amp; a &gt; 0)
+    {
+        pn ;
+        return ;
+    }
+    vector &lt; ll &gt; v1 , v2 ;
+    for(ll i = 1 ; i &lt;= n ; i++)
+    {
+        if(i &lt;= b)
+        {
+            v2.push_back(a + i ) ; 
+            v1.push_back(i)  ;  
+            // player 2 wins b times 
+            // b - 1 + 1 
+            // 1 , a + 1 
+            // 2 , a + 2
+            // ..
+            // b , a + b
+        }
+        else if (i &lt;= a + b)
+        {
+            v2.push_back(i - b) ; 
+            v1.push_back(i) ; 
+            // player 1 wins a times
+            // a + b - b - 1 + 1 
+            // b + 1 , 1
+            // b + 2 , 2
+            // .. 
+            // b + a , a
+        }
+        else
+        {
+            v1.push_back(i) ; 
+            v2.push_back(i) ; 
+            
+        }
+    }
+    py ; 
+    for(auto&amp; x : v1)
+    {
+        cout &lt;&lt; x &lt;&lt; " " ; 
+    }
+    cout &lt;&lt; endl ;
+    for(auto&amp; x : v2)
+    {
+        cout &lt;&lt; x &lt;&lt; " " ;
+    }
+    cout &lt;&lt; endl ;
+   
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    ll t ;
+    cin &gt;&gt; t ;
+    while(t--)
+    {
+        solve() ;
+    }
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong>The "exactly one of a, b is zero" rule is two separate early returns, not one. Dropping either prints a YES with an unbuildable example.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"print YES and any valid example" with small n &rarr; find the impossibility conditions first; the witness is then a shift of the identity ordering.</div>
+    </article>
+
+    <article class="entry" id="palindrome-reorder">
+      <div class="entry-head"><h3>Palindrome Reorder</h3><span class="badge num">O(n + 26)</span></div>
+      <div class="sec">
+        <div class="sec-label" data-n="1">The ask</div>
+        <div class="ask">Rearrange the letters of a string into any palindrome, or report that none exists.<div class="formal">possible &hArr; #{c : cnt[c] odd} &le; 1</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="2">Key observations</div>
+        <ol class="obs">
+          <li>A palindrome pairs position i with n&minus;1&minus;i. Every character except a possible middle one appears an even number of times.</li>
+          <li>So the whole feasibility test is: at most one letter has an odd count.</li>
+          <li>Construction: put the odd letter (if any) in the middle, then for each letter push half its pairs to the front and half to the back. A <code>deque</code> makes that literal.</li>
+          <li>Only the 26 counts matter &mdash; the original order is irrelevant.</li>
+        </ol>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="3">Brute force &rarr; why it dies</div>
+        <div class="brute">
+          <div class="row"><span class="k">naive</span><span class="v">Generate permutations and test each for the palindrome property.</span></div>
+          <div class="row"><span class="k">cost</span><span class="v"><span class="cost">O(n!&middot;n)</span>.</span></div>
+          <div class="row dies"><span class="k">dies at</span><span class="v"><code>n &le; 10&#8310;</code>. Hopeless past n = 10.</span></div>
+          <div class="row therefore"><span class="k">therefore</span><span class="v">Count the 26 letters, check one parity condition, emit greedily in <span class="cost">O(n)</span>.</span></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label" data-n="5">Implementation</div>
+        <p class="impl-note">The deque is built outward-in: the odd letter is seeded first, then each pair is pushed to both ends at once, so the result is symmetric by construction.</p>
+        <div class="src-meta"><span class="path">arrays/Palindrome_Reorder.cpp</span><span>verbatim</span></div>
+<pre class="source"><code>// orz
+#include &lt;bits/stdc++.h&gt;
+
+#define ll long long 
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1) 
+#define py cout &lt;&lt; "YES" &lt;&lt; endl
+#define pn cout &lt;&lt; "NO" &lt;&lt; endl
+#define pll pair&lt;ll,ll&gt;
+
+using namespace std;
+void solve() 
+{
+
+   string s ; 
+   cin &gt;&gt; s ;
+   ll n = s.size() ;
+   vector &lt; ll &gt; v(26, 0) ;
+   for(ll i = 0 ; i &lt; n ; i++)
+   {
+        v[s[i] - 'A']++ ;
+   }
+   ll odd = 0 , index = -1  ; 
+   for(ll i = 0 ; i &lt; 26 ; i++)
+   {
+        if(v[i] % 2 == 1)
+        {
+            odd++ ;
+            index = i ;
+        }
+   }
+   if(odd &gt; 1)
+   {
+        cout &lt;&lt; "NO SOLUTION" &lt;&lt; endl ;
+        return ;
+   }
+   deque &lt; char &gt; dq ;
+   if(index != -1)
+   {
+        dq.push_back('A' + index) ;
+   }
+   v[index]-- ;
+   for(ll i = 0 ; i &lt; 26 ; i++)
+   {
+        while(v[i] &gt; 0)
+        {
+            dq.push_front('A' + i) ;
+            dq.push_back('A' + i) ;
+            v[i] -= 2 ;
+        }
+   }
+   for(auto&amp; x : dq)
+   {
+        cout &lt;&lt; x ;
+   }
+   cout &lt;&lt; endl ;
+
+}
+signed main() 
+{
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+ 
+    solve() ; 
+}</code></pre>
+      </div>
+      <div class="callout gotcha"><strong>Gotcha</strong><code>v[index]--</code> runs even when <code>index == -1</code> &mdash; on a string with no odd letter that writes to <code>v[-1]</code>. It happens to be harmless on this input (a <code>vector</code> index one before the data), but it is out-of-bounds and should be inside the <code>if</code>.</div>
+      <div class="callout trigger"><strong>Recognize</strong>"rearrange into a palindrome" &rarr; count characters, test odd-count &le; 1, build from both ends.</div>
+    </article>
+  </section>
+</main>
+</div>
+
+<footer>
+  <p><a href="../LEDGER.html">&larr; The Ledger</a></p>
+  <div class="excluded">
+    <h4>Excluded from this ledger</h4>
+    <ul>
+      <li><code>arrays/AZ1.cpp</code> &mdash; compiles, but the binary search stores the <em>smallest infeasible</em> x as the answer, so it prints one more than the true maximum. On <code>2 / 5 2 / 1 2 3 4 5 / 5 3 / 1 2 3 4 5</code> it prints <code>5</code> and <code>3</code>; correct is <code>4</code> and <code>2</code>. Also a nameless scratch file with no source or link.</li>
+      <li><code>arrays/AZ2.cpp</code> &mdash; nameless scratch file with no problem statement, link, or source; the body is a three-bucket stable partition by sign, nothing to recall.</li>
+      <li><code>arrays/AZ3.cpp</code> &mdash; does not compile: <code>error: expected ';' after struct</code> at line 71. <code>solve()</code>'s query loop is empty as well.</li>
+      <li><code>arrays/Permutation_Order.cpp</code> &mdash; does not compile: stray token <code>no</code> at line 3 &rarr; <code>error: unknown type name 'no'</code>. <code>solve()</code> is an empty stub; only the pasted statement is present.</li>
+    </ul>
+  </div>
+</footer>
+
+<script src="../ledger/data.js"></script>
+<script src="../ledger/data/arrays_6_recursion_construct.js"></script>
+</body>
+</html>

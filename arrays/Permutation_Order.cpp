@@ -1,6 +1,6 @@
 // orz
 #include <bits/stdc++.h>
-#include "algodebug.h"
+no 
 #define ll long long 
 #define endl "\n"
 #define fr first
