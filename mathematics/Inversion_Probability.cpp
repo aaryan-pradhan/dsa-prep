@@ -37,6 +37,30 @@ Input:
 
 Output:
 1.057143*/
+
+// ---------- rounding helper: exact half-to-even to 6 decimals ----------
+struct Rounded { ld ans; vector<ll> &r; Rounded(ld a, vector<ll> &v) : ans(a), r(v) {} };
+ostream& operator<<(ostream& os, const Rounded& x)
+{
+    const ll P = 1000000007;
+    auto pw = [&](ll b, ll e){ ll res = 1; b %= P; while(e){ if(e&1) res = res*b%P; b = b*b%P; e >>= 1; } return res; };
+    ll n = x.r.size(), m = 0;
+    ld val = 0;
+    for(ll i = 0 ; i < n ; i++) for(ll j = i + 1 ; j < n ; j++)
+    {
+        ll a = x.r[i], b = x.r[j], tot = a * b;
+        ll fav = (a <= b) ? a * (a - 1) / 2 : b * (b - 1) / 2 + (a - b) * b;
+        val += fav * 1.0L / tot;
+        m = (m + fav % P * pw(tot, P - 2)) % P;
+    }
+    ld v = val * 1e6L;
+    ll re = (ll)floorl(v);
+    if(m * 2000000 % P == (2 * re + 1) % P) { if(re % 2) re++; }
+    else if(v - re > 0.5L) re++;
+    return os << re / 1000000 << "." << setw(6) << setfill('0') << re % 1000000 << setfill(' ');
+}
+// ------------------------------------------------------------------------
+
 ld rec(ll i , ll j, vector<ll> &r)
 {
     // if we are on the ith and jth position, then rec returns the probability that x_i > x_j
@@ -82,7 +106,7 @@ void solve()
             ans += rec(i , j , r);
         }
     }
-    cout << fixed << setprecision(6) << ans + 1e-9 << endl;
+    cout << fixed << setprecision(6) << Rounded(ans, r) << endl;
 
     
    
@@ -102,5 +126,3 @@ signed main()
  
     solve() ; 
 }
-    
-  

@@ -1,6 +1,6 @@
 // orz
 #include <bits/stdc++.h>
-#include "algodebug.h"
+
 #define ll long long 
 #define endl "\n"
 #define fr first
@@ -39,13 +39,65 @@ Input:
 
 Output:
 WLWWWWLWL*/
-ll rec(ll left)
-{
-    // if we have left sticks present the rec returns the W if the 
-}
+// bool rec(ll left)
+// {
+//     // if we have left sticks present the rec returns the W if the current plaer playing the game has a winning position or L if the current player has a losing position
+//     if(left == 0) return false ;
+//     if(dp[left] != -1) return dp[left];
+//     ll res = false ;
+//     for( auto move : moves)
+//     {
+//         if(left - move >= 0 ))
+//         {
+//             if(!res(rec(left - move)))
+//             {
+//                 res = true ;
+//                 break ;
+//             }
+            
+//         }
+//     }
+//     dp[left] = res ;
+//     return res ;
+// }
 void solve() 
 {
-    
+    ll n , k ;
+    cin >> n >> k ;
+    ll moves[k] ; 
+    for(ll i = 0 ; i < k ; i++)
+    {
+        cin >> moves[i] ;
+    }
+    vector <bool> dp(n+1 , false);
+    for(ll left = 0 ; left <= n ; left++)
+    {
+        if(left == 0)
+        {
+            dp[left] = false ;
+            continue ;
+        }
+        bool res = false ;
+        for( auto& move : moves)
+        {
+            if(left - move >= 0 )
+            {
+                if(!dp[left - move])
+                {
+                    res = true ;
+                    break ;
+                }
+                
+            }
+        }
+        dp[left] = res ;
+    }
+    for(ll left = 1 ; left <= n ; left++)
+    {
+        if(dp[left]) cout << "W" ;
+        else cout << "L" ;
+    }
+    cout << endl ;
    
 
 
