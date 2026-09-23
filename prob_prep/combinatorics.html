@@ -47,6 +47,7 @@ ol.pf li{margin:.2rem 0}
 .why{color:var(--muted);font-size:.85em;white-space:nowrap}
 .qed{float:right;color:var(--muted)}
 .claim{margin:.3rem 0}
+pre{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:.6rem .8rem;font-size:.85rem;overflow-x:auto}
 .gap{background:var(--gapbg);color:var(--gap);border-radius:6px;padding:.5rem .8rem;font-size:.92rem}
 table{border-collapse:collapse;font-size:.92rem}
 .tw{overflow-x:auto}
@@ -306,18 +307,51 @@ Find \(A, B\) from \(x_1, x_2\).</li>
 <div class="prob"><h3>Frog to 10</h3><p>Jumps of 1 or 2, from 0 to 10.</p>
 <details><summary>Key idea</summary><p>Split on the last jump: \(d_n = d_{n-1} + d_{n-2}\).</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>The last jump is 1 (from \(n-1\)) or 2 (from \(n-2\)). These cases are disjoint.</li>
-<li>\(d_0 = d_1 = 1\), which gives \(1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89\).</li>
-</ol><p>∎ &nbsp;<span class="ans">\(89\)</span></p></details></div>
+<li><b>Level</b>: \(i\) = current position.</li>
+<li><b>Choice</b>: jump \(j \in \{1, 2\}\).</li>
+<li><b>Check</b>: \(i + j \le 10\).</li>
+<li><b>Move</b>: \(\text{rec}(i+j)\), add over choices. Base: \(i = 10 \Rightarrow 1\).</li>
+</ol>
+<pre>ll rec(ll i) {
+    if (i == 10) return 1;
+    ll ans = 0;
+    for (ll j = 1; j <= 2; j++)
+        if (i + j <= 10) ans += rec(i + j);
+    return ans;
+}   // rec(0)</pre>
+<p>Table from \(i = 10\) down: \(1, 1, 2, 3, 5, \dots\) ∎ &nbsp;<span class="ans">\(89\)</span></p></details></div>
 <div class="prob"><h3>No "00" (length 10, digits 0/1/2)</h3>
 <details><summary>Key idea</summary><p>Split on the first digit. 1 or 2 leaves \(b_{n-1}\). A 0 must be followed by 1 or 2, which leaves \(b_{n-2}\).</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>\(b_n = 2b_{n-1} + 2b_{n-2}\), with \(b_1 = 3,\ b_2 = 8\).</li>
-<li>This gives \(22, 60, 164, 448, 1224, 3344, 9136, 24960\).</li>
-</ol><p>∎ &nbsp;<span class="ans">\(24\,960\)</span> (brute-force checked)</p></details></div>
+<li><b>Level</b>: \((i, z)\) = position, and \(z = 1\) if the previous digit was 0.</li>
+<li><b>Choice</b>: digit \(d \in \{0, 1, 2\}\).</li>
+<li><b>Check</b>: not (\(z = 1\) and \(d = 0\)).</li>
+<li><b>Move</b>: \(\text{rec}(i+1,\ d = 0)\), add over choices. Base: \(i = 10 \Rightarrow 1\).</li>
+</ol>
+<pre>ll rec(ll i, ll z) {
+    if (i == 10) return 1;
+    ll ans = 0;
+    for (ll d = 0; d <= 2; d++)
+        if (!(z && d == 0)) ans += rec(i + 1, d == 0);
+    return ans;
+}   // rec(0, 0)</pre>
+<p>Collapsing the flag gives \(b_n = 2b_{n-1} + 2b_{n-2}\): \(3, 8, 22, 60, \dots\) ∎ &nbsp;<span class="ans">\(24\,960\)</span> (brute-force checked)</p></details></div>
 <div class="prob"><h3>Grid paths</h3><p>Moves right or down only, \(4\times4\) cells and \(5\times5\) cells, corner to corner.</p>
 <details><summary>Key idea</summary><p>\(f(i,j) = f(i-1,j) + f(i,j-1)\), with edges equal to 1. This equals \(\binom{i+j-2}{i-1}\).</p></details>
-<details><summary>Solution</summary><p>\(f(4,4) = \binom63 = \) <span class="ans">\(20\)</span>; \(f(5,5) = \binom84 = \) <span class="ans">\(70\)</span>. ∎</p></details></div>
+<details><summary>Solution</summary><ol class="pf">
+<li><b>Level</b>: \((i, j)\) = current cell, from \((1,1)\) to \((n,n)\).</li>
+<li><b>Choice</b>: right \((i, j+1)\) or down \((i+1, j)\).</li>
+<li><b>Check</b>: stays inside the grid (\(\le n\)).</li>
+<li><b>Move</b>: recurse, add over choices. Base: \((n, n) \Rightarrow 1\).</li>
+</ol>
+<pre>ll rec(ll i, ll j) {
+    if (i == n && j == n) return 1;
+    ll ans = 0;
+    if (j + 1 <= n) ans += rec(i, j + 1);
+    if (i + 1 <= n) ans += rec(i + 1, j);
+    return ans;
+}   // rec(1, 1)</pre>
+<p>\(f(4,4) = \binom63 = \) <span class="ans">\(20\)</span>; \(f(5,5) = \binom84 = \) <span class="ans">\(70\)</span>. ∎</p></details></div>
 <div class="prob"><h3>Solving recurrences (corrected)</h3>
 <p>(a) \(x_n = 5x_{n-1} - 6x_{n-2},\ x_1 = 7,\ x_2 = 22\). (b) \(x_n = 4x_{n-1} - 4x_{n-2},\ x_1 = 12,\ x_2 = 24\).</p>
 <details><summary>Key idea</summary><p>Characteristic roots, then solve a \(2\times2\) system.</p></details>
