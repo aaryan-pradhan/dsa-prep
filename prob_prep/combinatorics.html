@@ -1,5 +1,7 @@
 <title>Combinatorics Ledger</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
 <style>
 :root{
   --bg:#f6f7f9; --ink:#171b24; --muted:#5a6273; --rule:#d9dee6; --card:#ffffff;
@@ -17,9 +19,9 @@
   --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
   --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
 }
-body{background:var(--bg);color:var(--ink);font:16px/1.6 "Source Sans 3",system-ui,sans-serif;padding-inline:16px;padding-block:24px 64px}
-.wrap{max-width:46rem;margin:0 auto}
-h1,h2,h3{font-family:"EB Garamond",Georgia,serif;font-weight:600;text-wrap:balance;line-height:1.2}
+body{background:var(--bg);color:var(--ink);font:20px/1.75 "MesloLGS Nerd Font Propo","MesloLGS NF","MesloLGS Nerd Font",ui-monospace,monospace;padding-inline:16px;padding-block:24px 64px}
+.wrap{max-width:52rem;margin:0 auto}
+h1,h2,h3{font-family:"MesloLGS Nerd Font Propo","MesloLGS NF","MesloLGS Nerd Font",ui-monospace,monospace;font-weight:700;text-wrap:balance;line-height:1.2}
 h1{font-size:2.4rem;margin:0 0 .25rem}
 h2{font-size:1.7rem;margin:3rem 0 .75rem;padding-top:1rem;border-top:1px solid var(--rule)}
 h3{font-size:1.2rem;margin:0 0 .4rem}
@@ -41,12 +43,10 @@ summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.95rem}
 details > *:not(summary){margin-top:.5rem}
 ol.pf{padding-left:1.6rem;margin:.4rem 0}
 ol.pf li{margin:.2rem 0}
-.why{color:var(--muted);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.78rem;white-space:nowrap}
+.why{color:var(--muted);font-size:.85em;white-space:nowrap}
 .qed{float:right;color:var(--muted)}
 .claim{margin:.3rem 0}
 .gap{background:var(--gapbg);color:var(--gap);border-radius:6px;padding:.5rem .8rem;font-size:.92rem}
-.m{font-style:italic;font-family:"EB Garamond",Georgia,serif;font-size:1.08em}
-.eq{display:block;text-align:center;margin:.5rem 0;overflow-x:auto;font-family:"EB Garamond",Georgia,serif;font-size:1.1em}
 table{border-collapse:collapse;font-size:.92rem}
 .tw{overflow-x:auto}
 td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-variant-numeric:tabular-nums}
@@ -78,125 +78,126 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 
 <h2 id="rules">1 · Multiplication &amp; addition</h2>
 <div class="idea"><ol>
-<li><b>Product rule.</b> If step 1 has a ways and, for each of them, step 2 has b ways, then doing both has a·b ways. For n steps: a₁a₂⋯aₙ.</li>
-<li><b>Sum rule.</b> If A and B are disjoint (you do A <i>or</i> B, never both), there are a + b ways.</li>
+<li><b>Product rule.</b> If step 1 has \(a\) ways and, for each of them, step 2 has \(b\) ways, then doing both has \(a\cdot b\) ways. For \(n\) steps: \(a_1a_2\cdots a_n\).</li>
+<li><b>Sum rule.</b> If \(A\) and \(B\) are disjoint (you do \(A\) <i>or</i> \(B\), never both), there are \(a + b\) ways.</li>
 </ol></div>
 <div class="prob"><h3>Books and boxes</h3>
 <p>(a) 1 maths book from 3 and 1 physics book from 4. (b) 1 book from all 7. (c) 5 distinct objects into 3 distinct boxes, empty boxes allowed.</p>
 <details><summary>Key idea</summary><p>"And" in sequence: multiply. "Or", disjoint: add.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>(a) 3·4 = <span class="ans">12</span>. <span class="why">(product)</span></li>
-<li>(b) 3 + 4 = <span class="ans">7</span>. <span class="why">(sum)</span></li>
-<li>(c) Each object independently picks a box: 3⁵ = <span class="ans">243</span>. <span class="why">(product)</span></li>
+<li>(a) \(3\cdot4 = \) <span class="ans">\(12\)</span>. <span class="why">(product)</span></li>
+<li>(b) \(3 + 4 = \) <span class="ans">\(7\)</span>. <span class="why">(sum)</span></li>
+<li>(c) Each object independently picks a box: \(3^5 = \) <span class="ans">\(243\)</span>. <span class="why">(product)</span></li>
 </ol><p>∎</p></details></div>
 
 <h2 id="perm">2 · Linear permutations</h2>
 <div class="idea"><ol>
-<li>n! = n(n−1)⋯1, and 0! = 1.</li>
-<li>Ordered choice of r from n, no repeats: P(n,r) = n(n−1)⋯(n−r+1) = n!/(n−r)!. <span class="why">(product rule)</span></li>
-<li>With repeats allowed: nʳ.</li>
-<li>Arranging n objects with p₁,…,p_k identical copies: n!/(p₁!⋯p_k!). <span class="why">(each word is counted p₁!⋯p_k! times among the n! labelled orders)</span></li>
+<li>\(n! = n(n-1)\cdots1\), and \(0! = 1\).</li>
+<li>Ordered choice of \(r\) from \(n\), no repeats: \(\displaystyle P(n,r) = n(n-1)\cdots(n-r+1) = \frac{n!}{(n-r)!}\). <span class="why">(product rule)</span></li>
+<li>With repeats allowed: \(n^r\).</li>
+<li>Arranging \(n\) objects with \(p_1,\dots,p_k\) identical copies: \(\displaystyle\frac{n!}{p_1!\cdots p_k!}\). <span class="why">(each word is counted \(p_1!\cdots p_k!\) times among the \(n!\) labelled orders)</span></li>
 </ol></div>
 <div class="prob"><h3>Quick counts</h3>
-<p>(a) 3 of 5 people in a line. (b) 3-letter words from {A,B,C} with repeats allowed. (c) 4-digit PINs. (d) Rearrangements of BALLOON.</p>
+<p>(a) 3 of 5 people in a line. (b) 3-letter words from \(\{A,B,C\}\) with repeats allowed. (c) 4-digit PINs. (d) Rearrangements of BALLOON.</p>
 <details><summary>Key idea</summary><p>Ask two things: does order matter, and are repeats allowed? Identical items: divide out their internal orders.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>(a) 5·4·3 = <span class="ans">60</span>.</li>
-<li>(b) 3³ = <span class="ans">27</span>.</li>
-<li>(c) 10⁴ = <span class="ans">10000</span>.</li>
-<li>(d) 7 letters, with L twice and O twice: 7!/(2!2!) = <span class="ans">1260</span>.</li>
+<li>(a) \(5\cdot4\cdot3 = \) <span class="ans">\(60\)</span>.</li>
+<li>(b) \(3^3 = \) <span class="ans">\(27\)</span>.</li>
+<li>(c) \(10^4 = \) <span class="ans">\(10000\)</span>.</li>
+<li>(d) 7 letters, with L twice and O twice: \(\dfrac{7!}{2!\,2!} = \) <span class="ans">\(1260\)</span>.</li>
 </ol><p>∎</p></details></div>
 
 <h2 id="circ">3 · Circular permutations</h2>
 <div class="idea"><ol>
 <li>Arrangements that differ only by a rotation count as the same.</li>
-<li>n distinct objects in a circle: n!/n = (n−1)!. No rotation other than the identity fixes an arrangement of distinct objects, so each circle appears exactly n times among the n! lines.</li>
-<li>If flips also count as the same (necklaces), and n ≥ 3: (n−1)!/2. For n ≥ 3, a circle and its mirror image are different circles.</li>
+<li>\(n\) distinct objects in a circle: \(n!/n = (n-1)!\). No rotation other than the identity fixes an arrangement of distinct objects, so each circle appears exactly \(n\) times among the \(n!\) lines.</li>
+<li>If flips also count as the same (necklaces), and \(n \ge 3\): \(\tfrac{(n-1)!}{2}\). For \(n \ge 3\), a circle and its mirror image are different circles.</li>
 </ol></div>
 <div class="prob"><h3>Table and necklace</h3>
 <p>(a) 6 people at a round table. (b) Necklaces from 6 distinct beads.</p>
 <details><summary>Key idea</summary><p>Fix one person's seat to kill the rotations. Halve again to kill the flips.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>(a) (6−1)! = <span class="ans">120</span>.</li>
-<li>(b) 5!/2 = <span class="ans">60</span>.</li>
+<li>(a) \((6-1)! = \) <span class="ans">\(120\)</span>.</li>
+<li>(b) \(5!/2 = \) <span class="ans">\(60\)</span>.</li>
 </ol><p>∎</p>
-<p class="gap">⚠ Course omits n ≥ 3 for the ÷2. For n ≤ 2 a necklace equals its own flip.</p></details></div>
+<p class="gap">⚠ Course omits \(n \ge 3\) for the \(\div 2\). For \(n \le 2\) a necklace equals its own flip.</p></details></div>
 
 <h2 id="comb">4 · Combinations</h2>
 <div class="idea"><ol>
-<li>Unordered choice of r from n: C(n,r) = n!/(r!(n−r)!). Each r-set appears r! times among the P(n,r) ordered choices.</li>
-<li>C(n,r) = C(n,n−r). <span class="why">(choosing what to keep = choosing what to drop)</span></li>
-<li>C(n,r) is largest at r = ⌊n/2⌋ or ⌈n/2⌉. <span class="why">(C(n,r+1)/C(n,r) = (n−r)/(r+1) ≥ 1 ⇔ r ≤ (n−1)/2)</span></li>
+<li>Unordered choice of \(r\) from \(n\): \(\displaystyle\binom{n}{r} = \frac{n!}{r!\,(n-r)!}\). Each \(r\)-set appears \(r!\) times among the \(P(n,r)\) ordered choices.</li>
+<li>\(\binom{n}{r} = \binom{n}{n-r}\). <span class="why">(choosing what to keep = choosing what to drop)</span></li>
+<li>\(\binom{n}{r}\) is largest at \(r = \lfloor n/2 \rfloor\) or \(\lceil n/2 \rceil\). <span class="why">(\(\binom{n}{r+1}\big/\binom{n}{r} = \frac{n-r}{r+1} \ge 1 \iff r \le \frac{n-1}{2}\))</span></li>
 </ol></div>
 <div class="prob"><h3>Committees and subsets</h3>
 <p>(a) Teams of 2 from 3 people. (b) 4-element subsets of a 10-element set.</p>
-<details><summary>Key idea</summary><p>Order does not matter, so use C(n,r).</p></details>
-<details><summary>Solution</summary><ol class="pf"><li>(a) C(3,2) = <span class="ans">3</span>.</li><li>(b) C(10,4) = <span class="ans">210</span>.</li></ol><p>∎</p></details></div>
+<details><summary>Key idea</summary><p>Order does not matter, so use \(\binom{n}{r}\).</p></details>
+<details><summary>Solution</summary><ol class="pf"><li>(a) \(\binom32 = \) <span class="ans">\(3\)</span>.</li><li>(b) \(\binom{10}{4} = \) <span class="ans">\(210\)</span>.</li></ol><p>∎</p></details></div>
 <div class="prob"><h3>Languages</h3>
-<p>69 people, each speaking the same number of languages. For any two people a, b, a speaks a language that b doesn't, and b speaks one that a doesn't. What is the minimum number of languages?</p>
-<details><summary>Key idea</summary><p>Equal-size sets automatically satisfy the condition as soon as they are distinct. So you need C(n,r) ≥ 69 for some r.</p></details>
+<p>69 people, each speaking the same number of languages. For any two people \(a, b\), \(a\) speaks a language that \(b\) doesn't, and \(b\) speaks one that \(a\) doesn't. What is the minimum number of languages?</p>
+<details><summary>Key idea</summary><p>Equal-size sets automatically satisfy the condition as soon as they are distinct. So you need \(\binom{n}{r} \ge 69\) for some \(r\).</p></details>
 <details><summary>Solution</summary>
-<p class="claim"><b>Claim.</b> <span class="ans">8</span>.</p>
+<p class="claim"><b>Claim.</b> <span class="ans">\(8\)</span>.</p>
 <ol class="pf">
 <li>The condition says: no person's language set contains another's. In particular, all 69 sets are distinct.</li>
-<li>With n languages and every set of size r, there are at most C(n,r) ≤ C(n,⌊n/2⌋) sets. <span class="why">(§4.3)</span></li>
-<li>C(7,3) = 35 &lt; 69, so n ≥ 8.</li>
-<li>n = 8: use 69 of the C(8,4) = 70 four-element sets. Two distinct sets of the same size never contain one another. <span class="why">(1 holds)</span></li>
+<li>With \(n\) languages and every set of size \(r\), there are at most \(\binom{n}{r} \le \binom{n}{\lfloor n/2\rfloor}\) sets. <span class="why">(§4.3)</span></li>
+<li>\(\binom73 = 35 &lt; 69\), so \(n \ge 8\).</li>
+<li>\(n = 8\): use 69 of the \(\binom84 = 70\) four-element sets. Two distinct sets of the same size never contain one another. <span class="why">(1 holds)</span></li>
 </ol><p>∎ &nbsp;<i>(Without the equal-size assumption the answer is still 8, by Sperner's theorem.)</i></p></details></div>
 
 <h2 id="ids">5 · Identities (with counting proofs)</h2>
 <div class="idea"><ol>
-<li><b>Pascal:</b> C(n,k) = C(n−1,k−1) + C(n−1,k). Split on whether element n is chosen.</li>
-<li><b>Hockey stick:</b> Σ_{j=r}^{n} C(j,r) = C(n+1,r+1). Choose r+1 numbers from {1,…,n+1} and split on the largest one, j+1. The other r come from {1,…,j}.</li>
-<li><b>Vandermonde:</b> Σ_k C(m,k)C(n,r−k) = C(m+n,r). Choose r from m men and n women, splitting on k = the number of men.</li>
+<li><b>Pascal:</b> \(\binom{n}{k} = \binom{n-1}{k-1} + \binom{n-1}{k}\). Split on whether element \(n\) is chosen.</li>
+<li><b>Hockey stick:</b> \(\displaystyle\sum_{j=r}^{n} \binom{j}{r} = \binom{n+1}{r+1}\). Choose \(r+1\) numbers from \(\{1,\dots,n+1\}\) and split on the largest one, \(j+1\). The other \(r\) come from \(\{1,\dots,j\}\).</li>
+<li><b>Vandermonde:</b> \(\displaystyle\sum_k \binom{m}{k}\binom{n}{r-k} = \binom{m+n}{r}\). Choose \(r\) from \(m\) men and \(n\) women, splitting on \(k\) = the number of men.</li>
 </ol></div>
 <div class="prob"><h3>Sum of squares</h3>
-<p>Evaluate C(10,0)² + C(10,1)² + … + C(10,10)².</p>
-<details><summary>Key idea</summary><p>Write C(10,k)² as C(10,k)·C(10,10−k), which is Vandermonde.</p></details>
+<p>Evaluate \(\displaystyle\binom{10}{0}^2 + \binom{10}{1}^2 + \dots + \binom{10}{10}^2\).</p>
+<details><summary>Key idea</summary><p>Write \(\binom{10}{k}^2\) as \(\binom{10}{k}\binom{10}{10-k}\), which is Vandermonde.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>C(10,k) = C(10,10−k). <span class="why">(§4.2)</span></li>
-<li>So the sum is Σ C(10,k)C(10,10−k) = C(20,10) = <span class="ans">184756</span>. <span class="why">(Vandermonde, m=n=r=10)</span></li>
+<li>\(\binom{10}{k} = \binom{10}{10-k}\). <span class="why">(§4.2)</span></li>
+<li>So the sum is \(\displaystyle\sum_k \binom{10}{k}\binom{10}{10-k} = \binom{20}{10} = \) <span class="ans">\(184756\)</span>. <span class="why">(Vandermonde, \(m=n=r=10\))</span></li>
 </ol><p>∎</p></details></div>
 <div class="prob"><h3>Red and green objects</h3>
-<p>100 distinct red and 100 distinct green objects. Choose some reds and some greens so that #green = #red + 1. Answer in the form C(n,r).</p>
-<details><summary>Key idea</summary><p>Σ C(100,i)·C(100,i+1). Flip the second factor to C(100,99−i) and apply Vandermonde.</p></details>
+<p>100 distinct red and 100 distinct green objects. Choose some reds and some greens so that #green = #red + 1. Answer in the form \(\binom{n}{r}\).</p>
+<details><summary>Key idea</summary><p>\(\sum_i \binom{100}{i}\binom{100}{i+1}\). Flip the second factor to \(\binom{100}{99-i}\) and apply Vandermonde.</p></details>
 <details><summary>Solution</summary>
 <ol class="pf">
-<li>i reds and i+1 greens: C(100,i)C(100,i+1) ways, for i = 0,…,99. <span class="why">(product, sum)</span></li>
-<li>C(100,i+1) = C(100,99−i), so the total is Σᵢ C(100,i)C(100,99−i) = C(200,99). <span class="why">(Vandermonde)</span></li>
-</ol><p>∎ &nbsp;<span class="ans">C(200,99)</span>, n + r = 299.</p>
-<p class="gap">⚠ The statement says "one or more" reds, but the course's sum includes i = 0. With ≥ 1 red strictly, the answer is C(200,99) − 100.</p></details></div>
+<li>\(i\) reds and \(i+1\) greens: \(\binom{100}{i}\binom{100}{i+1}\) ways, for \(i = 0,\dots,99\). <span class="why">(product, sum)</span></li>
+<li>\(\binom{100}{i+1} = \binom{100}{99-i}\), so the total is
+\[\sum_i \binom{100}{i}\binom{100}{99-i} = \binom{200}{99}.\] <span class="why">(Vandermonde)</span></li>
+</ol><p>∎ &nbsp;<span class="ans">\(\binom{200}{99}\)</span>, \(n + r = 299\).</p>
+<p class="gap">⚠ The statement says "one or more" reds, but the course's sum includes \(i = 0\). With \(\ge 1\) red strictly, the answer is \(\binom{200}{99} - 100\).</p></details></div>
 
 <h2 id="binom">6 · Binomial theorem</h2>
 <div class="idea"><ol>
-<li>(x+y)ⁿ = Σₖ C(n,k) xᵏ yⁿ⁻ᵏ. A term xᵏyⁿ⁻ᵏ comes from choosing which k of the n factors contribute x.</li>
-<li>Σₖ C(n,k) = 2ⁿ. <span class="why">(x=y=1; or: each element is in or out)</span></li>
-<li>For n ≥ 1: Σ over even k = Σ over odd k = 2ⁿ⁻¹. <span class="why">(x=1, y=−1 gives 0 = even − odd)</span></li>
-<li>Σₖ k·C(n,k) = n·2ⁿ⁻¹. <span class="why">(a committee with a chair: pick the chair (n), then any subset of the rest (2ⁿ⁻¹))</span></li>
-<li>C(n,k)/(k+1) = C(n+1,k+1)/(n+1). <span class="why">(expand both sides as factorials)</span></li>
+<li>\(\displaystyle(x+y)^n = \sum_k \binom{n}{k} x^k y^{n-k}\). A term \(x^ky^{n-k}\) comes from choosing which \(k\) of the \(n\) factors contribute \(x\).</li>
+<li>\(\sum_k \binom{n}{k} = 2^n\). <span class="why">(\(x=y=1\); or: each element is in or out)</span></li>
+<li>For \(n \ge 1\): \(\sum_{k \text{ even}} = \sum_{k \text{ odd}} = 2^{n-1}\). <span class="why">(\(x=1, y=-1\) gives \(0 = \text{even} - \text{odd}\))</span></li>
+<li>\(\sum_k k\binom{n}{k} = n\,2^{n-1}\). <span class="why">(a committee with a chair: pick the chair (\(n\)), then any subset of the rest (\(2^{n-1}\)))</span></li>
+<li>\(\displaystyle\frac{1}{k+1}\binom{n}{k} = \frac{1}{n+1}\binom{n+1}{k+1}\). <span class="why">(expand both sides as factorials)</span></li>
 </ol></div>
-<div class="prob"><h3>Coefficient</h3><p>The coefficient of x²y⁶ in (x+y)⁸.</p>
-<details><summary>Key idea</summary><p>Choose which 2 of the 8 factors contribute x.</p></details>
-<details><summary>Solution</summary><p>C(8,2) = <span class="ans">28</span>. ∎</p></details></div>
-<div class="prob"><h3>Odd binomials</h3><p>C(18,1) + C(18,3) + … + C(18,17).</p>
-<details><summary>Key idea</summary><p>Odd sum = even sum = half of 2¹⁸.</p></details>
-<details><summary>Solution</summary><p>2¹⁷ = <span class="ans">131072</span>. <span class="why">(§6.3)</span> ∎</p></details></div>
-<div class="prob"><h3>Weighted sum</h3><p>C(18,0)/1 + C(18,2)/3 + C(18,4)/5 + … + C(18,18)/19.</p>
-<details><summary>Key idea</summary><p>C(18,k)/(k+1) = C(19,k+1)/19. The even k become the odd indices of 19.</p></details>
+<div class="prob"><h3>Coefficient</h3><p>The coefficient of \(x^2y^6\) in \((x+y)^8\).</p>
+<details><summary>Key idea</summary><p>Choose which 2 of the 8 factors contribute \(x\).</p></details>
+<details><summary>Solution</summary><p>\(\binom82 = \) <span class="ans">\(28\)</span>. ∎</p></details></div>
+<div class="prob"><h3>Odd binomials</h3><p>\(\binom{18}{1} + \binom{18}{3} + \dots + \binom{18}{17}\).</p>
+<details><summary>Key idea</summary><p>Odd sum = even sum = half of \(2^{18}\).</p></details>
+<details><summary>Solution</summary><p>\(2^{17} = \) <span class="ans">\(131072\)</span>. <span class="why">(§6.3)</span> ∎</p></details></div>
+<div class="prob"><h3>Weighted sum</h3><p>\[\frac{1}{1}\binom{18}{0} + \frac13\binom{18}{2} + \frac15\binom{18}{4} + \dots + \frac{1}{19}\binom{18}{18}.\]</p>
+<details><summary>Key idea</summary><p>\(\frac{1}{k+1}\binom{18}{k} = \frac{1}{19}\binom{19}{k+1}\). The even \(k\) become the odd indices of 19.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>Each term C(18,2j)/(2j+1) = C(19,2j+1)/19. <span class="why">(§6.5)</span></li>
-<li>The sum is (1/19)·Σ_odd C(19,·) = 2¹⁸/19. <span class="why">(§6.3)</span></li>
-</ol><p>∎ &nbsp;<span class="ans">262144/19 ≈ 13797.05263</span></p></details></div>
-<div class="prob"><h3>(1+√2)³⁰⁰⁰</h3><p>What is the 100th digit after the decimal point?</p>
-<details><summary>Key idea</summary><p>(1+√2)ⁿ + (1−√2)ⁿ is an integer, and |1−√2|³⁰⁰⁰ is tiny and positive.</p></details>
+<li>Each term \(\frac{1}{2j+1}\binom{18}{2j} = \frac{1}{19}\binom{19}{2j+1}\). <span class="why">(§6.5)</span></li>
+<li>The sum is \(\frac{1}{19}\sum_{\text{odd}}\binom{19}{\cdot} = \frac{2^{18}}{19}\). <span class="why">(§6.3)</span></li>
+</ol><p>∎ &nbsp;<span class="ans">\(\tfrac{262144}{19} \approx 13797.05263\)</span></p></details></div>
+<div class="prob"><h3>\((1+\sqrt2)^{3000}\)</h3><p>What is the 100th digit after the decimal point?</p>
+<details><summary>Key idea</summary><p>\((1+\sqrt2)^n + (1-\sqrt2)^n\) is an integer, and \(|1-\sqrt2|^{3000}\) is tiny and positive.</p></details>
 <details><summary>Solution</summary>
-<p class="claim"><b>Claim.</b> <span class="ans">9</span>.</p>
+<p class="claim"><b>Claim.</b> <span class="ans">\(9\)</span>.</p>
 <ol class="pf">
-<li>Expand both terms binomially. The terms with odd powers of √2 cancel and the even powers are integers, so N = (1+√2)³⁰⁰⁰ + (1−√2)³⁰⁰⁰ is an integer.</li>
-<li>ε = (1−√2)³⁰⁰⁰ = (√2−1)³⁰⁰⁰ &gt; 0, since the exponent is even. Also √2−1 &lt; 0.42, so ε &lt; 0.42³⁰⁰⁰ &lt; 10⁻¹¹⁰⁰.</li>
-<li>(1+√2)³⁰⁰⁰ = N − ε = (N−1) + (1−ε), and 1 − ε = 0.999…9… with more than 1000 nines.</li>
+<li>Expand both terms binomially. The terms with odd powers of \(\sqrt2\) cancel and the even powers are integers, so \(N = (1+\sqrt2)^{3000} + (1-\sqrt2)^{3000}\) is an integer.</li>
+<li>\(\varepsilon = (1-\sqrt2)^{3000} = (\sqrt2-1)^{3000} &gt; 0\), since the exponent is even. Also \(\sqrt2-1 &lt; 0.42\), so \(\varepsilon &lt; 0.42^{3000} &lt; 10^{-1100}\).</li>
+<li>\((1+\sqrt2)^{3000} = N - \varepsilon = (N-1) + (1-\varepsilon)\), and \(1 - \varepsilon = 0.999\ldots9\ldots\) with more than 1000 nines.</li>
 </ol><p>∎</p>
-<p class="gap">⚠ Course doesn't note that ε &gt; 0 (that's what makes it 0.999…, not 0.000…) and doesn't bound ε.</p></details></div>
+<p class="gap">⚠ Course doesn't note that \(\varepsilon &gt; 0\) (that's what makes it \(0.999\ldots\), not \(0.000\ldots\)) and doesn't bound \(\varepsilon\).</p></details></div>
 
 <h2 id="tech">7 · Complement, block, gap</h2>
 <div class="idea"><ol>
@@ -208,167 +209,171 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <p>(a) 4-letter words with at least one A. (b) 10 people in a line with A, B adjacent. (c) The same with A, B not adjacent. (d) 4 of 10 points in a row, no two consecutive.</p>
 <details><summary>Key idea</summary><p>(a) complement, (b) block, (c) gaps between 8 people, (d) the 4 chosen points go into gaps between the 6 unchosen ones.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>(a) 26⁴ − 25⁴ = <span class="ans">66351</span>.</li>
-<li>(b) 9 units (block + 8 people): 9!·2! = <span class="ans">725760</span>.</li>
-<li>(c) 8 people make 9 gaps. Pick 2 gaps and order A, B: 8!·C(9,2)·2 = <span class="ans">2903040</span>. <span class="why">(check: 10! − 725760)</span></li>
-<li>(d) 6 unchosen points make 7 gaps, at most one chosen point per gap: C(7,4) = <span class="ans">35</span>.</li>
+<li>(a) \(26^4 - 25^4 = \) <span class="ans">\(66351\)</span>.</li>
+<li>(b) 9 units (block + 8 people): \(9!\cdot2! = \) <span class="ans">\(725760\)</span>.</li>
+<li>(c) 8 people make 9 gaps. Pick 2 gaps and order A, B: \(8!\cdot\binom92\cdot2 = \) <span class="ans">\(2903040\)</span>. <span class="why">(check: \(10! - 725760\))</span></li>
+<li>(d) 6 unchosen points make 7 gaps, at most one chosen point per gap: \(\binom74 = \) <span class="ans">\(35\)</span>.</li>
 </ol><p>∎</p></details></div>
 
 <h2 id="pie">8 · Inclusion–exclusion (PIE)</h2>
 <div class="idea"><ol>
-<li>|A∪B| = |A| + |B| − |A∩B|.</li>
-<li>|A∪B∪C| = Σ|A| − Σ|A∩B| + |A∩B∩C|.</li>
-<li>|⋃Aᵢ| = Σ_{k≥1} (−1)^{k+1} Σ_{|S|=k} |⋂_{i∈S} Aᵢ|.</li>
-<li>Why: an element lying in exactly m ≥ 1 of the sets is counted Σ_{k=1}^{m}(−1)^{k+1}C(m,k) = 1 − (1−1)ᵐ = 1 time.</li>
+<li>\(|A\cup B| = |A| + |B| - |A\cap B|\).</li>
+<li>\(|A\cup B\cup C| = \sum|A| - \sum|A\cap B| + |A\cap B\cap C|\).</li>
+<li>\[\Big|\bigcup_i A_i\Big| = \sum_{k\ge1} (-1)^{k+1} \sum_{|S|=k} \Big|\bigcap_{i\in S} A_i\Big|.\]</li>
+<li>Why: an element lying in exactly \(m \ge 1\) of the sets is counted \(\sum_{k=1}^{m}(-1)^{k+1}\binom{m}{k} = 1 - (1-1)^m = 1\) time.</li>
 </ol></div>
 <div class="prob"><h3>Soccer and hockey</h3><p>20 play soccer, 25 hockey, 11 both. How many play at least one?</p>
 <details><summary>Key idea</summary><p>Subtract the double count once.</p></details>
-<details><summary>Solution</summary><p>20 + 25 − 11 = <span class="ans">34</span>. ∎</p></details></div>
-<div class="prob"><h3>Divisible by 2, 3 or 5 (≤ 180)</h3>
+<details><summary>Solution</summary><p>\(20 + 25 - 11 = \) <span class="ans">\(34\)</span>. ∎</p></details></div>
+<div class="prob"><h3>Divisible by 2, 3 or 5 (\(\le 180\))</h3>
 <details><summary>Key idea</summary><p>Intersections are divisibility by the lcm.</p></details>
-<details><summary>Solution</summary><p>90 + 60 + 36 − 30 − 18 − 12 + 6 = <span class="ans">132</span>. ∎</p></details></div>
+<details><summary>Solution</summary><p>\(90 + 60 + 36 - 30 - 18 - 12 + 6 = \) <span class="ans">\(132\)</span>. ∎</p></details></div>
 <div class="prob"><h3>Twins</h3><p>5 pairs of twins in 10 chairs in a row. How many seatings have at least one pair of twins adjacent?</p>
-<details><summary>Key idea</summary><p>Aᵢ = "pair i adjacent". Any k chosen pairs glued as blocks: 2ᵏ(10−k)!.</p></details>
+<details><summary>Key idea</summary><p>\(A_i\) = "pair \(i\) adjacent". Any \(k\) chosen pairs glued as blocks: \(2^k(10-k)!\).</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>For a fixed set of k pairs: (10−k)! orders of the units, times 2ᵏ orders inside the blocks. <span class="why">(block)</span></li>
-<li>PIE: Σ_{k=1}^{5} (−1)^{k+1} C(5,k) 2ᵏ (10−k)! = <span class="ans">2 365 440</span>.</li>
+<li>For a fixed set of \(k\) pairs: \((10-k)!\) orders of the units, times \(2^k\) orders inside the blocks. <span class="why">(block)</span></li>
+<li>PIE: \(\displaystyle\sum_{k=1}^{5} (-1)^{k+1} \binom5k 2^k (10-k)! = \) <span class="ans">\(2\,365\,440\)</span>.</li>
 </ol><p>∎ (checked by brute force)</p></details></div>
-<div class="prob"><h3>At least two subjects</h3><p>|M∩P| = 18, |P∩C| = 15, |M∩C| = 13, |M∩P∩C| = 7. How many take at least 2 subjects?</p>
+<div class="prob"><h3>At least two subjects</h3><p>\(|M\cap P| = 18,\ |P\cap C| = 15,\ |M\cap C| = 13,\ |M\cap P\cap C| = 7\). How many take at least 2 subjects?</p>
 <details><summary>Key idea</summary><p>Count how many times each region is counted. The pairwise sum counts "all three" 3 times, so subtract it twice.</p></details>
 <details><summary>Solution</summary><ol class="pf">
 <li>In the pairwise sum, a student in exactly 2 subjects is counted once, and a student in all 3 is counted 3 times.</li>
-<li>So #(≥2) = 18 + 15 + 13 − 2·7 = <span class="ans">32</span>.</li>
+<li>So \(\#(\ge2) = 18 + 15 + 13 - 2\cdot7 = \) <span class="ans">\(32\)</span>.</li>
 </ol><p>∎</p></details></div>
 
 <h2 id="stars">9 · Stars and bars</h2>
 <div class="idea"><ol>
-<li>Non-negative solutions of z₁+…+z_k = n correspond one-to-one with rows of n stars and k−1 bars. Count: C(n+k−1, k−1).</li>
-<li>Lower bounds zᵢ ≥ aᵢ: substitute yᵢ = zᵢ − aᵢ, so n drops to n − Σaᵢ. Positive solutions: C(n−1,k−1).</li>
-<li>For ≤ n, add a slack variable z_{k+1} ≥ 0 to make it = n.</li>
+<li>Non-negative solutions of \(z_1+\dots+z_k = n\) correspond one-to-one with rows of \(n\) stars and \(k-1\) bars. Count: \(\binom{n+k-1}{k-1}\).</li>
+<li>Lower bounds \(z_i \ge a_i\): substitute \(y_i = z_i - a_i\), so \(n\) drops to \(n - \sum a_i\). Positive solutions: \(\binom{n-1}{k-1}\).</li>
+<li>For \(\le n\), add a slack variable \(z_{k+1} \ge 0\) to make it \(= n\).</li>
 </ol></div>
-<div class="prob"><h3>Four variants</h3><p>z₁+z₂+z₃ = 12 with: (a) z ≥ 0; (b) z₁≥1, z₂≥2, z₃≥3; (c) z ≥ 1; (d) z₁+z₂+z₃ ≤ 12.</p>
-<details><summary>Key idea</summary><p>Reduce every variant to "stars and bars with ≥ 0".</p></details>
+<div class="prob"><h3>Four variants</h3><p>\(z_1+z_2+z_3 = 12\) with: (a) \(z \ge 0\); (b) \(z_1\ge1, z_2\ge2, z_3\ge3\); (c) \(z \ge 1\); (d) \(z_1+z_2+z_3 \le 12\).</p>
+<details><summary>Key idea</summary><p>Reduce every variant to "stars and bars with \(\ge 0\)".</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>(a) C(14,2) = <span class="ans">91</span>.</li>
-<li>(b) y-sum = 12 − 6 = 6: C(8,2) = <span class="ans">28</span>.</li>
-<li>(c) y-sum = 9: C(11,2) = <span class="ans">55</span>.</li>
-<li>(d) 4 variables summing to 12: C(15,3) = <span class="ans">455</span>.</li>
+<li>(a) \(\binom{14}{2} = \) <span class="ans">\(91\)</span>.</li>
+<li>(b) \(y\)-sum \(= 12 - 6 = 6\): \(\binom82 = \) <span class="ans">\(28\)</span>.</li>
+<li>(c) \(y\)-sum \(= 9\): \(\binom{11}{2} = \) <span class="ans">\(55\)</span>.</li>
+<li>(d) 4 variables summing to 12: \(\binom{15}{3} = \) <span class="ans">\(455\)</span>.</li>
 </ol><p>∎</p></details></div>
 
 <h2 id="sum">10 · Summation by counting</h2>
-<div class="idea"><p>Split the sum by position (or by part) and count how often each value lands there. Total = Σ (value × number of times it appears × place value).</p></div>
+<div class="idea"><p>Split the sum by position (or by part) and count how often each value lands there. Total \(= \sum\) (value × number of times it appears × place value).</p></div>
 <div class="prob"><h3>Permutations of 12345</h3><p>Sum of all 5-digit numbers using each of 1–5 once.</p>
-<details><summary>Key idea</summary><p>Each digit sits in each position 4! = 24 times.</p></details>
+<details><summary>Key idea</summary><p>Each digit sits in each position \(4! = 24\) times.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>Each position contributes (1+…+5)·24 = 360 times its place value.</li>
-<li>Total = 360·11111 = <span class="ans">3 999 960</span>.</li>
+<li>Each position contributes \((1+\dots+5)\cdot24 = 360\) times its place value.</li>
+<li>Total \(= 360\cdot11111 = \) <span class="ans">\(3\,999\,960\)</span>.</li>
 </ol><p>∎</p></details></div>
-<div class="prob"><h3>Palindromes again</h3><p>Sum of all abcba (a ≠ 0), counted by position.</p>
-<details><summary>Key idea</summary><p>abcba = 10001a + 1010b + 100c. Each a value appears 100 times; each b or c value appears 90 times.</p></details>
+<div class="prob"><h3>Palindromes again</h3><p>Sum of all \(\overline{abcba}\) (\(a \ne 0\)), counted by position.</p>
+<details><summary>Key idea</summary><p>\(\overline{abcba} = 10001a + 1010b + 100c\). Each \(a\) value appears 100 times; each \(b\) or \(c\) value appears 90 times.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>a-part: 45·100·10001 = 45 004 500.</li>
-<li>b-part: 45·90·1010 = 4 090 500. c-part: 45·90·100 = 405 000.</li>
-<li>Total = <span class="ans">49 500 000</span>. (Same as the symmetry proof on the Brainteasers page.)</li>
+<li>\(a\)-part: \(45\cdot100\cdot10001 = 45\,004\,500\).</li>
+<li>\(b\)-part: \(45\cdot90\cdot1010 = 4\,090\,500\). \(c\)-part: \(45\cdot90\cdot100 = 405\,000\).</li>
+<li>Total = <span class="ans">\(49\,500\,000\)</span>. (Same as the symmetry proof on the Brainteasers page.)</li>
 </ol><p>∎</p>
 <p class="gap">⚠ Course stops before adding the three parts.</p></details></div>
 
 <h2 id="sym">11 · Symmetry</h2>
-<div class="idea"><p>If a bijection swaps "wanted" and "unwanted" (e.g. complement, reversal, relabelling), each side has exactly half. If k! equally likely relative orders exist, each has a 1/k! share.</p></div>
-<div class="prob"><h3>Subsets with sum &gt; 232</h3><p>How many subsets of {1,…,30} have sum &gt; 232?</p>
-<details><summary>Key idea</summary><p>Total = 465 = 232 + 233. Taking the complement swaps "≤ 232" and "&gt; 232".</p></details>
+<div class="idea"><p>If a bijection swaps "wanted" and "unwanted" (e.g. complement, reversal, relabelling), each side has exactly half. If \(k!\) equally likely relative orders exist, each has a \(1/k!\) share.</p></div>
+<div class="prob"><h3>Subsets with sum \(&gt; 232\)</h3><p>How many subsets of \(\{1,\dots,30\}\) have sum \(&gt; 232\)?</p>
+<details><summary>Key idea</summary><p>Total \(= 465 = 232 + 233\). Taking the complement swaps "\(\le 232\)" and "\(&gt; 232\)".</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>sum(Aᶜ) = 465 − sum(A). So sum(A) ≤ 232 ⇔ sum(Aᶜ) ≥ 233.</li>
-<li>A ↦ Aᶜ is a bijection between the two classes, so they are equal in size. <span class="why">(complementing twice gives A back)</span></li>
-<li>They partition all 2³⁰ subsets, so the answer is 2²⁹ = <span class="ans">536 870 912</span>.</li>
+<li>\(\text{sum}(A^c) = 465 - \text{sum}(A)\). So \(\text{sum}(A) \le 232 \iff \text{sum}(A^c) \ge 233\).</li>
+<li>\(A \mapsto A^c\) is a bijection between the two classes, so they are equal in size. <span class="why">(complementing twice gives \(A\) back)</span></li>
+<li>They partition all \(2^{30}\) subsets, so the answer is \(2^{29} = \) <span class="ans">\(536\,870\,912\)</span>.</li>
 </ol><p>∎</p></details></div>
 <div class="prob"><h3>Relative order</h3><p>10 people in a line. (a) A somewhere right of B. (b) Reading left to right: C, then B, then A.</p>
 <details><summary>Key idea</summary><p>Relabelling A↔B (or permuting the labels of A, B, C) maps the arrangements with one relative order onto those with another.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>Swapping the labels of A and B is a bijection between "A right of B" and "B right of A". So (a) = 10!/2 = <span class="ans">1 814 400</span>.</li>
-<li>The 3! relabellings of A, B, C permute the 6 relative orders, so each has 10!/6 = <span class="ans">604 800</span>.</li>
+<li>Swapping the labels of A and B is a bijection between "A right of B" and "B right of A". So (a) \(= 10!/2 = \) <span class="ans">\(1\,814\,400\)</span>.</li>
+<li>The \(3!\) relabellings of A, B, C permute the 6 relative orders, so each has \(10!/6 = \) <span class="ans">\(604\,800\)</span>.</li>
 </ol><p>∎</p></details></div>
 
 <h2 id="rec">12 · Recursion &amp; DP</h2>
 <div class="idea"><ol>
 <li>Split on the <b>first choice</b> (it leaves a smaller copy of the problem) or on the <b>last step into a state</b>.</li>
-<li>Linear recurrence xₙ = c₁xₙ₋₁ + c₂xₙ₋₂. Roots of y² − c₁y − c₂:
-<br>distinct r, s: xₙ = A rⁿ + B sⁿ;
-<br>double root r: xₙ = (A + Bn) rⁿ;
-<br>complex ρe^{±iθ}: xₙ = ρⁿ(A cos nθ + B sin nθ), with θ = arg(α+iβ).
-<br>Find A, B from x₁, x₂.</li>
+<li>Linear recurrence \(x_n = c_1x_{n-1} + c_2x_{n-2}\). Roots of \(y^2 - c_1y - c_2\):
+\[\begin{aligned}
+&amp;\text{distinct } r, s: &amp;&amp; x_n = A r^n + B s^n \\
+&amp;\text{double root } r: &amp;&amp; x_n = (A + Bn)\, r^n \\
+&amp;\text{complex } \rho e^{\pm i\theta}: &amp;&amp; x_n = \rho^n(A\cos n\theta + B\sin n\theta)
+\end{aligned}\]
+Find \(A, B\) from \(x_1, x_2\).</li>
 <li>DP = fill a table of the recurrence in an order where every term's inputs are already filled.</li>
 </ol>
-<p class="gap">⚠ Course errors here. (i) The examples omit xₙ₋₂ (they are xₙ = 5xₙ₋₁ − 6<b>xₙ₋₂</b>, etc.). (ii) The same symbols c₁, c₂ are reused for the constants. (iii) Both worked answers are wrong: see below.</p></div>
+<p class="gap">⚠ Course errors here. (i) The examples omit \(x_{n-2}\) (they are \(x_n = 5x_{n-1} - 6\boldsymbol{x_{n-2}}\), etc.). (ii) The same symbols \(c_1, c_2\) are reused for the constants. (iii) Both worked answers are wrong: see below.</p></div>
 <div class="prob"><h3>Frog to 10</h3><p>Jumps of 1 or 2, from 0 to 10.</p>
-<details><summary>Key idea</summary><p>Split on the last jump: dₙ = dₙ₋₁ + dₙ₋₂.</p></details>
+<details><summary>Key idea</summary><p>Split on the last jump: \(d_n = d_{n-1} + d_{n-2}\).</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>The last jump is 1 (from n−1) or 2 (from n−2). These cases are disjoint.</li>
-<li>d₀ = d₁ = 1, which gives 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89.</li>
-</ol><p>∎ &nbsp;<span class="ans">89</span></p></details></div>
+<li>The last jump is 1 (from \(n-1\)) or 2 (from \(n-2\)). These cases are disjoint.</li>
+<li>\(d_0 = d_1 = 1\), which gives \(1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89\).</li>
+</ol><p>∎ &nbsp;<span class="ans">\(89\)</span></p></details></div>
 <div class="prob"><h3>No "00" (length 10, digits 0/1/2)</h3>
-<details><summary>Key idea</summary><p>Split on the first digit. 1 or 2 leaves bₙ₋₁. A 0 must be followed by 1 or 2, which leaves bₙ₋₂.</p></details>
+<details><summary>Key idea</summary><p>Split on the first digit. 1 or 2 leaves \(b_{n-1}\). A 0 must be followed by 1 or 2, which leaves \(b_{n-2}\).</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>bₙ = 2bₙ₋₁ + 2bₙ₋₂, with b₁ = 3, b₂ = 8.</li>
-<li>This gives 22, 60, 164, 448, 1224, 3344, 9136, 24960.</li>
-</ol><p>∎ &nbsp;<span class="ans">24 960</span> (brute-force checked)</p></details></div>
-<div class="prob"><h3>Grid paths</h3><p>Moves right or down only, 4×4 cells and 5×5 cells, corner to corner.</p>
-<details><summary>Key idea</summary><p>f(i,j) = f(i−1,j) + f(i,j−1), with edges equal to 1. This equals C(i+j−2, i−1).</p></details>
-<details><summary>Solution</summary><p>f(4,4) = C(6,3) = <span class="ans">20</span>; f(5,5) = C(8,4) = <span class="ans">70</span>. ∎</p></details></div>
+<li>\(b_n = 2b_{n-1} + 2b_{n-2}\), with \(b_1 = 3,\ b_2 = 8\).</li>
+<li>This gives \(22, 60, 164, 448, 1224, 3344, 9136, 24960\).</li>
+</ol><p>∎ &nbsp;<span class="ans">\(24\,960\)</span> (brute-force checked)</p></details></div>
+<div class="prob"><h3>Grid paths</h3><p>Moves right or down only, \(4\times4\) cells and \(5\times5\) cells, corner to corner.</p>
+<details><summary>Key idea</summary><p>\(f(i,j) = f(i-1,j) + f(i,j-1)\), with edges equal to 1. This equals \(\binom{i+j-2}{i-1}\).</p></details>
+<details><summary>Solution</summary><p>\(f(4,4) = \binom63 = \) <span class="ans">\(20\)</span>; \(f(5,5) = \binom84 = \) <span class="ans">\(70\)</span>. ∎</p></details></div>
 <div class="prob"><h3>Solving recurrences (corrected)</h3>
-<p>(a) xₙ = 5xₙ₋₁ − 6xₙ₋₂, x₁ = 7, x₂ = 22. (b) xₙ = 4xₙ₋₁ − 4xₙ₋₂, x₁ = 12, x₂ = 24.</p>
-<details><summary>Key idea</summary><p>Characteristic roots, then solve a 2×2 system.</p></details>
+<p>(a) \(x_n = 5x_{n-1} - 6x_{n-2},\ x_1 = 7,\ x_2 = 22\). (b) \(x_n = 4x_{n-1} - 4x_{n-2},\ x_1 = 12,\ x_2 = 24\).</p>
+<details><summary>Key idea</summary><p>Characteristic roots, then solve a \(2\times2\) system.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>(a) y² − 5y + 6 = (y−2)(y−3). Then 2A + 3B = 7 and 4A + 9B = 22, so B = 8/3, A = −1/2.</li>
-<li>So xₙ = −2ⁿ⁻¹ + 8·3ⁿ⁻¹. Check: 7, 22, 68 = 5·22 − 6·7. ✓</li>
-<li>(b) (y−2)², so xₙ = (A + Bn)2ⁿ. Then 2(A+B) = 12 and 4(A+2B) = 24, so B = 0, A = 6. So xₙ = 6·2ⁿ.</li>
+<li>(a) \(y^2 - 5y + 6 = (y-2)(y-3)\). Then \(2A + 3B = 7\) and \(4A + 9B = 22\), so \(B = \tfrac83,\ A = -\tfrac12\).</li>
+<li>So \(x_n = -2^{n-1} + 8\cdot3^{n-1}\). Check: \(7, 22, 68 = 5\cdot22 - 6\cdot7\). ✓</li>
+<li>(b) \((y-2)^2\), so \(x_n = (A + Bn)2^n\). Then \(2(A+B) = 12\) and \(4(A+2B) = 24\), so \(B = 0,\ A = 6\). So \(x_n = 6\cdot2^n\).</li>
 </ol><p>∎</p>
-<p class="gap">⚠ Course gets (a) xₙ = 2ⁿ + 2·3ⁿ, which gives x₁ = 8 ≠ 7, and (b) A = B = 2, which gives x₁ = 8 ≠ 12.</p></details></div>
+<p class="gap">⚠ Course gets (a) \(x_n = 2^n + 2\cdot3^n\), which gives \(x_1 = 8 \ne 7\), and (b) \(A = B = 2\), which gives \(x_1 = 8 \ne 12\).</p></details></div>
 
 <h2 id="bij">13 · Bijection</h2>
-<div class="idea"><p>To count A, build a map to an easy set B and show it is one-to-one and onto (usually by giving the inverse map). Checking only one direction is the classic mistake.</p></div>
-<div class="prob"><h3>Increasing words &amp; lattice paths</h3><p>(a) 4-letter words with strictly increasing letters. (b) Up/right paths from (0,0) to (4,3).</p>
+<div class="idea"><p>To count \(A\), build a map to an easy set \(B\) and show it is one-to-one and onto (usually by giving the inverse map). Checking only one direction is the classic mistake.</p></div>
+<div class="prob"><h3>Increasing words &amp; lattice paths</h3><p>(a) 4-letter words with strictly increasing letters. (b) Up/right paths from \((0,0)\) to \((4,3)\).</p>
 <details><summary>Key idea</summary><p>(a) word ↔ its set of letters. (b) path ↔ a word of 4 R's and 3 U's.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>(a) Word ↦ set of letters. Inverse: sort the set. So C(26,4) = <span class="ans">14950</span>.</li>
-<li>(b) Path ↦ its step word. Inverse: follow the word. So C(7,3) = <span class="ans">35</span>.</li>
+<li>(a) Word ↦ set of letters. Inverse: sort the set. So \(\binom{26}{4} = \) <span class="ans">\(14950\)</span>.</li>
+<li>(b) Path ↦ its step word. Inverse: follow the word. So \(\binom73 = \) <span class="ans">\(35\)</span>.</li>
 </ol><p>∎</p></details></div>
 <div class="prob"><h3>Chess club</h3><p>100 members, Alex is one of them. Which is larger: (a) 10-person committees without Alex, or (b) 11-person committees (any)?</p>
 <details><summary>Key idea</summary><p>Adding Alex maps (a) onto the 11-person committees that <i>contain</i> Alex, a proper subset of (b).</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>X ↦ X ∪ {Alex} is a bijection from (a) onto the 11-committees containing Alex. <span class="why">(inverse: remove Alex)</span></li>
+<li>\(X \mapsto X \cup \{\text{Alex}\}\) is a bijection from (a) onto the 11-committees containing Alex. <span class="why">(inverse: remove Alex)</span></li>
 <li>Those are a proper subset of (b), since 11-committees without Alex exist.</li>
-</ol><p>∎ &nbsp;<span class="ans">(b) is larger</span>. (In numbers: C(99,10) &lt; C(100,11).)</p></details></div>
+</ol><p>∎ &nbsp;<span class="ans">(b) is larger</span>. (In numbers: \(\binom{99}{10} &lt; \binom{100}{11}\).)</p></details></div>
 <div class="prob"><h3>Diagonal crossings in a 12-gon</h3><p>What is the maximum number of interior intersection points of diagonals?</p>
 <details><summary>Key idea</summary><p>A crossing pair of diagonals ↔ its 4 endpoints. Any 4 vertices give exactly one crossing pair (the diagonals of their quadrilateral).</p></details>
 <details><summary>Solution</summary><ol class="pf">
 <li>4 vertices of a convex polygon give a convex quadrilateral, whose two diagonals cross exactly once, inside. Two diagonals that cross have 4 distinct endpoints.</li>
-<li>So crossing pairs ↔ 4-sets of vertices: C(12,4) of them.</li>
-<li>#points ≤ #crossing pairs, with equality iff no three diagonals meet at one point. That can be arranged by perturbing the vertices.</li>
-</ol><p>∎ &nbsp;<span class="ans">495</span></p></details></div>
-<div class="prob"><h3>Even rows and columns</h3><p>Fill an 8×8 grid with black and white so that every row and column has an even number of whites. How many ways (as 2ᵃ)?</p>
-<details><summary>Key idea</summary><p>The top-left 7×7 block is free. The last column and row are forced by parity, and the corner is consistent.</p></details>
+<li>So crossing pairs ↔ 4-sets of vertices: \(\binom{12}{4}\) of them.</li>
+<li>#points \(\le\) #crossing pairs, with equality iff no three diagonals meet at one point. That can be arranged by perturbing the vertices.</li>
+</ol><p>∎ &nbsp;<span class="ans">\(495\)</span></p></details></div>
+<div class="prob"><h3>Even rows and columns</h3><p>Fill an \(8\times8\) grid with black and white so that every row and column has an even number of whites. How many ways (as \(2^a\))?</p>
+<details><summary>Key idea</summary><p>The top-left \(7\times7\) block is free. The last column and row are forced by parity, and the corner is consistent.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>Given the 7×7 block, the first 7 cells of the last column are forced (row parity), and so are the first 7 cells of the last row (column parity).</li>
-<li>Corner: row 8 needs parity = (whites in the first 7 cells of row 8) = (whites in the 7×7 block) mod 2. Column 8 needs the same quantity. So both demand the same corner colour. <span class="why">(sum rows vs sum columns)</span></li>
-<li>So valid grids ↔ 7×7 fillings: 2⁴⁹.</li>
-</ol><p>∎ &nbsp;<span class="ans">a = 49</span></p></details></div>
+<li>Given the \(7\times7\) block, the first 7 cells of the last column are forced (row parity), and so are the first 7 cells of the last row (column parity).</li>
+<li>Corner: row 8 needs parity = (whites in the first 7 cells of row 8) = (whites in the \(7\times7\) block) mod 2. Column 8 needs the same quantity. So both demand the same corner colour. <span class="why">(sum rows vs sum columns)</span></li>
+<li>So valid grids ↔ \(7\times7\) fillings: \(2^{49}\).</li>
+</ol><p>∎ &nbsp;<span class="ans">\(a = 49\)</span></p></details></div>
 
 <h2 id="refl">14 · Reflection principle</h2>
 <div class="idea"><ol>
-<li>±1 walks of n steps from 0 to d: C(n, (n+d)/2), when n+d is even.</li>
-<li><b>Reflection:</b> suppose the walk ends on one side of a level m and must touch m. Flip every step after the first visit to m. This is a bijection with the walks ending at 2m − (end). The inverse is the same flip, because the first visit to m is the same in both.</li>
+<li>\(\pm1\) walks of \(n\) steps from 0 to \(d\): \(\binom{n}{(n+d)/2}\), when \(n+d\) is even.</li>
+<li><b>Reflection:</b> suppose the walk ends on one side of a level \(m\) and must touch \(m\). Flip every step after the first visit to \(m\). This is a bijection with the walks ending at \(2m - \text{end}\). The inverse is the same flip, because the first visit to \(m\) is the same in both.</li>
 </ol></div>
-<div class="prob"><h3>Walk counts</h3><p>8 steps: (a) 0→0; (b) 0→2; (c) 0→0 dipping below 0. And (d) 10 steps 0→4 touching 6.</p>
-<details><summary>Key idea</summary><p>(c) reflect at −1, so the end becomes −2. (d) reflect at 6, so the end becomes 8.</p></details>
+<div class="prob"><h3>Walk counts</h3><p>8 steps: (a) \(0\to0\); (b) \(0\to2\); (c) \(0\to0\) dipping below 0. And (d) 10 steps \(0\to4\) touching 6.</p>
+<details><summary>Key idea</summary><p>(c) reflect at \(-1\), so the end becomes \(-2\). (d) reflect at 6, so the end becomes 8.</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>(a) 4 rights: C(8,4) = <span class="ans">70</span>. (b) 5 rights: C(8,5) = <span class="ans">56</span>.</li>
-<li>(c) Dipping below 0 ⇔ touching −1. Reflecting gives the end 2(−1) − 0 = −2, which needs 3 rights: C(8,3) = <span class="ans">56</span>.</li>
-<li>(d) The end becomes 2·6 − 4 = 8, which needs 9 rights: C(10,9) = <span class="ans">10</span>.</li>
+<li>(a) 4 rights: \(\binom84 = \) <span class="ans">\(70\)</span>. (b) 5 rights: \(\binom85 = \) <span class="ans">\(56\)</span>.</li>
+<li>(c) Dipping below 0 \(\iff\) touching \(-1\). Reflecting gives the end \(2(-1) - 0 = -2\), which needs 3 rights: \(\binom83 = \) <span class="ans">\(56\)</span>.</li>
+<li>(d) The end becomes \(2\cdot6 - 4 = 8\), which needs 9 rights: \(\binom{10}{9} = \) <span class="ans">\(10\)</span>.</li>
 </ol><p>∎ (all brute-force checked)</p></details></div>
-<div class="prob"><h3>Valid brackets (n = 4)</h3>
-<details><summary>Key idea</summary><p>"(" = +1 and ")" = −1. Valid means the walk 0→0 never goes below 0. Bad ones reflect to walks 0→−2.</p></details>
+<div class="prob"><h3>Valid brackets (\(n = 4\))</h3>
+<details><summary>Key idea</summary><p>"(" \(= +1\) and ")" \(= -1\). Valid means the walk \(0\to0\) never goes below 0. Bad ones reflect to walks \(0\to-2\).</p></details>
 <details><summary>Solution</summary><ol class="pf">
-<li>All walks: C(8,4) = 70. Bad (touch −1): C(8,3) = 56. <span class="why">(reflection)</span></li>
-<li>Valid = 70 − 56 = <span class="ans">14</span> (the Catalan number C₄).</li>
+<li>All walks: \(\binom84 = 70\). Bad (touch \(-1\)): \(\binom83 = 56\). <span class="why">(reflection)</span></li>
+<li>Valid \(= 70 - 56 = \) <span class="ans">\(14\)</span> (the Catalan number \(C_4\)).</li>
 </ol><p>∎</p></details></div>
 </div>
+
+<style>.katex{font-size:1.15em}.katex-display{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}</style>

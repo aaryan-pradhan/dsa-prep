@@ -1,5 +1,7 @@
 <title>Brainteasers Ledger</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
 <style>
 :root{
   --bg:#f6f7f9; --ink:#171b24; --muted:#5a6273; --rule:#d9dee6; --card:#ffffff;
@@ -17,9 +19,9 @@
   --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
   --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
 }
-body{background:var(--bg);color:var(--ink);font:16px/1.6 "Source Sans 3",system-ui,sans-serif;padding-inline:16px;padding-block:24px 64px}
-.wrap{max-width:46rem;margin:0 auto}
-h1,h2,h3{font-family:"EB Garamond",Georgia,serif;font-weight:600;text-wrap:balance;line-height:1.2}
+body{background:var(--bg);color:var(--ink);font:20px/1.75 "MesloLGS Nerd Font Propo","MesloLGS NF","MesloLGS Nerd Font",ui-monospace,monospace;padding-inline:16px;padding-block:24px 64px}
+.wrap{max-width:52rem;margin:0 auto}
+h1,h2,h3{font-family:"MesloLGS Nerd Font Propo","MesloLGS NF","MesloLGS Nerd Font",ui-monospace,monospace;font-weight:700;text-wrap:balance;line-height:1.2}
 h1{font-size:2.4rem;margin:0 0 .25rem}
 h2{font-size:1.7rem;margin:3rem 0 .75rem;padding-top:1rem;border-top:1px solid var(--rule)}
 h3{font-size:1.2rem;margin:0 0 .4rem}
@@ -41,12 +43,10 @@ summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.95rem}
 details > *:not(summary){margin-top:.5rem}
 ol.pf{padding-left:1.6rem;margin:.4rem 0}
 ol.pf li{margin:.2rem 0}
-.why{color:var(--muted);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.78rem;white-space:nowrap}
+.why{color:var(--muted);font-size:.85em;white-space:nowrap}
 .qed{float:right;color:var(--muted)}
 .claim{margin:.3rem 0}
 .gap{background:var(--gapbg);color:var(--gap);border-radius:6px;padding:.5rem .8rem;font-size:.92rem}
-.m{font-style:italic;font-family:"EB Garamond",Georgia,serif;font-size:1.08em}
-.eq{display:block;text-align:center;margin:.5rem 0;overflow-x:auto;font-family:"EB Garamond",Georgia,serif;font-size:1.1em}
 table{border-collapse:collapse;font-size:.92rem}
 .tw{overflow-x:auto}
 td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-variant-numeric:tabular-nums}
@@ -87,19 +87,19 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <details><summary>Key idea</summary><p>Take a different number of coins from each box, so every possible light box gives a different total.</p></details>
 <details><summary>Solution</summary>
 <ol class="pf">
-<li>Take k coins from box k, for k = 1,…,10. That is 55 coins. <span class="why">(construction)</span></li>
+<li>Take \(k\) coins from box \(k\), for \(k = 1,\dots,10\). That is 55 coins. <span class="why">(construction)</span></li>
 <li>If every coin were 10 g, the total would be 550 g.</li>
-<li>If box j is light, each of its j coins is 1 g short, so W = 550 − j. <span class="why">(1, 2)</span></li>
-<li>So j = 550 − W, and different j give different W. <span class="why">(3)</span></li>
+<li>If box \(j\) is light, each of its \(j\) coins is 1 g short, so \(W = 550 - j\). <span class="why">(1, 2)</span></li>
+<li>So \(j = 550 - W\), and different \(j\) give different \(W\). <span class="why">(3)</span></li>
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Two piles of stones</h3>
-<p>Piles of 1933 and 3800 stones. A move removes ≥1 stones from one pile. The player who takes the last stone wins. Alice moves first. Who wins?</p>
+<p>Piles of 1933 and 3800 stones. A move removes \(\ge 1\) stones from one pile. The player who takes the last stone wins. Alice moves first. Who wins?</p>
 <details><summary>Key idea</summary><p>Special case: with equal piles the second player wins by copying the first player's move on the other pile.</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Alice wins.</span></p>
 <ol class="pf">
-<li>Alice takes 3800 − 1933 = 1867 stones from the big pile, leaving (1933, 1933).</li>
+<li>Alice takes \(3800 - 1933 = 1867\) stones from the big pile, leaving \((1933, 1933)\).</li>
 <li>Invariant: after each of Alice's moves the piles are equal. <span class="why">(1; she copies Bob's move on the other pile)</span></li>
 <li>If Bob can move, the pile he did not touch still has the stones Alice needs to copy him. So Alice can always reply. <span class="why">(2)</span></li>
 <li>Stones strictly decrease, so the game ends. By 3, the last stone is taken by Alice.</li>
@@ -109,25 +109,25 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <div class="idea"><p><b>Invariant</b>: a quantity that no allowed operation changes. If it differs between the start and the target, the target cannot be reached. The trigger is "repeated operations: can state X be reached?"</p></div>
 
 <div class="prob"><h3>Make all equal</h3>
-<p>Six numbers around a circle: 1,0,1,0,0,0. A move adds 1 to two neighbouring numbers. Can all six become equal?</p>
-<details><summary>Key idea</summary><p>Alternating sum Q = a − b + c − d + e − f. Two neighbours always have opposite signs in Q.</p></details>
+<p>Six numbers around a circle: \(1,0,1,0,0,0\). A move adds 1 to two neighbouring numbers. Can all six become equal?</p>
+<details><summary>Key idea</summary><p>Alternating sum \(Q = a - b + c - d + e - f\). Two neighbours always have opposite signs in \(Q\).</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">No.</span></p>
 <ol class="pf">
-<li>Neighbours (including f, a) have opposite signs in Q, so a move changes Q by +1 − 1 = 0. <span class="why">(6 is even)</span></li>
-<li>At the start, Q = 1 − 0 + 1 − 0 + 0 − 0 = 2.</li>
-<li>If all six equal t, then Q = 3t − 3t = 0.</li>
-<li>2 ≠ 0, so this can never happen. <span class="why">(1, 2, 3)</span></li>
+<li>Neighbours (including \(f, a\)) have opposite signs in \(Q\), so a move changes \(Q\) by \(+1 - 1 = 0\). <span class="why">(6 is even)</span></li>
+<li>At the start, \(Q = 1 - 0 + 1 - 0 + 0 - 0 = 2\).</li>
+<li>If all six equal \(t\), then \(Q = 3t - 3t = 0\).</li>
+<li>\(2 \ne 0\), so this can never happen. <span class="why">(1, 2, 3)</span></li>
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Reaching zero</h3>
-<p>1,2,…,50 are on a board. A move replaces a, b with |a − b|. Can a single 0 be left at the end?</p>
+<p>\(1,2,\dots,50\) are on a board. A move replaces \(a, b\) with \(|a - b|\). Can a single 0 be left at the end?</p>
 <details><summary>Key idea</summary><p>The parity of the sum never changes.</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">No.</span></p>
 <ol class="pf">
-<li>A move changes the sum S to S − a − b + |a − b| = S − 2·min(a,b). So the parity of S never changes.</li>
-<li>At the start, S = 50·51/2 = 1275, which is odd.</li>
+<li>A move changes the sum \(S\) to \(S - a - b + |a - b| = S - 2\min(a,b)\). So the parity of \(S\) never changes.</li>
+<li>At the start, \(S = \tfrac{50\cdot51}{2} = 1275\), which is odd.</li>
 <li>A board holding only 0 has an even sum. This contradicts 1 and 2.</li>
 </ol><p>∎</p></details></div>
 
@@ -135,84 +135,85 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <div class="idea"><p><b>Monovariant</b>: a quantity that moves in only one direction (e.g. strictly increases). You use it to show that a state can never repeat, or that a process must end.</p></div>
 
 <div class="prob"><h3>Return configuration</h3>
-<p>Finitely many stones sit in boxes along an infinite line. A move takes 2 stones from one box and puts one in each neighbouring box. Can you return to the start after ≥1 moves?</p>
-<details><summary>Key idea</summary><p>Number the boxes with integers. Q = Σ (box number of each stone)². Every move adds exactly 2 to Q.</p></details>
+<p>Finitely many stones sit in boxes along an infinite line. A move takes 2 stones from one box and puts one in each neighbouring box. Can you return to the start after \(\ge 1\) moves?</p>
+<details><summary>Key idea</summary><p>Number the boxes with integers. \(Q = \sum_{\text{stones}} (\text{box number})^2\). Every move adds exactly 2 to \(Q\).</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">No.</span></p>
 <ol class="pf">
-<li>Moving two stones out of box n into boxes n−1 and n+1 gives ΔQ = (n−1)² + (n+1)² − 2n² = 2.</li>
-<li>After k ≥ 1 moves, Q has grown by 2k &gt; 0. <span class="why">(1)</span></li>
-<li>The same configuration has the same Q, so it cannot come back. <span class="why">(2)</span></li>
+<li>Moving two stones out of box \(n\) into boxes \(n-1\) and \(n+1\) gives
+\[\Delta Q = (n-1)^2 + (n+1)^2 - 2n^2 = 2.\]</li>
+<li>After \(k \ge 1\) moves, \(Q\) has grown by \(2k &gt; 0\). <span class="why">(1)</span></li>
+<li>The same configuration has the same \(Q\), so it cannot come back. <span class="why">(2)</span></li>
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Infection spread</h3>
-<p>n×n board. A cell becomes infected when ≥2 of its side-neighbours are infected. Show that fewer than n infected cells at the start can never infect the whole board.</p>
+<p>\(n\times n\) board. A cell becomes infected when \(\ge 2\) of its side-neighbours are infected. Show that fewer than \(n\) infected cells at the start can never infect the whole board.</p>
 <details><summary>Key idea</summary><p>The perimeter of the infected region never increases.</p></details>
 <details><summary>Solution</summary>
 <ol class="pf">
 <li>Infect cells one at a time. <span class="why">(any simultaneous step can be ordered this way)</span></li>
-<li>A new cell with k ≥ 2 infected neighbours adds 4 − k edges to the perimeter and removes k edges. So Δperimeter = 4 − 2k ≤ 0.</li>
-<li>At the start there are m &lt; n cells, so perimeter ≤ 4m &lt; 4n.</li>
-<li>The full board has perimeter 4n. This is more than the start, which contradicts 2.</li>
+<li>A new cell with \(k \ge 2\) infected neighbours adds \(4 - k\) edges to the perimeter and removes \(k\) edges. So \(\Delta\text{perimeter} = 4 - 2k \le 0\).</li>
+<li>At the start there are \(m &lt; n\) cells, so perimeter \(\le 4m &lt; 4n\).</li>
+<li>The full board has perimeter \(4n\). This is more than the start, which contradicts 2.</li>
 </ol><p>∎</p>
-<p class="gap">⚠ Course gap: it states that the perimeter can't increase without showing the 4 − 2k count (step 2).</p></details></div>
+<p class="gap">⚠ Course gap: it states that the perimeter can't increase without showing the \(4 - 2k\) count (step 2).</p></details></div>
 
 <h2 id="php">4 · Pigeonhole principle</h2>
 <div class="idea"><ol>
-<li>If n+1 objects go into n boxes, some box holds ≥ 2 objects.</li>
-<li>If more than k·n objects go into n boxes, some box holds ≥ k+1 objects.</li>
+<li>If \(n+1\) objects go into \(n\) boxes, some box holds \(\ge 2\) objects.</li>
+<li>If more than \(kn\) objects go into \(n\) boxes, some box holds \(\ge k+1\) objects.</li>
 <li>If infinitely many objects go into finitely many boxes, some box holds infinitely many.</li>
 </ol><p>What to find: the boxes.</p></div>
 
 <div class="prob"><h3>Same number of friends</h3>
-<p>n ≥ 2 people. Friendship is mutual. Show that two people have the same number of friends.</p>
-<details><summary>Key idea</summary><p>Friend counts lie in {0,…,n−1}, but 0 and n−1 cannot both occur.</p></details>
+<p>\(n \ge 2\) people. Friendship is mutual. Show that two people have the same number of friends.</p>
+<details><summary>Key idea</summary><p>Friend counts lie in \(\{0,\dots,n-1\}\), but \(0\) and \(n-1\) cannot both occur.</p></details>
 <details><summary>Solution</summary>
 <ol class="pf">
-<li>Each count lies in {0,1,…,n−1}. That is n boxes.</li>
-<li>If someone has n−1 friends, they are friends with everyone, so nobody has 0. So 0 and n−1 are never both used.</li>
-<li>So at most n−1 boxes are used by n people, and two people share a box. <span class="why">(PHP)</span></li>
+<li>Each count lies in \(\{0,1,\dots,n-1\}\). That is \(n\) boxes.</li>
+<li>If someone has \(n-1\) friends, they are friends with everyone, so nobody has 0. So \(0\) and \(n-1\) are never both used.</li>
+<li>So at most \(n-1\) boxes are used by \(n\) people, and two people share a box. <span class="why">(PHP)</span></li>
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Ant cover</h3>
-<p>51 ants on a 1×1 table. Show that a (1/5)×(1/5) card can be placed to cover ≥ 3 ants.</p>
-<details><summary>Key idea</summary><p>Split the table into 25 small squares. 51 &gt; 2·25.</p></details>
+<p>51 ants on a \(1\times1\) table. Show that a \(\tfrac15\times\tfrac15\) card can be placed to cover \(\ge 3\) ants.</p>
+<details><summary>Key idea</summary><p>Split the table into 25 small squares. \(51 &gt; 2\cdot25\).</p></details>
 <details><summary>Solution</summary>
 <ol class="pf">
-<li>Cut the table into 25 closed squares of side 1/5. Assign each ant to one square that contains it.</li>
-<li>51 &gt; 2·25, so some square holds ≥ 3 ants. <span class="why">(generalised PHP)</span></li>
+<li>Cut the table into 25 closed squares of side \(\tfrac15\). Assign each ant to one square that contains it.</li>
+<li>\(51 &gt; 2\cdot25\), so some square holds \(\ge 3\) ants. <span class="why">(generalised PHP)</span></li>
 <li>Put the card exactly on that square.</li>
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Arrows on a grid</h3>
-<p>100×100 board with walls all round, except the right side of the top-right cell. Each cell has an arrow (↑↓←→). Each second the insect steps along its cell's arrow (if a wall blocks it, it stays), and that arrow then turns 90° clockwise. Can the insect stay on the board forever?</p>
+<p>\(100\times100\) board with walls all round, except the right side of the top-right cell. Each cell has an arrow (↑↓←→). Each second the insect steps along its cell's arrow (if a wall blocks it, it stays), and that arrow then turns 90° clockwise. Can the insect stay on the board forever?</p>
 <details><summary>Key idea</summary><p>Infinite pigeonhole: some cell is visited infinitely often. Its arrow cycles through all four directions, so this spreads to every neighbour, and so to every cell.</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">No. It always leaves.</span></p>
 <ol class="pf">
-<li>Suppose it stays forever. Then there are infinitely many steps on 10⁴ cells, so some cell C is visited infinitely often. <span class="why">(infinite PHP)</span></li>
-<li>Each visit turns C's arrow, so the arrow points at each neighbour of C infinitely often, and the insect moves there. So every neighbour of C is visited infinitely often.</li>
+<li>Suppose it stays forever. Then there are infinitely many steps on \(10^4\) cells, so some cell \(C\) is visited infinitely often. <span class="why">(infinite PHP)</span></li>
+<li>Each visit turns \(C\)'s arrow, so the arrow points at each neighbour of \(C\) infinitely often, and the insect moves there. So every neighbour of \(C\) is visited infinitely often.</li>
 <li>The board is connected, so repeating 2 shows that every cell is visited infinitely often, including the top-right cell.</li>
 <li>That cell's arrow eventually points right, and the insect exits. This contradicts 1.</li>
 </ol><p>∎</p></details></div>
 
 <h2 id="color">5 · Proof by colouring</h2>
-<div class="idea"><p>Colour the cells so that every piece or move covers or changes colours in a fixed way. Then compare colour counts. The chessboard colouring is the usual choice; for 1×k pieces, colour (i+j) mod k.</p></div>
+<div class="idea"><p>Colour the cells so that every piece or move covers or changes colours in a fixed way. Then compare colour counts. The chessboard colouring is the usual choice; for \(1\times k\) pieces, colour \((i+j) \bmod k\).</p></div>
 
 <div class="prob"><h3>Mutilated chessboard</h3>
-<p>Remove two opposite corners from an 8×8 board. Can 31 dominoes cover the remaining 62 cells?</p>
+<p>Remove two opposite corners from an \(8\times8\) board. Can 31 dominoes cover the remaining 62 cells?</p>
 <details><summary>Key idea</summary><p>Every domino covers 1 black cell and 1 white cell. Opposite corners have the same colour.</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">No.</span></p>
 <ol class="pf">
-<li>Opposite corners (1,1) and (8,8) have the same colour. <span class="why">(i+j both even)</span></li>
+<li>Opposite corners \((1,1)\) and \((8,8)\) have the same colour. <span class="why">(\(i+j\) both even)</span></li>
 <li>So what is left has 30 cells of one colour and 32 of the other.</li>
 <li>31 dominoes would cover 31 of each colour. <span class="why">(each covers one of each)</span></li>
-<li>30 ≠ 31. This contradicts 2 and 3.</li>
+<li>\(30 \ne 31\). This contradicts 2 and 3.</li>
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Corner-to-corner walk</h3>
-<p>Walk on an 8×8 board, stepping between side-adjacent cells, visiting each cell exactly once. Can you start and end at opposite corners?</p>
+<p>Walk on an \(8\times8\) board, stepping between side-adjacent cells, visiting each cell exactly once. Can you start and end at opposite corners?</p>
 <details><summary>Key idea</summary><p>Every step changes colour, and there are 63 steps (odd).</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">No.</span></p>
@@ -223,7 +224,7 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Unequal neighbours</h3>
-<p>An m×n grid of integers. You may add 1 to any cell, at most once per cell. Can you always make every pair of side-neighbours different?</p>
+<p>An \(m\times n\) grid of integers. You may add 1 to any cell, at most once per cell. Can you always make every pair of side-neighbours different?</p>
 <details><summary>Key idea</summary><p>Chessboard colouring: make black cells even and white cells odd.</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Yes, always.</span></p>
@@ -233,76 +234,79 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <li>Neighbours then have different parities, so they are different. <span class="why">(1, 2)</span></li>
 </ol><p>∎</p></details></div>
 
-<div class="prob"><h3>6×6 with 1×4 tiles</h3>
-<p>Can 1×4 tiles cover a 6×6 board?</p>
-<details><summary>Key idea</summary><p>Give cell (i,j) the colour (i+j) mod 4. Every 1×4 tile covers one cell of each colour.</p></details>
+<div class="prob"><h3>\(6\times6\) with \(1\times4\) tiles</h3>
+<p>Can \(1\times4\) tiles cover a \(6\times6\) board?</p>
+<details><summary>Key idea</summary><p>Give cell \((i,j)\) the colour \((i+j) \bmod 4\). Every \(1\times4\) tile covers one cell of each colour.</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">No.</span></p>
 <ol class="pf">
-<li>4 consecutive cells in a row or a column have 4 consecutive values of i+j, so they cover each colour once.</li>
+<li>4 consecutive cells in a row or a column have 4 consecutive values of \(i+j\), so they cover each colour once.</li>
 <li>So a tiling would use each colour equally often: 9 each.</li>
-<li>Counting on 6×6 (i,j from 0): colour 1 appears 10 times and colour 3 appears 8 times. This contradicts 2.</li>
+<li>Counting on \(6\times6\) (\(i,j\) from 0): colour 1 appears 10 times and colour 3 appears 8 times. This contradicts 2.</li>
 </ol><p>∎</p></details></div>
 
 <h2 id="ind">6 · Induction</h2>
 <div class="idea"><ol>
-<li><b>Weak:</b> prove P(n₀). Prove P(n) ⇒ P(n+1).</li>
-<li><b>Strong:</b> prove P(n₀). Prove that P(n₀),…,P(n) together give P(n+1).</li>
-<li><b>Step 2:</b> for odd n only, prove P(1) and P(n) ⇒ P(n+2).</li>
-</ol><p>When to use it: small cases show a pattern, or the (n+1) case reduces to the n case.</p></div>
+<li><b>Weak:</b> prove \(P(n_0)\). Prove \(P(n) \Rightarrow P(n+1)\).</li>
+<li><b>Strong:</b> prove \(P(n_0)\). Prove that \(P(n_0),\dots,P(n)\) together give \(P(n+1)\).</li>
+<li><b>Step 2:</b> for odd \(n\) only, prove \(P(1)\) and \(P(n) \Rightarrow P(n+2)\).</li>
+</ol><p>When to use it: small cases show a pattern, or the \((n+1)\) case reduces to the \(n\) case.</p></div>
 
-<div class="prob"><h3>Sum 1 + … + n</h3>
-<p>Prove that 1 + 2 + … + n = n(n+1)/2.</p>
-<details><summary>Key idea</summary><p>Weak induction: add n+1 to both sides.</p></details>
+<div class="prob"><h3>Sum \(1 + \dots + n\)</h3>
+<p>Prove that \(\displaystyle 1 + 2 + \dots + n = \frac{n(n+1)}{2}\).</p>
+<details><summary>Key idea</summary><p>Weak induction: add \(n+1\) to both sides.</p></details>
 <details><summary>Solution</summary>
 <ol class="pf">
-<li>n = 1: 1 = 1·2/2.</li>
-<li>Assume the formula for n. Then 1+…+n+(n+1) = n(n+1)/2 + (n+1) = (n+1)(n+2)/2.</li>
+<li>\(n = 1\): \(1 = \tfrac{1\cdot2}{2}\).</li>
+<li>Assume the formula for \(n\). Then
+\[1+\dots+n+(n+1) = \frac{n(n+1)}{2} + (n+1) = \frac{(n+1)(n+2)}{2}.\]</li>
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Gas cans on a circular track</h3>
-<p>N cans on a one-way loop hold, in total, exactly one lap's worth of fuel. You start with an empty tank. Show that some start point lets you finish the lap.</p>
-<details><summary>Key idea</summary><p>Some can i holds enough fuel to reach the next can. Merge can i+1 into can i and induct on N.</p></details>
+<p>\(N\) cans on a one-way loop hold, in total, exactly one lap's worth of fuel. You start with an empty tank. Show that some start point lets you finish the lap.</p>
+<details><summary>Key idea</summary><p>Some can \(i\) holds enough fuel to reach the next can. Merge can \(i+1\) into can \(i\) and induct on \(N\).</p></details>
 <details><summary>Solution</summary>
 <ol class="pf">
-<li>Let the lap have length 1. Can i holds fuel xᵢ, and the gap to the next can is yᵢ. Σxᵢ = Σyᵢ = 1.</li>
-<li>Some i has xᵢ ≥ yᵢ. <span class="why">(otherwise Σx &lt; Σy)</span></li>
-<li>N = 1: start at the can. <span class="why">(base)</span></li>
-<li>Step: move the fuel of can i+1 into can i. This gives N−1 cans, still totalling 1. By hypothesis, some start works for them.</li>
-<li>That start also works originally. Reaching can i with tank ≥ 0 and picking up xᵢ ≥ yᵢ gets you to can i+1, which then gives x_{i+1}. So at every point the tank holds at least as much as in the merged version. <span class="why">(2)</span></li>
+<li>Let the lap have length 1. Can \(i\) holds fuel \(x_i\), and the gap to the next can is \(y_i\). \(\sum x_i = \sum y_i = 1\).</li>
+<li>Some \(i\) has \(x_i \ge y_i\). <span class="why">(otherwise \(\sum x &lt; \sum y\))</span></li>
+<li>\(N = 1\): start at the can. <span class="why">(base)</span></li>
+<li>Step: move the fuel of can \(i+1\) into can \(i\). This gives \(N-1\) cans, still totalling 1. By hypothesis, some start works for them.</li>
+<li>That start also works originally. Reaching can \(i\) with tank \(\ge 0\) and picking up \(x_i \ge y_i\) gets you to can \(i+1\), which then gives \(x_{i+1}\). So at every point the tank holds at least as much as in the merged version. <span class="why">(2)</span></li>
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Two-colouring regions cut by lines</h3>
-<p>n lines cut the plane into regions. Show that two colours suffice so that regions sharing an edge differ.</p>
+<p>\(n\) lines cut the plane into regions. Show that two colours suffice so that regions sharing an edge differ.</p>
 <details><summary>Key idea</summary><p>Add one line and swap every colour on one side of it.</p></details>
 <details><summary>Solution</summary>
 <ol class="pf">
-<li>n = 1: colour the two half-planes differently.</li>
-<li>Given a good colouring for n lines, add line n+1 and swap the colours of every region on its right.</li>
+<li>\(n = 1\): colour the two half-planes differently.</li>
+<li>Given a good colouring for \(n\) lines, add line \(n+1\) and swap the colours of every region on its right.</li>
 <li>Two regions on the same side still differ (swapping keeps "different" different). Two regions sharing an edge along the new line are halves of one old region, and exactly one of them was swapped, so they now differ.</li>
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Splitting 1000 coins</h3>
-<p>Split a pile into x + y and score x·y. Keep splitting until every pile is 1. Show that the total does not depend on the choices, and find it.</p>
-<details><summary>Key idea</summary><p>Small cases give 0, 1, 3, 6 → n(n−1)/2. Prove it by strong induction.</p></details>
+<p>Split a pile into \(x + y\) and score \(xy\). Keep splitting until every pile is 1. Show that the total does not depend on the choices, and find it.</p>
+<details><summary>Key idea</summary><p>Small cases give \(0, 1, 3, 6 \to \tfrac{n(n-1)}{2}\). Prove it by strong induction.</p></details>
 <details><summary>Solution</summary>
-<p class="claim"><b>Claim.</b> f(n) = n(n−1)/2, so <span class="ans">f(1000) = 499500</span>.</p>
+<p class="claim"><b>Claim.</b> \(f(n) = \tfrac{n(n-1)}{2}\), so <span class="ans">\(f(1000) = 499500\)</span>.</p>
 <ol class="pf">
-<li>f(1) = 0.</li>
-<li>For n ≥ 2 the first split is x + y = n, so f(n) = xy + f(x) + f(y), with x, y &lt; n.</li>
-<li>By hypothesis, f(n) = xy + x(x−1)/2 + y(y−1)/2 = ((x+y)² − (x+y))/2 = n(n−1)/2, whatever x is.</li>
-</ol><p>∎ &nbsp;<i>(Or directly: each score counts the pairs of coins that get separated, and every one of the C(n,2) pairs is separated exactly once.)</i></p>
-<p class="gap">⚠ Course says "simplifying" and skips the algebra. The key step is xy + (x²+y²)/2 = (x+y)²/2.</p></details></div>
+<li>\(f(1) = 0\).</li>
+<li>For \(n \ge 2\) the first split is \(x + y = n\), so \(f(n) = xy + f(x) + f(y)\), with \(x, y &lt; n\).</li>
+<li>By hypothesis,
+\[f(n) = xy + \frac{x(x-1)}{2} + \frac{y(y-1)}{2} = \frac{(x+y)^2 - (x+y)}{2} = \frac{n(n-1)}{2},\]
+whatever \(x\) is.</li>
+</ol><p>∎ &nbsp;<i>(Or directly: each score counts the pairs of coins that get separated, and every one of the \(\binom{n}{2}\) pairs is separated exactly once.)</i></p>
+<p class="gap">⚠ Course says "simplifying" and skips the algebra. The key step is \(xy + \tfrac{x^2+y^2}{2} = \tfrac{(x+y)^2}{2}\).</p></details></div>
 
-<div class="prob"><h3>Water pistols (n odd)</h3>
-<p>n people, all pairwise distances distinct. Each person shoots the nearest person. If n is odd, show that someone stays dry.</p>
-<details><summary>Key idea</summary><p>The closest pair A, B shoot each other. Remove them and use induction on odd n.</p></details>
+<div class="prob"><h3>Water pistols (\(n\) odd)</h3>
+<p>\(n\) people, all pairwise distances distinct. Each person shoots the nearest person. If \(n\) is odd, show that someone stays dry.</p>
+<details><summary>Key idea</summary><p>The closest pair \(A, B\) shoot each other. Remove them and use induction on odd \(n\).</p></details>
 <details><summary>Solution</summary>
 <ol class="pf">
-<li>n = 1: nobody shoots.</li>
-<li>Take n = k+2. Let A, B be the closest pair. They shoot each other.</li>
-<li>If one of the other k people shoots A or B, then at most k−1 shots fall on those k people, so one of them is dry.</li>
-<li>Otherwise the k people shoot only among themselves, exactly as in the k-person game. By hypothesis someone is dry.</li>
+<li>\(n = 1\): nobody shoots.</li>
+<li>Take \(n = k+2\). Let \(A, B\) be the closest pair. They shoot each other.</li>
+<li>If one of the other \(k\) people shoots \(A\) or \(B\), then at most \(k-1\) shots fall on those \(k\) people, so one of them is dry.</li>
+<li>Otherwise the \(k\) people shoot only among themselves, exactly as in the \(k\)-person game. By hypothesis someone is dry.</li>
 </ol><p>∎</p></details></div>
 
 <h2 id="sym">7 · Symmetry</h2>
@@ -314,37 +318,39 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Alice wins.</span></p>
 <ol class="pf">
-<li>Alice places her first coin centred on the table's centre O.</li>
-<li>After each of Alice's moves, the set of coins is symmetric about O. <span class="why">(induction)</span></li>
-<li>Bob places a legal coin at P. Its mirror position P′ was free before Bob's move. <span class="why">(2: the position was symmetric)</span></li>
-<li>Bob's coin does not overlap P′. If it did, a coin would overlap its own mirror image, so it would contain O, which is already covered. So Alice can play at P′.</li>
+<li>Alice places her first coin centred on the table's centre \(O\).</li>
+<li>After each of Alice's moves, the set of coins is symmetric about \(O\). <span class="why">(induction)</span></li>
+<li>Bob places a legal coin at \(P\). Its mirror position \(P'\) was free before Bob's move. <span class="why">(2: the position was symmetric)</span></li>
+<li>Bob's coin does not overlap \(P'\). If it did, a coin would overlap its own mirror image, so it would contain \(O\), which is already covered. So Alice can play at \(P'\).</li>
 <li>So Alice always has a move. The table is finite, so the game ends, and Bob is the one stuck.</li>
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Sum of five-digit palindromes</h3>
-<p>Find the sum of all numbers abcba with a ≠ 0.</p>
-<details><summary>Key idea</summary><p>Pair abcba with a′b′c′b′a′, where a′ = 10−a, b′ = 9−b, c′ = 9−c. Each pair sums to 110000.</p></details>
+<p>Find the sum of all numbers \(\overline{abcba}\) with \(a \ne 0\).</p>
+<details><summary>Key idea</summary><p>Pair \(\overline{abcba}\) with \(\overline{a'b'c'b'a'}\), where \(a' = 10-a,\ b' = 9-b,\ c' = 9-c\). Each pair sums to 110000.</p></details>
 <details><summary>Solution</summary>
-<p class="claim"><b>Claim.</b> <span class="ans">49 500 000</span>.</p>
+<p class="claim"><b>Claim.</b> <span class="ans">\(49\,500\,000\)</span>.</p>
 <ol class="pf">
-<li>abcba = 10001a + 1010b + 100c. There are 9·10·10 = 900 of them.</li>
-<li>The map in the key idea sends palindromes to palindromes (a′ ∈ 1..9), and applying it twice gives back the original.</li>
-<li>No palindrome is its own partner: that would need b = 9−b, i.e. b = 4.5. So the 900 split into 450 pairs.</li>
-<li>Each pair sums to 10001·10 + 1010·9 + 100·9 = 110000. <span class="why">(1)</span></li>
-<li>Total = 450 · 110000 = 49 500 000.</li>
+<li>\(\overline{abcba} = 10001a + 1010b + 100c\). There are \(9\cdot10\cdot10 = 900\) of them.</li>
+<li>The map in the key idea sends palindromes to palindromes (\(a' \in 1..9\)), and applying it twice gives back the original.</li>
+<li>No palindrome is its own partner: that would need \(b = 9-b\), i.e. \(b = 4.5\). So the 900 split into 450 pairs.</li>
+<li>Each pair sums to \(10001\cdot10 + 1010\cdot9 + 100\cdot9 = 110000\). <span class="why">(1)</span></li>
+<li>Total \(= 450 \cdot 110000 = 49\,500\,000\).</li>
 </ol><p>∎</p>
 <p class="gap">⚠ Course says "n-th + n-th-from-last = 110000" without proof. Steps 2–3 give the explicit pairing that justifies it.</p></details></div>
 
 <div class="prob"><h3>Average median of subsets</h3>
-<p>S = {1,…,100}. Take the median of every non-empty subset. What is the average?</p>
-<details><summary>Key idea</summary><p>Reflect x ↦ 101 − x. That sends a subset with median m to one with median 101 − m.</p></details>
+<p>\(S = \{1,\dots,100\}\). Take the median of every non-empty subset. What is the average?</p>
+<details><summary>Key idea</summary><p>Reflect \(x \mapsto 101 - x\). That sends a subset with median \(m\) to one with median \(101 - m\).</p></details>
 <details><summary>Solution</summary>
-<p class="claim"><b>Claim.</b> <span class="ans">50.5</span>.</p>
+<p class="claim"><b>Claim.</b> <span class="ans">\(50.5\)</span>.</p>
 <ol class="pf">
-<li>Let r(B) = {101 − x : x ∈ B}. r is a bijection on the non-empty subsets. <span class="why">(r∘r = id)</span></li>
-<li>Reflection reverses the order, so med r(B) = 101 − med B.</li>
-<li>Σ_B med B = Σ_B med r(B) = Σ_B (101 − med B). <span class="why">(1: re-indexing; 2)</span></li>
-<li>So 2·Σ med B = 101·(number of subsets), and the average is 101/2 = 50.5.</li>
+<li>Let \(r(B) = \{101 - x : x \in B\}\). \(r\) is a bijection on the non-empty subsets. <span class="why">(\(r\circ r = \mathrm{id}\))</span></li>
+<li>Reflection reverses the order, so \(\operatorname{med} r(B) = 101 - \operatorname{med} B\).</li>
+<li>\(\displaystyle\sum_B \operatorname{med} B = \sum_B \operatorname{med} r(B) = \sum_B (101 - \operatorname{med} B)\). <span class="why">(1: re-indexing; 2)</span></li>
+<li>So \(2\sum_B \operatorname{med} B = 101\cdot(\text{number of subsets})\), and the average is \(\tfrac{101}{2} = 50.5\).</li>
 </ol><p>∎</p>
-<p class="gap">⚠ Course pairs B with r(B) but only treats B = S as self-paired. Many subsets are their own reflection (e.g. {1,100}). Summing over the bijection, as in step 3, handles all of them at once.</p></details></div>
+<p class="gap">⚠ Course pairs \(B\) with \(r(B)\) but only treats \(B = S\) as self-paired. Many subsets are their own reflection (e.g. \(\{1,100\}\)). Summing over the bijection, as in step 3, handles all of them at once.</p></details></div>
 </div>
+
+<style>.katex{font-size:1.15em}.katex-display{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}</style>

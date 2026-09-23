@@ -1,5 +1,7 @@
 <title>Two Player Games Ledger</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
 <style>
 :root{
   --bg:#f6f7f9; --ink:#171b24; --muted:#5a6273; --rule:#d9dee6; --card:#ffffff;
@@ -17,9 +19,9 @@
   --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
   --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
 }
-body{background:var(--bg);color:var(--ink);font:16px/1.6 "Source Sans 3",system-ui,sans-serif;padding-inline:16px;padding-block:24px 64px}
-.wrap{max-width:46rem;margin:0 auto}
-h1,h2,h3{font-family:"EB Garamond",Georgia,serif;font-weight:600;text-wrap:balance;line-height:1.2}
+body{background:var(--bg);color:var(--ink);font:20px/1.75 "MesloLGS Nerd Font Propo","MesloLGS NF","MesloLGS Nerd Font",ui-monospace,monospace;padding-inline:16px;padding-block:24px 64px}
+.wrap{max-width:52rem;margin:0 auto}
+h1,h2,h3{font-family:"MesloLGS Nerd Font Propo","MesloLGS NF","MesloLGS Nerd Font",ui-monospace,monospace;font-weight:700;text-wrap:balance;line-height:1.2}
 h1{font-size:2.4rem;margin:0 0 .25rem}
 h2{font-size:1.7rem;margin:3rem 0 .75rem;padding-top:1rem;border-top:1px solid var(--rule)}
 h3{font-size:1.2rem;margin:0 0 .4rem}
@@ -41,12 +43,10 @@ summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.95rem}
 details > *:not(summary){margin-top:.5rem}
 ol.pf{padding-left:1.6rem;margin:.4rem 0}
 ol.pf li{margin:.2rem 0}
-.why{color:var(--muted);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.78rem;white-space:nowrap}
+.why{color:var(--muted);font-size:.85em;white-space:nowrap}
 .qed{float:right;color:var(--muted)}
 .claim{margin:.3rem 0}
 .gap{background:var(--gapbg);color:var(--gap);border-radius:6px;padding:.5rem .8rem;font-size:.92rem}
-.m{font-style:italic;font-family:"EB Garamond",Georgia,serif;font-size:1.08em}
-.eq{display:block;text-align:center;margin:.5rem 0;overflow-x:auto;font-family:"EB Garamond",Georgia,serif;font-size:1.1em}
 table{border-collapse:collapse;font-size:.92rem}
 .tw{overflow-x:auto}
 td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-variant-numeric:tabular-nums}
@@ -85,7 +85,7 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Bob wins.</span></p>
 <ol class="pf">
-<li>After Alice's first move, a line of 10 or 9 petals remains. <span class="why">(11 − 1 or 11 − 2)</span></li>
+<li>After Alice's first move, a line of 10 or 9 petals remains. <span class="why">(\(11 - 1\) or \(11 - 2\))</span></li>
 <li>Bob removes the middle 2 (from 10) or the middle 1 (from 9). That leaves two separate lines of 4 petals each.</li>
 <li>From then on, whatever Alice removes from one line, Bob removes the same positions from the other. The two lines stay identical after each of Bob's moves.</li>
 <li>So Bob always has a reply. Petals run out, so Alice is the one who gets stuck.</li>
@@ -98,84 +98,84 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Alice wins.</span></p>
 <ol class="pf">
-<li>Only the cyclic order of the points matters, so place them evenly. Alice joins two opposite points, D₁ and D₂. That leaves 9 points on each side. Let σ be the reflection in line D₁D₂.</li>
-<li>Invariant: after each of Alice's moves, the drawing is mapped to itself by σ. <span class="why">(true after 1)</span></li>
-<li>Bob draws a legal chord c. No chord crosses D₁D₂, so c lies in one closed half and σ(c) lies in the other.</li>
-<li>σ(c) is legal. It is not already drawn: if it were, c would be too, by 2. It does not cross c: the two meet only on D₁D₂, and at most at shared endpoints. It does not cross any older chord e: if it did, c would cross σ(e), which is also drawn by 2.</li>
+<li>Only the cyclic order of the points matters, so place them evenly. Alice joins two opposite points, \(D_1\) and \(D_2\). That leaves 9 points on each side. Let \(\sigma\) be the reflection in line \(D_1D_2\).</li>
+<li>Invariant: after each of Alice's moves, the drawing is mapped to itself by \(\sigma\). <span class="why">(true after 1)</span></li>
+<li>Bob draws a legal chord \(c\). No chord crosses \(D_1D_2\), so \(c\) lies in one closed half and \(\sigma(c)\) lies in the other.</li>
+<li>\(\sigma(c)\) is legal. It is not already drawn: if it were, \(c\) would be too, by 2. It does not cross \(c\): the two meet only on \(D_1D_2\), and at most at shared endpoints. It does not cross any older chord \(e\): if it did, \(c\) would cross \(\sigma(e)\), which is also drawn by 2.</li>
 <li>So Alice always has a move. There are finitely many chords, so Bob gets stuck.</li>
 </ol><p>∎</p>
 <p class="gap">⚠ Course says "reply symmetrically" without naming the symmetry (reflection in the first chord) or checking that the reply is legal (step 4).</p></details></div>
 
 <h2 id="steal">2 · Strategy stealing</h2>
-<div class="idea"><p>Proves that the first player wins without finding the strategy. Find a "waiting" move w that the opponent can never use against you.</p>
-<ol><li>If w leads to an L-position, play w.</li>
-<li>Otherwise the opponent has a winning reply x after w. Show that you could have reached the same position by playing x yourself first. Then play x.</li></ol>
+<div class="idea"><p>Proves that the first player wins without finding the strategy. Find a "waiting" move \(w\) that the opponent can never use against you.</p>
+<ol><li>If \(w\) leads to an L-position, play \(w\).</li>
+<li>Otherwise the opponent has a winning reply \(x\) after \(w\). Show that you could have reached the same position by playing \(x\) yourself first. Then play \(x\).</li></ol>
 <p>Needs a finite game with no draws.</p></div>
 
 <div class="prob"><h3>Game of Reduction</h3>
-<p>Distinct positive integers [1000, 2000, 2024]. A move replaces the largest number with a smaller positive integer, keeping all numbers distinct. The player who can't move loses. Alice moves first. Who wins?</p>
-<details><summary>Key idea</summary><p>2024 → 2001 is a waiting move: Bob then has to replace 2001 with some v, and Alice could have replaced 2024 with v directly.</p></details>
+<p>Distinct positive integers \(\{1000, 2000, 2024\}\). A move replaces the largest number with a smaller positive integer, keeping all numbers distinct. The player who can't move loses. Alice moves first. Who wins?</p>
+<details><summary>Key idea</summary><p>\(2024 \to 2001\) is a waiting move: Bob then has to replace 2001 with some \(v\), and Alice could have replaced 2024 with \(v\) directly.</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Alice wins.</span></p>
 <ol class="pf">
 <li>The sum strictly decreases, so the game is finite and each position is W or L. <span class="why">(ground rules)</span></li>
-<li>For v ∈ {1,…,1999} \ {1000}, let S(v) be the position {1000, 2000, v}. Alice can move 2024 → v and reach any S(v).</li>
-<li>Case A: some S(v) is L. Alice moves there and wins.</li>
-<li>Case B: every S(v) is W. Alice moves 2024 → 2001. Bob must replace 2001 with some v &lt; 2001, v ∉ {1000, 2000}, so he reaches an S(v), which is W for Alice, the next player to move.</li>
+<li>For \(v \in \{1,\dots,1999\} \setminus \{1000\}\), let \(S(v)\) be the position \(\{1000, 2000, v\}\). Alice can move \(2024 \to v\) and reach any \(S(v)\).</li>
+<li>Case A: some \(S(v)\) is L. Alice moves there and wins.</li>
+<li>Case B: every \(S(v)\) is W. Alice moves \(2024 \to 2001\). Bob must replace 2001 with some \(v &lt; 2001\), \(v \notin \{1000, 2000\}\), so he reaches an \(S(v)\), which is W for Alice, the next player to move.</li>
 <li>Either way Alice moves into an L-position.</li>
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Game of primes</h3>
-<p>Alice says 2. Then players alternate naming primes. From n, where p is the next prime after n, you may say any prime m with n &lt; m ≤ n + 2(p − n). Whoever says 4567 (a prime) wins. Who wins?</p>
+<p>Alice says 2. Then players alternate naming primes. From \(n\), where \(p\) is the next prime after \(n\), you may say any prime \(m\) with \(n &lt; m \le n + 2(p - n)\). Whoever says 4567 (a prime) wins. Who wins?</p>
 <details><summary>Key idea</summary><p>Bob is forced to say 3. From 3, Alice can say 5 or 7, and saying 5 forces Bob to say 7. So Alice chooses who says 7.</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Alice wins.</span></p>
 <ol class="pf">
-<li>If jumping past 4567 is legal, then saying 4567 is also legal, because the allowed range is an interval containing p ≤ 4567. So jumping is never a better move. Treat it as forbidden: the game is finite, and every position is W or L.</li>
-<li>From 2: the range is ≤ 2 + 2·1 = 4, so Bob must say 3.</li>
-<li>From 3: the range is ≤ 3 + 4 = 7, so Alice may say 5 or 7.</li>
-<li>From 5: the range is ≤ 5 + 4 = 9, and the only prime there is 7, so the reply must be 7.</li>
+<li>If jumping past 4567 is legal, then saying 4567 is also legal, because the allowed range is an interval containing \(p \le 4567\). So jumping is never a better move. Treat it as forbidden: the game is finite, and every position is W or L.</li>
+<li>From 2: the range is \(\le 2 + 2\cdot 1 = 4\), so Bob must say 3.</li>
+<li>From 3: the range is \(\le 3 + 4 = 7\), so Alice may say 5 or 7.</li>
+<li>From 5: the range is \(\le 5 + 4 = 9\), and the only prime there is 7, so the reply must be 7.</li>
 <li>If saying 7 wins (the position after 7 is L for the next player), Alice says 7. Otherwise she says 5 and Bob is forced to say 7. <span class="why">(3, 4)</span></li>
 </ol><p>∎</p>
 <p class="gap">⚠ Course ignores the possibility of jumping past 4567 (the game could run forever, a draw). Step 1 closes that gap. Checked by brute force.</p></details></div>
 
 <div class="prob"><h3>Divisors III</h3>
-<p>1,…,2025 are on a board. A move erases an available number together with all its not-yet-erased divisors. The player who can't move loses. Alice moves first. Who wins?</p>
+<p>\(1,\dots,2025\) are on a board. A move erases an available number together with all its not-yet-erased divisors. The player who can't move loses. Alice moves first. Who wins?</p>
 <details><summary>Key idea</summary><p>Erasing just 1 is the waiting move, because 1 divides everything.</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Alice wins.</span></p>
 <ol class="pf">
 <li>The game is finite with no draws.</li>
 <li>If the position after erasing only 1 is L, Alice erases 1 and wins.</li>
-<li>Otherwise Bob has a winning reply x (x &gt; 1). The result is {1} ∪ {divisors of x} erased, which is the same as erasing x first, because 1 divides x.</li>
-<li>So Alice erases x on move 1 and reaches that same L-position.</li>
+<li>Otherwise Bob has a winning reply \(x\) (\(x &gt; 1\)). The result is \(\{1\} \cup \{\text{divisors of } x\}\) erased, which is the same as erasing \(x\) first, because \(1 \mid x\).</li>
+<li>So Alice erases \(x\) on move 1 and reaches that same L-position.</li>
 </ol><p>∎</p></details></div>
 
 <h2 id="wl">3 · Winning / losing states</h2>
 <div class="idea"><p>Guess the L-positions from small cases, then prove two things: (i) every move from L goes to W; (ii) from every W there is a move to L.</p></div>
 
 <div class="prob"><h3>300 marbles</h3>
-<p>A move removes r marbles, with 1 ≤ r ≤ ⌊n/2⌋. The player who can't move loses. Start with 300. Alice moves first. Who wins?</p>
-<details><summary>Key idea</summary><p>The L-positions are n = 2ᵏ − 1.</p></details>
+<p>A move removes \(r\) marbles, with \(1 \le r \le \lfloor n/2 \rfloor\). The player who can't move loses. Start with 300. Alice moves first. Who wins?</p>
+<details><summary>Key idea</summary><p>The L-positions are \(n = 2^k - 1\).</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Alice wins</span> (take 45, leaving 255).</p>
 <ol class="pf">
-<li>n = 1 = 2¹ − 1: no move, so L.</li>
-<li>From n = 2ᵏ − 1: r ≤ 2ᵏ⁻¹ − 1, so what's left is in [2ᵏ⁻¹, 2ᵏ − 2]. No number there has the form 2ʲ − 1. <span class="why">(it lies strictly between 2ᵏ⁻¹−1 and 2ᵏ−1)</span></li>
-<li>From n ∈ [2ᵏ⁻¹, 2ᵏ − 2]: take r = n − (2ᵏ⁻¹ − 1) ≥ 1. We need r ≤ n/2 ⇔ n ≤ 2ᵏ − 2. ✓ This leaves 2ᵏ⁻¹ − 1.</li>
-<li>So L = {2ᵏ − 1}. 300 is not of that form, and 300 − 45 = 255 = 2⁸ − 1.</li>
+<li>\(n = 1 = 2^1 - 1\): no move, so L.</li>
+<li>From \(n = 2^k - 1\): \(r \le 2^{k-1} - 1\), so what's left is in \([2^{k-1},\, 2^k - 2]\). No number there has the form \(2^j - 1\). <span class="why">(it lies strictly between \(2^{k-1}-1\) and \(2^k-1\))</span></li>
+<li>From \(n \in [2^{k-1},\, 2^k - 2]\): take \(r = n - (2^{k-1} - 1) \ge 1\). We need \(r \le n/2 \iff n \le 2^k - 2\). ✓ This leaves \(2^{k-1} - 1\).</li>
+<li>So \(L = \{2^k - 1\}\). 300 is not of that form, and \(300 - 45 = 255 = 2^8 - 1\).</li>
 </ol><p>∎</p>
-<p class="gap">⚠ Course text has wrong bounds ("between 2ᵏ−1 and 2ᵏ⁻²") and doesn't check r ≤ n/2 (step 3).</p></details></div>
+<p class="gap">⚠ Course text has wrong bounds ("between \(2^k-1\) and \(2^{k-2}\)") and doesn't check \(r \le n/2\) (step 3).</p></details></div>
 
 <div class="prob"><h3>Divisors II</h3>
-<p>60 is on the board. A move replaces n with n − d, where d divides n. Whoever writes 0 loses. Alice moves first. Who wins?</p>
+<p>60 is on the board. A move replaces \(n\) with \(n - d\), where \(d \mid n\). Whoever writes 0 loses. Alice moves first. Who wins?</p>
 <details><summary>Key idea</summary><p>Odd numbers are L. An odd number has only odd divisors, and from an even number you subtract 1.</p></details>
 <details><summary>Solution</summary>
-<p class="claim"><b>Claim.</b> <span class="ans">Alice wins</span> (60 → 59).</p>
+<p class="claim"><b>Claim.</b> <span class="ans">Alice wins</span> (\(60 \to 59\)).</p>
 <ol class="pf">
-<li>Claim: an odd n is L. Proof by strong induction on n.</li>
-<li>n = 1: the only move writes 0, so you lose.</li>
-<li>Odd n &gt; 1: every divisor d is odd, so n − d is even. If it is 0 you lose. Otherwise the opponent writes n − d − 1, which is odd, ≥ 1 and less than n, so it is L by hypothesis.</li>
+<li>Claim: an odd \(n\) is L. Proof by strong induction on \(n\).</li>
+<li>\(n = 1\): the only move writes 0, so you lose.</li>
+<li>Odd \(n &gt; 1\): every divisor \(d\) is odd, so \(n - d\) is even. If it is 0 you lose. Otherwise the opponent writes \(n - d - 1\), which is odd, \(\ge 1\) and less than \(n\), so it is L by hypothesis.</li>
 <li>60 is even. Alice writes 59, which is L for Bob.</li>
 </ol><p>∎</p></details></div>
 
@@ -183,15 +183,15 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <div class="idea"><p>Work backwards from the final position and label each position W or L. Then read off the pattern and prove it as in §3.</p></div>
 
 <div class="prob"><h3>Moving king</h3>
-<p>8×8 board, king in the bottom-left corner. A move goes one step up, one step right, or one step diagonally up-right. Whoever reaches the top-right corner wins. Alice moves first. Who wins?</p>
-<details><summary>Key idea</summary><p>Measure (a, b) = the distance still to go. The L-positions are those with a and b both even.</p></details>
+<p>\(8\times8\) board, king in the bottom-left corner. A move goes one step up, one step right, or one step diagonally up-right. Whoever reaches the top-right corner wins. Alice moves first. Who wins?</p>
+<details><summary>Key idea</summary><p>Measure \((a, b)\) = the distance still to go. The L-positions are those with \(a\) and \(b\) both even.</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Alice wins.</span></p>
 <ol class="pf">
-<li>A move takes (a,b) to (a−1,b), (a,b−1) or (a−1,b−1). Reaching (0,0) wins, so for the player to move, (0,0) is L.</li>
-<li>From (even, even) ≠ (0,0), every move makes a or b odd.</li>
+<li>A move takes \((a,b)\) to \((a-1,b)\), \((a,b-1)\) or \((a-1,b-1)\). Reaching \((0,0)\) wins, so for the player to move, \((0,0)\) is L.</li>
+<li>From \((\text{even}, \text{even}) \ne (0,0)\), every move makes \(a\) or \(b\) odd.</li>
 <li>From a position that is not (even, even): if both are odd, move diagonally; if only one is odd, reduce that one. Either way you reach (even, even).</li>
-<li>So L = {(even, even)}. The start is (7,7), so it is W.</li>
+<li>So \(L = \{(\text{even}, \text{even})\}\). The start is \((7,7)\), so it is W.</li>
 </ol><p>∎</p>
 <p class="gap">⚠ Course shows only coloured board pictures. Steps 2–3 are the proof behind them.</p></details></div>
 
@@ -199,20 +199,20 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <div class="idea"><p>Look for a quantity fixed by the rules (so the total number of moves is decided in advance), or a pairing/colouring from the brainteasers toolkit.</p></div>
 
 <div class="prob"><h3>Three piles</h3>
-<p>Piles of 10, 15 and 20 stones. A move splits one pile of ≥ 2 stones into two non-empty piles. The player who can't move loses. Alice moves first. Who wins?</p>
+<p>Piles of 10, 15 and 20 stones. A move splits one pile of \(\ge 2\) stones into two non-empty piles. The player who can't move loses. Alice moves first. Who wins?</p>
 <details><summary>Key idea</summary><p>Each move adds exactly one pile. So the number of moves is fixed.</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Bob wins.</span></p>
 <ol class="pf">
 <li>Each move adds exactly 1 pile.</li>
 <li>The game ends only when every pile has 1 stone, which is 45 piles.</li>
-<li>So there are exactly 45 − 3 = 42 moves, whatever anyone does. <span class="why">(1, 2)</span></li>
+<li>So there are exactly \(45 - 3 = 42\) moves, whatever anyone does. <span class="why">(1, 2)</span></li>
 <li>42 is even, so the last move is Bob's.</li>
 </ol><p>∎</p></details></div>
 
 <div class="prob"><h3>Moving the piece</h3>
-<p>183×181 grid. A piece starts top-left. A move goes to an adjacent unvisited cell (diagonals count). The start cell counts as visited. The player who can't move loses. Alice moves first. Who wins?</p>
-<details><summary>Key idea</summary><p>m·n is odd, so the cells other than the start can be split into adjacent pairs. Bob always moves to the partner of Alice's cell.</p></details>
+<p>\(183\times181\) grid. A piece starts top-left. A move goes to an adjacent unvisited cell (diagonals count). The start cell counts as visited. The player who can't move loses. Alice moves first. Who wins?</p>
+<details><summary>Key idea</summary><p>\(mn\) is odd, so the cells other than the start can be split into adjacent pairs. Bob always moves to the partner of Alice's cell.</p></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Bob wins.</span></p>
 <ol class="pf">
@@ -221,5 +221,7 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <li>Alice therefore steps into an untouched pair. Its partner is adjacent and unvisited, so Bob moves there and keeps 2.</li>
 <li>So Bob always has a move. The cells run out, so Alice is stuck.</li>
 </ol><p>∎</p>
-<p class="gap">⚠ Course shows only a coloured 5×5 picture. Step 1 is the explicit pairing for any odd m, n.</p></details></div>
+<p class="gap">⚠ Course shows only a coloured \(5\times5\) picture. Step 1 is the explicit pairing for any odd \(m, n\).</p></details></div>
 </div>
+
+<style>.katex{font-size:1.15em}.katex-display{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}</style>
