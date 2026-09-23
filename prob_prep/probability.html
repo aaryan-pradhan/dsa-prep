@@ -1,0 +1,843 @@
+<title>Probability Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+:root{
+  --bg:#f6f7f9; --ink:#171b24; --muted:#5a6273; --rule:#d9dee6; --card:#ffffff;
+  --accent:#2346a0; --gap:#8a4b00; --gapbg:#fdf1de; --idea:#eef2fb;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
+    --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
+  --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
+}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 "Source Sans 3",system-ui,sans-serif;padding-inline:16px;padding-block:24px 64px}
+.wrap{max-width:46rem;margin:0 auto}
+h1,h2,h3{font-family:"EB Garamond",Georgia,serif;font-weight:600;text-wrap:balance;line-height:1.2}
+h1{font-size:2.4rem;margin:0 0 .25rem}
+h2{font-size:1.7rem;margin:3rem 0 .75rem;padding-top:1rem;border-top:1px solid var(--rule)}
+h3{font-size:1.2rem;margin:0 0 .4rem}
+.sub{color:var(--muted);margin:0 0 1.25rem}
+.bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1rem}
+button{font:inherit;font-size:.9rem;color:var(--accent);background:transparent;border:1px solid var(--rule);border-radius:6px;padding:.3rem .8rem;cursor:pointer}
+button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav.toc{font-size:.92rem;columns:2 14rem;column-gap:2rem;margin:0 0 1rem;padding:0}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:.1rem 0;break-inside:avoid}
+nav.toc a:hover{color:var(--accent)}
+a{color:var(--accent)}
+.idea{background:var(--idea);border-radius:8px;padding:.8rem 1rem;margin:.5rem 0 1.25rem}
+.idea p,.idea ol,.idea ul{margin:.3rem 0}
+.prob{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:1rem 1.1rem;margin:1rem 0}
+.prob > p{margin:.2rem 0 .6rem}
+.ans{font-weight:600}
+details{border-top:1px solid var(--rule);padding:.45rem 0}
+summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.95rem}
+details > *:not(summary){margin-top:.5rem}
+ol.pf{padding-left:1.6rem;margin:.4rem 0}
+ol.pf li{margin:.2rem 0}
+.why{color:var(--muted);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.78rem;white-space:nowrap}
+.qed{float:right;color:var(--muted)}
+.claim{margin:.3rem 0}
+.gap{background:var(--gapbg);color:var(--gap);border-radius:6px;padding:.5rem .8rem;font-size:.92rem}
+.m{font-style:italic;font-family:"EB Garamond",Georgia,serif;font-size:1.08em}
+.eq{display:block;text-align:center;margin:.5rem 0;overflow-x:auto;font-family:"EB Garamond",Georgia,serif;font-size:1.1em}
+table{border-collapse:collapse;font-size:.92rem}
+.tw{overflow-x:auto}
+td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+<script>
+function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll("details").forEach(d=>d.open=open);b.dataset.open=open?"1":"0";b.textContent=open?"Collapse all":"Expand all";}
+</script>
+<div class="wrap">
+<h1>Probability</h1>
+<p class="sub">QuantProf revision · each problem: key idea, then a numbered proof. Click to reveal.</p>
+<div class="bar"><button type="button" onclick="toggleAll(this)">Expand all</button></div>
+<nav class="toc">
+<a href="#p-basics">1 · Basic terms</a>
+<a href="#p-event">2 · Probability of an event</a>
+<a href="#p-pie">3 · Inclusion–exclusion</a>
+<a href="#p-comb">4 · Counting in probability</a>
+<a href="#p-cond">5 · Conditional probability</a>
+<a href="#p-mult">6 · Multiplication rule &amp; independence</a>
+<a href="#p-total">7 · Law of total probability</a>
+<a href="#p-bayes">8 · Bayes</a>
+<a href="#p-para">9 · Paradoxes</a>
+<a href="#p-reduced">10 · Reduced sample space</a>
+<a href="#p-geo">11 · Geometric probability</a>
+<a href="#p-rec">12 · Recursion in probability</a>
+<a href="#p-sym1">13 · Symmetry I: ad hoc</a>
+<a href="#p-sym2">14 · Symmetry II: fewer states</a>
+<a href="#p-sym3">15 · Symmetry III: continuous → discrete</a>
+<a href="#p-rv">16 · Random variables</a>
+<a href="#p-pmf">17 · PMF and CDF (discrete)</a>
+<a href="#p-disc">18 · Common discrete distributions</a>
+<a href="#p-pdf">19 · PDF and CDF (continuous)</a>
+<a href="#p-cont">20 · Common continuous distributions</a>
+<a href="#p-normal">21 · The normal distribution</a>
+<a href="#p-totalc">22 · Total probability, continuous case</a>
+<a href="#p-ev">23 · Expected value</a>
+<a href="#p-tot-e">24 · Law of total expectation</a>
+<a href="#p-lotus">25 · LOTUS</a>
+<a href="#p-tail">26 · Tail sum (discrete)</a>
+<a href="#p-tailint">27 · Tail integral</a>
+<a href="#p-lin">28 · Linearity of expectation</a>
+<a href="#p-ind">29 · Indicator variables</a>
+<a href="#p-prod">30 · Products of independent variables</a>
+<a href="#p-evtab">31 · Means of common distributions</a>
+<a href="#p-rece">32 · Recursion in expectation</a>
+<a href="#p-syme1">33 · Symmetry in expectation I</a>
+<a href="#p-syme2">34 · Symmetry in expectation II: fewer states</a>
+<a href="#p-seg">35 · Random points on a segment</a>
+<a href="#p-conde">36 · Conditional expectation</a>
+<a href="#p-piee">37 · Inclusion–exclusion for waiting times</a>
+<a href="#p-sume">38 · Summation via expectation</a>
+<a href="#p-var">39 · Variance</a>
+</nav>
+<h2 id="p-basics">1 · Basic terms</h2>
+<div class="idea"><ol>
+<li><b>Sample space</b> Ω: the set of all outcomes. <b>Event</b>: a subset of Ω.</li>
+<li>A∩B: both happen. A∪B: at least one happens. Aᶜ: A does not happen.</li>
+<li><b>Mutually exclusive</b>: A∩B = ∅. <b>Exhaustive</b>: A₁∪…∪Aₙ = Ω. A <b>partition</b> is both.</li>
+<li><b>Independent</b>: P(A∩B) = P(A)P(B) (see §6).</li>
+</ol></div>
+
+<h2 id="p-event">2 · Probability of an event</h2>
+<div class="idea"><ol>
+<li>If all outcomes are <b>equally likely</b>: P(A) = |A|/|Ω|. This formula only holds under that condition.</li>
+<li>P(Aᶜ) = 1 − P(A).</li>
+<li>Trap: {red, blue} is not an equally likely sample space for 9 red + 1 blue balls. Label the balls 1–10 instead: P(blue) = 1/10.</li>
+</ol></div>
+<div class="prob"><h3>Warm-ups</h3><p>(a) P(king) from one card. (b) Exactly 2 heads in 3 flips.</p>
+<details><summary>Key idea</summary><p>List outcomes so that each is equally likely.</p></details>
+<details><summary>Solution</summary><ol class="pf"><li>(a) 4/52 = <span class="ans">1/13 ≈ 0.07692</span>.</li><li>(b) 2³ = 8 sequences, and C(3,2) = 3 have 2 heads: <span class="ans">3/8</span>.</li></ol><p>∎</p></details></div>
+
+<h2 id="p-pie">3 · Inclusion–exclusion</h2>
+<div class="idea"><p>The same as counting PIE, with |·| replaced by P(·) (divide by |Ω|, or use additivity):
+P(A∪B) = P(A) + P(B) − P(A∩B), and P(A∪B∪C) = ΣP(A) − ΣP(A∩B) + P(A∩B∩C).</p></div>
+<div class="prob"><h3>Sports and drinks</h3><p>(a) P(S) = .7, P(B) = .5, P(S∩B) = .4. (b) Tea .6, coffee .5, juice .4; pairs .30, .20, .15; all three .10.</p>
+<details><summary>Key idea</summary><p>Plug into PIE.</p></details>
+<details><summary>Solution</summary><ol class="pf"><li>(a) .7 + .5 − .4 = <span class="ans">0.8</span>.</li><li>(b) 1.5 − .65 + .10 = <span class="ans">0.95</span>.</li></ol><p>∎</p></details></div>
+
+<h2 id="p-comb">4 · Counting in probability</h2>
+<div class="idea"><p>Ask: can I count both all outcomes and the favourable ones, in an equally likely model? If so, P = favourable/all.</p></div>
+<div class="prob"><h3>A and B not adjacent</h3><p>5 people in a random row.</p>
+<details><summary>Key idea</summary><p>Complement of the block count.</p></details>
+<details><summary>Solution</summary><p>1 − 4!·2!/5! = 1 − 48/120 = <span class="ans">3/5</span>. ∎</p></details></div>
+<div class="prob"><h3>First HH exactly at toss 10</h3><p>Answer as p/q; report p + q.</p>
+<details><summary>Key idea</summary><p>The last three tosses must be T H H. The first 7 must have no HH, and those are counted by Fibonacci.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Stopping at toss 10 ⇔ tosses 9, 10 are HH, toss 8 is T (otherwise 8–9 would be HH), and tosses 1–7 contain no HH.</li>
+<li>fₙ = #length-n strings with no HH = fₙ₋₁ (ends in T) + fₙ₋₂ (ends in TH). f₁ = 2, f₂ = 3, so f₇ = 34.</li>
+<li>P = 34/2¹⁰ = 17/512, so p + q = <span class="ans">529</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>3×2 matrix, rows and columns ≡ 0 (mod 3)</h3><p>Entries are uniform on {0,1,2}.</p>
+<details><summary>Key idea</summary><p>The two top-left entries determine everything.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Choose a₁₁, a₂₁ freely. Then a₃₁ ≡ −(a₁₁+a₂₁) (column 1), and each aᵢ₂ ≡ −aᵢ₁ (rows).</li>
+<li>Column 2 is then ≡ −(column 1) ≡ 0 automatically. So valid matrices ↔ (a₁₁, a₂₁): 9 of them.</li>
+<li>P = 9/3⁶ = <span class="ans">1/81 ≈ 0.01235</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Partial sums of 1..13 never ≡ 0 (mod 3)</h3><p>Write 1,…,13 in random order. Report p + q.</p>
+<details><summary>Key idea</summary><p>Work with residues: five 1s, four 2s, four 0s. The nonzero residues are forced into 1,1,2,1,2,1,2,1,2, and the 0s go anywhere except first.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>A 0-residue never changes the running sum mod 3, so it can go anywhere except position 1 (where the sum would be 0).</li>
+<li>Nonzero residues: starting from sum s ∈ {1,2}, the next residue must equal s. So the sequence alternates 1,1,2,1,2,… (from 1) or 2,2,1,2,1,… (from 2).</li>
+<li>Starting with 2 needs five 2s; there are only four. So the order is 1,1,2,1,2,1,2,1,2: 5!·4! labelled ways.</li>
+<li>Insert the four 0-residue numbers one by one, not in front: 9·10·11·12 ways.</li>
+<li>P = 5!·4!·11880/13! = 1/182, so p + q = <span class="ans">183</span>. <span class="why">(DP-checked)</span></li>
+</ol><p>∎</p></details></div>
+
+<h2 id="p-cond">5 · Conditional probability</h2>
+<div class="idea"><ol>
+<li>P(A | B) = P(A∩B)/P(B), for P(B) &gt; 0. When outcomes are equally likely, this is |A∩B|/|B|: the sample space shrinks to B.</li>
+<li><b>"A before B" lemma.</b> Independent identical trials. Each trial: A with prob a, B with prob b (disjoint), else repeat. Then P(A first) = a/(a+b). Proof: P(A first) = Σₙ (1−a−b)ⁿ⁻¹ a = a/(a+b).</li>
+</ol><p>Trigger: "given…", or "one thing before another".</p></div>
+<div class="prob"><h3>Red → diamond; even → &gt;3</h3>
+<details><summary>Key idea</summary><p>Shrink the sample space to the condition.</p></details>
+<details><summary>Solution</summary><ol class="pf"><li>P(♦) = 1/4. P(♦ | red) = 13/26 = 1/2. Sum = <span class="ans">0.75</span>.</li><li>P(&gt;3 | even) = |{4,6}|/|{2,4,6}| = <span class="ans">2/3</span>.</li></ol><p>∎</p></details></div>
+<div class="prob"><h3>First ace at 27, then 2♥?</h3>
+<details><summary>Key idea</summary><p>Given the condition, the first 26 cards are a uniform choice of non-aces, and the 25 cards after position 27 are in uniform random order.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Given the event, positions 1–26 are 26 of the 48 non-aces (uniformly), position 27 is an ace, and positions 28–52 are the rest, in uniform order.</li>
+<li>P(2♥ not in the first 26) = 22/48.</li>
+<li>Given that, 2♥ is one of the 25 later cards, equally likely to be in each place: 1/25.</li>
+<li>P = (22/48)(1/25) = <span class="ans">11/600 ≈ 0.018</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Robot clicks H</h3><p>A–Z in a row. Each move clicks a uniformly random remaining letter and deletes it and everything to its right. P(H is clicked)?</p>
+<details><summary>Key idea</summary><p>Only the first click inside {A,…,H} matters, and it is uniform over those 8 letters.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Clicks to the right of H never remove A–H. So until the first click in {A,…,H}, all 8 are present.</li>
+<li>Each click is uniform over the remaining letters. Conditioned on landing in {A,…,H}, it is uniform over those 8.</li>
+<li>H is clicked ⇔ that first click in {A,…,H} is H: P = <span class="ans">1/8</span>.</li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course's "1 way to click H / 8 ways to remove it" is only valid because of step 2, which it never states. It also doesn't state the uniform-click assumption.</p></details></div>
+<div class="prob"><h3>7 before 11</h3><p>Roll two dice until the total is 7 (win) or 11 (lose).</p>
+<details><summary>Key idea</summary><p>"A before B" lemma, with a = 6/36 and b = 2/36.</p></details>
+<details><summary>Solution</summary><p>P = (6/36)/(8/36) = <span class="ans">3/4</span>. ∎</p></details></div>
+<h2 id="p-mult">6 · Multiplication rule &amp; independence</h2>
+<div class="idea"><ol>
+<li>P(A∩B) = P(A)·P(B | A). Chained: P(A₁∩…∩Aₙ) = P(A₁)P(A₂|A₁)⋯P(Aₙ|A₁∩…∩Aₙ₋₁).</li>
+<li><b>Independent</b> A, B: P(A∩B) = P(A)P(B), equivalently P(A|B) = P(A) when P(B) &gt; 0.</li>
+<li><b>Mutually independent</b> A₁,…,Aₙ: the product rule holds for <i>every</i> sub-collection, not just all n together.</li>
+<li>If A, B are independent, so are Aᶜ, Bᶜ: P(Aᶜ∩Bᶜ) = 1 − P(A) − P(B) + P(A)P(B) = (1−P(A))(1−P(B)).</li>
+</ol>
+<p class="gap">⚠ Course defines independence of n events by the single equation P(⋂Aᵢ) = ∏P(Aᵢ). That is not enough. Counterexample: A = B, P(A) = ½, C = ∅; the full product holds (0 = 0), but A and B are not independent.</p></div>
+<div class="prob"><h3>Draws without replacement</h3><p>(a) 5G, 3R: red then green. (b) Ace then queen. (c) Ace, queen, king.</p>
+<details><summary>Key idea</summary><p>Chain rule: each factor is computed on the remaining deck.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>(a) (3/8)(5/7) = <span class="ans">15/56 ≈ 0.26786</span>.</li>
+<li>(b) (4/52)(4/51) = <span class="ans">4/663 ≈ 0.00603</span>.</li>
+<li>(c) (4/52)(4/51)(4/50) ≈ <span class="ans">0.00048</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Ant on an icosahedron</h3><p>Random walk from A. P(at the opposite vertex B after 3 moves)?</p>
+<details><summary>Key idea</summary><p>Group the vertices by distance from A: 1, 5, 5, 1. B at distance 3 must be reached by moving one level outward each step.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Levels L₁={A}, L₂ (5 vertices), L₃ (5), L₄={B}. A vertex in L₂ has edges: 1 to A, 2 within L₂, 2 to L₃. A vertex in L₃ has: 2 to L₂, 2 within L₃, 1 to B.</li>
+<li>Reaching B in 3 moves forces L₁→L₂→L₃→L₄.</li>
+<li>P = 1·(2/5)·(1/5) = <span class="ans">2/25</span>. <span class="why">(chain rule)</span></li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Shooting stars</h3><p>(a) P(star in 1 h) = 0.6, independent hours. P(at least one in 2 h)? (b) P(star in 1 h) = 0.8, with four independent identical 15-min blocks. P(star in the first 15 min)?</p>
+<details><summary>Key idea</summary><p>Work with "none": the complements multiply.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>(a) 1 − 0.4² = <span class="ans">0.84</span>.</li>
+<li>(b) (1−p)⁴ = 0.2, so p = 1 − 0.2^{1/4} ≈ <span class="ans">0.33126</span>.</li>
+</ol><p>∎</p></details></div>
+
+<h2 id="p-total">7 · Law of total probability</h2>
+<div class="idea"><p>If A₁,…,Aₙ partition Ω, then B = ⋃(B∩Aᵢ), a disjoint union. So P(B) = Σ P(B | Aᵢ)P(Aᵢ). In practice: list the disjoint ways B can happen and add them up.</p></div>
+<div class="prob"><h3>Defects and coins</h3><p>(a) Machines A/B make 60%/40% of items, with 2%/5% defective. P(defective)? (b) Coins with P(H) = .5, .75, 1, one picked at random. P(H)?</p>
+<details><summary>Key idea</summary><p>Split on which machine or coin.</p></details>
+<details><summary>Solution</summary><ol class="pf"><li>(a) .6·.02 + .4·.05 = <span class="ans">0.032</span>.</li><li>(b) (.5 + .75 + 1)/3 = <span class="ans">0.75</span>.</li></ol><p>∎</p></details></div>
+
+<h2 id="p-bayes">8 · Bayes</h2>
+<div class="idea"><p>P(Aᵢ | B) = P(B | Aᵢ)P(Aᵢ) / Σⱼ P(B | Aⱼ)P(Aⱼ). This is just P(Aᵢ∩B)/P(B), with the numerator from the chain rule and the denominator from total probability.</p></div>
+<div class="prob"><h3>Three bags</h3><p>Bags (3R,4B), (2R,11B), (8R,1B). A random bag, then a random ball, which is red. P(bag 3)?</p>
+<details><summary>Key idea</summary><p>The equal priors cancel: the answer is the ratio of the likelihoods.</p></details>
+<details><summary>Solution</summary><p>(8/9)/(3/7 + 2/13 + 8/9) ≈ <span class="ans">0.604</span>. ∎</p></details></div>
+<div class="prob"><h3>9 fair + 1 double-headed coin</h3><p>A random coin shows H. P(double-headed)?</p>
+<details><summary>Key idea</summary><p>Prior times likelihood, then normalise.</p></details>
+<details><summary>Solution</summary><p>(1·1/10)/(1/10 + ½·9/10) = <span class="ans">2/11 ≈ 0.182</span>. ∎</p></details></div>
+<div class="prob"><h3>Disease test</h3><p>Prevalence 1%, sensitivity 90%, false-positive rate 5%. P(disease | positive)?</p>
+<details><summary>Key idea</summary><p>The rare disease makes false positives outnumber true positives.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>P(D∩T) = .01·.9 = .009.</li>
+<li>P(T) = .009 + .99·.05 = .0585.</li>
+<li>P(D | T) = .009/.0585 ≈ <span class="ans">0.154</span>.</li>
+</ol><p>∎</p></details></div>
+<h2 id="p-para">9 · Paradoxes</h2>
+<div class="idea"><ol>
+<li>Start from the <b>full, equally likely</b> sample space. Delete what the information rules out. Only then count.</li>
+<li>Paths or stories are <b>not</b> equally likely by default: multiply the probabilities along each one.</li>
+<li>If someone <i>chooses</i> what to reveal, model how they choose. That rule is part of the information.</li>
+</ol></div>
+<div class="prob"><h3>Three coins (HH, HT, TT)</h3><p>A random coin, a random face shows H. P(double-headed)?</p>
+<details><summary>Key idea</summary><p>Count faces, not coins: there are 3 equally likely heads-faces, and 2 of them belong to HH.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>The 6 (coin, face) pairs are equally likely.</li>
+<li>Heads faces: A1, A2, B1. Of these, A1 and A2 are on the double-headed coin.</li>
+<li>P = <span class="ans">2/3</span>. "½" is wrong because it treats the coins, not the faces, as equally likely.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Children and coins</h3><p>(a) 2 children, at least one is a girl: P(both girls)? (b) The older one is a girl: P(both)? (c) 3 coins, at least one H: P(HHH)?</p>
+<details><summary>Key idea</summary><p>Remove the ruled-out outcomes from the equally likely list.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>(a) {BG, GB, GG} remain: <span class="ans">1/3</span>.</li>
+<li>(b) {GB, GG} remain: <span class="ans">1/2</span>.</li>
+<li>(c) All but TTT: <span class="ans">1/7 ≈ 0.143</span>.</li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course leaves this implicit: (a) assumes we learn exactly the event "≥ 1 girl". If instead a random child is revealed to be a girl, the answer is ½.</p></details></div>
+<div class="prob"><h3>Falling frog</h3><p>From 10, the frog jumps to a uniform point in {1,…,i−1}, until it reaches 1. P(it ever lands on 5)?</p>
+<details><summary>Key idea</summary><p>The frog must land in {1,…,5} at some point. Its first landing there is uniform over those 5 points, and it visits 5 exactly when that landing is 5.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Positions strictly decrease, and it ends at 1 ∈ {1..5}, so it has a first landing in {1..5}.</li>
+<li>Every jump from j ≥ 6 is uniform on {1..j−1} ⊇ {1..5}. Conditioned on landing in {1..5}, it is uniform over the 5 points.</li>
+<li>After landing below 5 it can never reach 5. So it visits 5 ⇔ the first landing is 5: P = <span class="ans">1/5</span>.</li>
+</ol><p>∎ &nbsp;<i>(Course: induction on f(i) = (1/(i−1))Σf(j), which gives the same answer.)</i></p>
+<p class="gap">Trap: "subsets of {2..9} → ½" treats unequal paths as equally likely. For example, 10→1 has probability 1/9, but 10→9→1 has 1/72.</p></details></div>
+<div class="prob"><h3>Three prisoners</h3><p>Two of A, B, C will be released. The warden names a released prisoner other than A, choosing at random if both B and C go free. He says "B". P(A released)?</p>
+<details><summary>Key idea</summary><p>AB forces "B", but BC says "B" only half the time.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>P(AB ∩ "B") = ⅓·1, P(BC ∩ "B") = ⅓·½, and P(AC ∩ "B") = 0.</li>
+<li>P(A released | "B") = ⅓ / (⅓ + ⅙) = <span class="ans">2/3</span>.</li>
+</ol><p>∎</p></details></div>
+
+<h2 id="p-reduced">10 · Reduced sample space</h2>
+<div class="idea"><p>In repeated independent trials, drop the outcomes that change nothing. The subsequence of relevant trials is again independent and identically distributed, with the relevant probabilities renormalised (pᵢ / Σ relevant p). This is the "A before B" lemma from §5 in general form.</p></div>
+<div class="prob"><h3>Tennis from 30–30</h3><p>Alice wins each point independently with probability 0.6.</p>
+<details><summary>Key idea</summary><p>30–30 behaves like deuce. Look at pairs of points: AA wins, BB loses, and AB or BA returns to deuce.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>From 30–30 or deuce, after 2 points: AA → Alice wins; BB → she loses; AB, BA → deuce.</li>
+<li>Pairs of points are independent trials. By the lemma, P = .36/(.36 + .16) = <span class="ans">9/13 ≈ 0.69231</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Two 2s and two 3s before the first 6</h3>
+<details><summary>Key idea</summary><p>Ignore 1, 4, 5. The relevant rolls form a fair 3-sided die {2, 3, 6}.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>The rolls landing in {2,3,6} are i.i.d. uniform on {2,3,6}. <span class="why">(reduced sample space)</span></li>
+<li>The event ⇔ the first five relevant rolls are an arrangement of 2,2,3,3 followed by a 6.</li>
+<li>There are 4!/(2!2!) = 6 arrangements, each with probability (1/3)⁵: P = 6/243 = <span class="ans">2/81 ≈ 0.02469</span>.</li>
+</ol><p>∎</p></details></div>
+<h2 id="p-geo">11 · Geometric probability</h2>
+<div class="idea"><p>If a point is uniform in a region Ω, then P(A) = vol(A)/vol(Ω). Independent uniform variables give a point uniform in a box. Draw the region, then use areas, volumes or integrals.</p></div>
+<div class="prob"><h3>1 ≤ y/x ≤ 2</h3><p>x, y independent and uniform on [0,1].</p>
+<details><summary>Key idea</summary><p>The region between the lines y = x and y = 2x inside the unit square is a triangle.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Inside the square, the region x ≤ y ≤ 2x is the triangle (0,0), (1,1), (½,1). <span class="why">(y = 2x leaves through the top at x = ½)</span></li>
+<li>Area = ½·|1·1 − ½·1| = ¼. P = <span class="ans">1/4</span>.</li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course writes the area as ½·1·1 = ½ and then uses ¼. The triangle's base is ½ and its height is 1, so the area is ¼.</p></details></div>
+<div class="prob"><h3>Two friends, 30-minute stays</h3><p>Each arrives uniformly in [0,1] h and stays 0.5 h. P(they meet)?</p>
+<details><summary>Key idea</summary><p>They meet ⇔ |x − y| ≤ ½. The complement is two corner triangles.</p></details>
+<details><summary>Solution</summary><p>1 − 2·½·(½)² = <span class="ans">3/4</span>. ∎</p></details></div>
+<div class="prob"><h3>xy ≤ ½</h3>
+<details><summary>Key idea</summary><p>For x ≤ ½ every y works. For x &gt; ½ you need y ≤ 1/(2x).</p></details>
+<details><summary>Solution</summary><p>∫₀^{½}1 dx + ∫_{½}^{1} dx/(2x) = ½ + ½ln2 ≈ <span class="ans">0.84657</span>. ∎</p></details></div>
+<div class="prob"><h3>Sum of n uniforms &lt; 1</h3><p>(a) n = 2, (b) n = 3, (c) general n.</p>
+<details><summary>Key idea</summary><p>The region is a simplex of volume 1/n!. Slice at xₙ = t and use induction.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Vₙ(s) = vol{x ∈ [0,1]ⁿ : Σx &lt; s} = sⁿ/n! for 0 ≤ s ≤ 1. For n = 1 it is s.</li>
+<li>Vₙ(1) = ∫₀¹ Vₙ₋₁(1−t) dt = ∫₀¹ (1−t)ⁿ⁻¹/(n−1)! dt = 1/n!. <span class="why">(slice at xₙ = t; scaling)</span></li>
+<li>(a) <span class="ans">1/2</span>, (b) <span class="ans">1/6 ≈ 0.167</span>, (c) <span class="ans">1/n!</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Crawling ant (max 3 steps)</h3><p>Each step has an independent uniform time tₙ and distance xₙ. The ant stops at the end of the step in which the total time passes 1, or after 3 steps. P(final position &gt; 1)?</p>
+<details><summary>Key idea</summary><p>Step 1 never stops the ant (t₁ &lt; 1). So it stops after 2 steps (t₁+t₂ &gt; 1) or after 3 steps. Distances and times are independent.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>2 steps, ending past 1: P(t₁+t₂ &gt; 1)·P(x₁+x₂ &gt; 1) = ½·½ = ¼.</li>
+<li>3 steps, ending past 1: P(t₁+t₂ ≤ 1)·P(x₁+x₂+x₃ &gt; 1) = ½·(1 − 1/6) = 5/12.</li>
+<li>The cases are disjoint: P = ¼ + 5/12 = <span class="ans">2/3 ≈ 0.667</span>.</li>
+</ol><p>∎ (simulated)</p></details></div>
+<div class="prob"><h3>a₁ &lt; a₂ &lt; a₃ with a_k ~ U[0,k]</h3>
+<details><summary>Key idea</summary><p>Volume of the ordered region inside a 1×2×3 box.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>vol = ∫₀¹∫_{a₁}^{2}(3 − a₂) da₂ da₁ = ∫₀¹ (4 − 3a₁ + a₁²/2) da₁ = 8/3.</li>
+<li>P = (8/3)/6 = <span class="ans">4/9 ≈ 0.444</span>.</li>
+</ol><p>∎</p></details></div>
+
+<h2 id="p-rec">12 · Recursion in probability</h2>
+<div class="idea"><ol>
+<li><b>First-step analysis:</b> condition on the first move(s) until you are back in the same problem (or its complement), then solve the resulting linear equation.</li>
+<li><b>States:</b> choose the smallest description that determines the future. Write pᵢ = Σ P(i→j)·pⱼ for each state and solve the system. Merge states that are symmetric.</li>
+</ol></div>
+<div class="prob"><h3>First to roll a 6</h3><p>Two players alternate. P(the first player wins)?</p>
+<details><summary>Key idea</summary><p>After a miss, the roles swap: p = 1/6 + (5/6)(1 − p).</p></details>
+<details><summary>Solution</summary><p>(11/6)p = 1, so p = <span class="ans">6/11 ≈ 0.54545</span>. ∎</p></details></div>
+<div class="prob"><h3>Strictly first to heads</h3><p>(a) You vs 9 friends. (b) Alice before Bob. (c) Alice &lt; Bob &lt; Charlie (first-heads times).</p>
+<details><summary>Key idea</summary><p>Look at the first round. All tails restarts the problem. Any tie or wrong leader contributes 0.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>(a) p = 2⁻¹⁰ + 2⁻¹⁰p, so p = <span class="ans">1/1023</span>.</li>
+<li>(b) p = ¼ + ¼p, so p = <span class="ans">1/3</span>.</li>
+<li>(c) First round: only Alice gets H (prob ⅛), then Bob &lt; Charlie (⅓ by (b)); or all get T (⅛) and restart. p = ⅛·⅓ + ⅛p, so p = <span class="ans">1/21 ≈ 0.04762</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>HH ends on an even toss</h3>
+<details><summary>Key idea</summary><p>T: restart with parity flipped. HT: restart with parity unchanged. HH: done on toss 2.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>p = ½(1 − p) + ¼·1 + ¼·p.</li>
+<li>(5/4)p = ¾, so p = <span class="ans">3/5</span>. <span class="why">(simulated 0.600)</span></li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Parcel around 5 seats</h3><p>The holder passes left, passes right, or keeps (⅓ each). Keeping ends the game. You start with it. P(you keep it)?</p>
+<details><summary>Key idea</summary><p>States by distance from you: 0, 1, 2.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>p₀ = ⅓ + ⅔p₁; p₁ = ⅓p₀ + ⅓p₂; p₂ = ⅓p₁ + ⅓p₂.</li>
+<li>So p₂ = ½p₁, p₁ = (2/5)p₀, and p₀ = ⅓ + (4/15)p₀.</li>
+<li>p₀ = <span class="ans">5/11 ≈ 0.45455</span>, with p₁ = 2/11 and p₂ = 1/11. Check: p₀ + 2p₁ + 2p₂ = 1 ✓.</li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course states p₀ = p₁ = p₂ = 5/11. Only p₀ is 5/11.</p></details></div>
+<div class="prob"><h3>HHT before HTT</h3>
+<details><summary>Key idea</summary><p>States are the relevant suffixes: ∅, H, HH, HT. From HH you can never lose.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>p_HH = ½p_HH + ½, so p_HH = 1 (HH… waits for the T that completes HHT).</li>
+<li>p_HT = ½p_H + ½·0 (HTH → suffix H; HTT → loss).</li>
+<li>p_H = ½p_HH + ½p_HT = ½ + ¼p_H, so p_H = 2/3. And p_∅ = p_H.</li>
+</ol><p>∎ &nbsp;<span class="ans">2/3</span></p></details></div>
+<div class="prob"><h3>Score-dependent best-of-7</h3><p>When tied, Alice wins a round w.p. ⅔. Otherwise the trailing player wins w.p. ⅔. First to 4 wins. P(Alice)?</p>
+<details><summary>Key idea</summary><p>State (a,b). DP from the boundary P(4,·) = 1 and P(·,4) = 0.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>P(a,b) = w·P(a+1,b) + (1−w)·P(a,b+1), with w = ⅔ if a ≤ b and w = ⅓ if a &gt; b.</li>
+<li>Filling the table backwards gives P(0,0) = <span class="ans">2/3</span> (exact, by rational DP).</li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course's statement contradicts itself: it says both "trailing player wins w.p. ⅔" and "leader wins w.p. ⅔". Its recurrence uses the trailing rule, as here.</p></details></div>
+<h2 id="p-sym1">13 · Symmetry I: ad hoc</h2>
+<div class="idea"><ol>
+<li>If the process treats labels interchangeably, every label (pair, ordering, …) has the same probability. If exactly one of k such cases happens, each has probability 1/k.</li>
+<li>For i.i.d. continuous variables, ties have probability 0, and all n! orderings are equally likely.</li>
+</ol></div>
+<div class="prob"><h3>Marbles 3 and 98</h3><p>100 numbered marbles. Each move draws 2 at random and discards one of them (by a rule that doesn't depend on the labels). (a) P(3 and 98 drawn together on move 50)? (b) On some move?</p>
+<details><summary>Key idea</summary><p>On any fixed move, every one of the C(100,2) label pairs is equally likely to be the pair drawn.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Relabelling the marbles doesn't change the law of the process, so all pairs {i,j} have the same probability of being drawn on move k.</li>
+<li>Exactly one pair is drawn on move k, so each pair has probability 1/C(100,2) = 1/4950. (a) <span class="ans">1/4950 ≈ 0.00020</span>.</li>
+<li>Once 3 and 98 have been drawn together, one of them is gone, so the 99 moves are disjoint events: (b) 99/4950 = <span class="ans">1/50 = 0.02</span>.</li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course doesn't state that the discard rule must ignore the labels (otherwise the symmetry fails).</p></details></div>
+<div class="prob"><h3>Growing die</h3><p>Start with a fair die with faces 1..99. After each roll, add a face carrying the value just rolled. P(roll 99 shows 99)?</p>
+<details><summary>Key idea</summary><p>Swapping two labels everywhere leaves the process unchanged.</p></details>
+<details><summary>Solution</summary><p>All 99 values are equally likely on every roll, so P = <span class="ans">1/99 ≈ 0.01010</span>. ∎</p></details></div>
+<div class="prob"><h3>X₆ smaller than X₅ and X₇</h3>
+<details><summary>Key idea</summary><p>Each of the three is equally likely to be the minimum.</p></details>
+<details><summary>Solution</summary><p><span class="ans">1/3</span>. <span class="why">(i.i.d. continuous)</span> ∎</p></details></div>
+<div class="prob"><h3>More HT than TH in 10 tosses</h3>
+<details><summary>Key idea</summary><p>Switches alternate between H→T and T→H, so #HT − #TH = [first = H] − [last = H].</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Split the sequence into maximal runs. Consecutive run boundaries alternate between HT and TH.</li>
+<li>So #HT − #TH ∈ {−1, 0, 1}, and it equals 1 exactly when the first toss is H and the last is T.</li>
+<li>P = ½·½ = <span class="ans">1/4</span>. <span class="why">(brute-force checked)</span></li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course claims "equal ⇔ first = last" without proof. Step 1 is the reason.</p></details></div>
+<div class="prob"><h3>n+1 coins vs n coins</h3><p>P(Alice, with n+1 coins, gets strictly more heads than Bob, with n)?</p>
+<details><summary>Key idea</summary><p>Compare the first n coins of each. Alice's extra coin only matters when they are tied.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Over the first n coins each: P(A &gt; B) = P(B &gt; A) = x (symmetry), and P(tie) = y. So 2x + y = 1.</li>
+<li>The extra coin can only break a tie, in Alice's favour, w.p. ½. So P = x + y/2 = <span class="ans">1/2</span>.</li>
+</ol><p>∎</p></details></div>
+
+<h2 id="p-sym2">14 · Symmetry II: fewer states</h2>
+<div class="idea"><p>Merge the states that a symmetry of the problem maps onto each other. They have equal values, so there are fewer unknowns.</p></div>
+<div class="prob"><h3>Tetrahedron walk</h3><p>P(back at A after 6 moves)?</p>
+<details><summary>Key idea</summary><p>Two states: at A, or not at A.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>p₀ = 1 and pₖ₊₁ = ⅓(1 − pₖ). From A you always leave; from B, C or D, 1 edge of 3 leads to A.</li>
+<li>This gives 0, ⅓, 2/9, 7/27, 20/81, 61/243.</li>
+</ol><p>∎ &nbsp;<span class="ans">61/243 ≈ 0.25103</span></p></details></div>
+<div class="prob"><h3>Mouse on a cube</h3><p>Start at (0,0,0). Trap at (1,1,0), cheese at (1,1,1). P(cheese first)?</p>
+<details><summary>Key idea</summary><p>The swap x ↔ y fixes the start, the trap and the cheese. So (1,0,0) ~ (0,1,0) and (1,0,1) ~ (0,1,1).</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Let x = P(000), y = P(100) = P(010), z = P(001), w = P(101) = P(011).</li>
+<li>x = (2y + z)/3, y = (x + w + 0)/3, z = (x + 2w)/3, w = (y + z + 1)/3.</li>
+<li>Solving: x = <span class="ans">3/7 ≈ 0.42857</span>.</li>
+</ol><p>∎</p></details></div>
+
+<h2 id="p-sym3">15 · Symmetry III: continuous → discrete</h2>
+<div class="idea"><p>If only the relative order of i.i.d. continuous points matters, replace them with a uniformly random ordering and count orderings.</p></div>
+<div class="prob"><h3>Two random segments on a line</h3><p>Endpoints are 4 i.i.d. continuous points (any continuous distribution). P(the segments overlap)?</p>
+<details><summary>Key idea</summary><p>Read the sorted points' owners as a word such as 1122. The 6 words are equally likely, and only 1122 and 2211 are disjoint.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>All 4! orders are equally likely. Each owner-word (which segment owns each sorted position) comes from 2!·2! = 4 of them, so the 6 words are equally likely.</li>
+<li>The segments are disjoint ⇔ the word is 1122 or 2211. P(overlap) = 1 − 2/6 = <span class="ans">2/3</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Two random chords</h3>
+<details><summary>Key idea</summary><p>Four points on a circle can be split into two pairs in 3 ways, and exactly one of those ways crosses.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Given the 4 points, the random pairing is uniform over the 3 pairings. <span class="why">(exchangeable labels)</span></li>
+<li>Only the pairing of cyclically alternating points crosses: P = <span class="ans">1/3</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Goalkeeper interval</h3><p>The keeper defends [x,y] (2 uniform points). Three uniform shots. P(exactly 2 shots inside)?</p>
+<details><summary>Key idea</summary><p>5 i.i.d. points. The positions of the keeper's 2 points among the 5 sorted points are uniform over C(5,2) = 10 choices.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>If the keeper's points are at sorted positions i &lt; j, then j − i − 1 shots are inside.</li>
+<li>j − i − 1 = 2 ⇔ (i,j) ∈ {(1,4), (2,5)}: P = 2/10 = <span class="ans">1/5</span>.</li>
+</ol><p>∎</p></details></div>
+
+<h2 id="p-rv">16 · Random variables</h2>
+<div class="idea"><ol>
+<li>A random variable is a function X: Ω → ℝ. Example: the number of heads in 5 tosses.</li>
+<li><b>Discrete</b>: takes countably many values. <b>Continuous</b> (in this course): has a density (§19).</li>
+</ol></div>
+<h2 id="p-pmf">17 · PMF and CDF (discrete)</h2>
+<div class="idea"><ol>
+<li>PMF: p(x) = P(X = x). Support = {x : p(x) &gt; 0}.</li>
+<li>CDF: F(x) = P(X ≤ x). It is non-decreasing and right-continuous, runs from 0 to 1, and jumps by p(x₀) at x₀.</li>
+<li><b>Difference trick</b> for integer X: P(X = k) = F(k) − F(k−1). Use it whenever "≤ k" is easy (maxima!).</li>
+</ol></div>
+<div class="prob"><h3>Sum of two dice</h3>
+<details><summary>Key idea</summary><p>Count the pairs (i,j) with i + j = s.</p></details>
+<details><summary>Solution</summary><p>P(S = s) = (6 − |s − 7|)/36, for s = 2,…,12. ∎</p></details></div>
+<div class="prob"><h3>CDF from a PMF</h3><p>P(1) = .2, P(3) = .5, P(5) = .3.</p>
+<details><summary>Key idea</summary><p>Running sum, as a step function.</p></details>
+<details><summary>Solution</summary><p>F = 0 on (−∞,1), .2 on [1,3), .7 on [3,5), and 1 on [5,∞). ∎</p></details></div>
+<div class="prob"><h3>Max of five d10</h3>
+<details><summary>Key idea</summary><p>max ≤ k ⇔ every die ≤ k.</p></details>
+<details><summary>Solution</summary><ol class="pf"><li>F(k) = (k/10)⁵. <span class="why">(independence)</span></li><li>P(X = k) = (k/10)⁵ − ((k−1)/10)⁵, for k = 1..10.</li></ol><p>∎</p></details></div>
+
+<h2 id="p-disc">18 · Common discrete distributions</h2>
+<div class="idea"><div class="tw"><table>
+<tr><th>Name</th><th>Models</th><th>P(X = k)</th></tr>
+<tr><td>Uniform{x₁..xₙ}</td><td>equally likely values</td><td>1/n</td></tr>
+<tr><td>Bernoulli(p)</td><td>one trial</td><td>pᵏ(1−p)¹⁻ᵏ, k ∈ {0,1}</td></tr>
+<tr><td>Geometric(p)</td><td>trials to the 1st success</td><td>(1−p)ᵏ⁻¹p, k ≥ 1</td></tr>
+<tr><td>Binomial(n,p)</td><td>successes in n trials</td><td>C(n,k)pᵏ(1−p)ⁿ⁻ᵏ</td></tr>
+<tr><td>NegBin(r,p)</td><td>trials to the r-th success</td><td>C(k−1,r−1)pʳ(1−p)ᵏ⁻ʳ, k ≥ r</td></tr>
+<tr><td>Poisson(λ)</td><td>rare events at rate λ</td><td>e^{−λ}λᵏ/k!</td></tr>
+<tr><td>Hypergeometric</td><td>k successes in n draws, no replacement</td><td>C(K,k)C(N−K,n−k)/C(N,n)</td></tr>
+</table></div>
+<p><b>Why each formula holds:</b> Geometric: k−1 failures, then a success. Binomial: choose which k trials succeed. NegBin: exactly r−1 successes in the first k−1 trials, then a success. Poisson: Binomial(n, λ/n) as n → ∞, because C(n,k)(λ/n)ᵏ → λᵏ/k! and (1−λ/n)ⁿ⁻ᵏ → e^{−λ}.</p></div>
+<div class="prob"><h3>Identify the distribution</h3><p>(a) Fair die. (b) Coin with P(H) = .7, flipped once. (c) First good item, p = .9. (d) Heads in 5 fair flips. (e) Shots to the 3rd make, p = .6. (f) Calls per minute, mean 3. (g) Reds in 4 draws from 7R + 5B.</p>
+<details><summary>Key idea</summary><p>Match the story to the table.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>(a) Uniform, 1/6. (b) Bernoulli(.7). (c) Geometric: .1ᵏ⁻¹·.9.</li>
+<li>(d) Binomial(5,½). (e) NegBin: C(k−1,2)(.6)³(.4)ᵏ⁻³, k ≥ 3.</li>
+<li>(f) Poisson(3). (g) C(7,k)C(5,4−k)/C(12,4).</li>
+</ol><p>∎</p></details></div>
+
+<h2 id="p-pdf">19 · PDF and CDF (continuous)</h2>
+<div class="idea"><ol>
+<li>X has density f ≥ 0 if P(a ≤ X ≤ b) = ∫ₐᵇ f for all a ≤ b. Then ∫f = 1, P(X = x) = 0 for every x, and f can be larger than 1.</li>
+<li>F(x) = ∫_{−∞}^{x} f, and F′ = f wherever f is continuous.</li>
+<li>To find a density, <b>find the CDF first, then differentiate</b>. This is usually easier than the "f(x)dx = P(x ≤ X ≤ x+dx)" method.</li>
+</ol></div>
+<div class="prob"><h3>Integrate a density</h3><p>(a) f = (3/8)x² on [0,2]: P(.5 ≤ X ≤ 1.5). (b) f = 3x² on [0,1]: find F.</p>
+<details><summary>Key idea</summary><p>The area under f.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>(a) (1.5³ − .5³)/8 = <span class="ans">0.40625</span>.</li>
+<li>(b) F = 0 for x &lt; 0, x³ on [0,1], and 1 for x &gt; 1.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Distance of a uniform point in the unit disc</h3>
+<details><summary>Key idea</summary><p>P(X ≤ x) is the ratio of areas πx²/π.</p></details>
+<details><summary>Solution</summary><p>F(x) = x², so f(x) = <span class="ans">2x</span> on [0,1]. ∎</p></details></div>
+<div class="prob"><h3>Minimum of 10 uniforms</h3>
+<details><summary>Key idea</summary><p>min &gt; x ⇔ all ten are &gt; x.</p></details>
+<details><summary>Solution</summary><p>F(x) = 1 − (1−x)¹⁰, so f(x) = <span class="ans">10(1−x)⁹</span>. ∎</p></details></div>
+<h2 id="p-cont">20 · Common continuous distributions</h2>
+<div class="idea"><div class="tw"><table>
+<tr><th>Name</th><th>Models</th><th>density</th></tr>
+<tr><td>U[a,b]</td><td>a uniform point</td><td>1/(b−a) on [a,b]</td></tr>
+<tr><td>Exp(λ)</td><td>wait for the 1st event at rate λ</td><td>λe^{−λx}, x ≥ 0</td></tr>
+<tr><td>N(μ,σ²)</td><td>sums of many small effects</td><td>e^{−(x−μ)²/2σ²}/√(2πσ²)</td></tr>
+<tr><td>Gamma(α,λ)</td><td>wait for the α-th event</td><td>λ^α x^{α−1}e^{−λx}/Γ(α)</td></tr>
+<tr><td>Beta(α,β)</td><td>an unknown proportion in [0,1]</td><td>x^{α−1}(1−x)^{β−1}/B(α,β)</td></tr>
+</table></div>
+<p>Exp: P(T &gt; t) = e^{−λt}. <b>Memoryless:</b> P(T &gt; s+t | T &gt; s) = e^{−λ(s+t)}/e^{−λs} = P(T &gt; t). Gamma(1,λ) = Exp(λ).</p></div>
+<div class="prob"><h3>70% failure time</h3><p>T ~ Exp(0.1). Find t with P(T &lt; t) = 0.7.</p>
+<details><summary>Key idea</summary><p>Invert the CDF 1 − e^{−λt}.</p></details>
+<details><summary>Solution</summary><p>e^{−0.1t} = 0.3, so t = 10 ln(10/3) ≈ <span class="ans">12.03973</span>. ∎</p></details></div>
+
+<h2 id="p-normal">21 · The normal distribution</h2>
+<div class="idea"><ol>
+<li>φ(x) = e^{−x²/2}/√(2π) and Φ(x) = ∫_{−∞}^{x} φ.</li>
+<li>Φ(x) + Φ(−x) = 1. Since φ is even, Φ(−x) = ∫_{x}^{∞} φ = 1 − Φ(x).</li>
+<li>If X ~ N(μ,σ²) and a ≠ 0, then aX + b ~ N(aμ+b, a²σ²). So Z = (X−μ)/σ ~ N(0,1).</li>
+<li>The z-score (x−μ)/σ counts standard deviations from the mean. It lets you compare values from different normals.</li>
+</ol></div>
+<div class="prob"><h3>X ~ N(100, 36): P(94 ≤ X ≤ 112)</h3>
+<details><summary>Key idea</summary><p>Standardise with σ = 6.</p></details>
+<details><summary>Solution</summary><p>z-limits −1 and 2: Φ(2) − Φ(−1) = Φ(2) + Φ(1) − 1 ≈ <span class="ans">0.8186</span>. ∎</p></details></div>
+
+<h2 id="p-totalc">22 · Total probability, continuous case</h2>
+<div class="idea"><p>P(A) = ∫ P(A | X = x) f_X(x) dx. Condition on the continuous quantity that the event depends on.</p></div>
+<div class="prob"><h3>Rain and humidity</h3><p>f_H(h) = 2h on [0,1], and P(rain | h) = h².</p>
+<details><summary>Key idea</summary><p>Average the conditional probability over the density.</p></details>
+<details><summary>Solution</summary><p>∫₀¹ h²·2h dh = <span class="ans">1/2</span>. ∎</p></details></div>
+<div class="prob"><h3>Nested points in the disc</h3><p>R₁ ~ U[0,1]. The second point is uniform in the annulus r₁ &lt; r ≤ 1. P(R₂ &gt; ½)?</p>
+<details><summary>Key idea</summary><p>Given r₁, P(R₂ &gt; ½) is an area ratio. Integrate it over r₁.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>r₁ ≥ ½: then R₂ &gt; r₁ ≥ ½, so the probability is 1.</li>
+<li>r₁ &lt; ½: area ratio (1 − ¼)/(1 − r₁²) = ¾/(1 − r₁²).</li>
+<li>P = ∫₀^{½} ¾/(1−r²) dr + ½ = ¾·½ln3 + ½ = (4 + 3ln3)/8 ≈ <span class="ans">0.91198</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Three points, pairwise ≥ 90° apart</h3>
+<details><summary>Key idea</summary><p>Fix the first point at 0. The second point is at 90° + x (doubled by symmetry). The third point's allowed arc has length 90° − x.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Rotate so that P₁ = 0°. P₂ must lie in [90°, 270°]. By reflection, take P₂ = 90° + x with x ∈ [0°, 90°] and double.</li>
+<li>P₃ must be ≥ 90° from both, which leaves the arc [180° + x, 270°] of length 90° − x.</li>
+<li>P = 2∫₀^{90} (1/360)·(90 − x)/360 dx = 2·4050/360² = <span class="ans">1/16</span>. <span class="why">(simulated 0.0622)</span></li>
+</ol><p>∎ &nbsp;<i>General: n points, every gap ≥ fraction a of the circle: (1 − na)ⁿ⁻¹.</i></p></details></div>
+<h2 id="p-ev">23 · Expected value</h2>
+<div class="idea"><p>E[X] = Σ x·P(X = x) (discrete), or ∫ x f(x) dx (continuous). It is the long-run average.</p></div>
+<div class="prob"><h3>Die, and a d30 difference</h3><p>(a) E[die]. (b) Two rolls of a d30: E|x − y|.</p>
+<details><summary>Key idea</summary><p>(b) |x − y| = d occurs in 2(30 − d) of the 900 outcomes.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>(a) 21/6 = <span class="ans">3.5</span>.</li>
+<li>(b) (2/900)·Σ_{d=1}^{29} d(30−d) = (2/900)(30·435 − 8555) = 8990/900 ≈ <span class="ans">9.99</span>. (In general, (n² − 1)/(3n).)</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>First repeat on a d4</h3><p>Roll until a value repeats. E[number of the roll on which the repeat happens]?</p>
+<details><summary>Key idea</summary><p>Tail sum (§26): the repeat happens after roll k ⇔ the first k rolls are distinct.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>P(X &gt; k) = P(first k distinct) = 4·3⋯(4−k+1)/4ᵏ: 1, 1, ¾, ⅜, 3/32, 0.</li>
+<li>E[X] = Σ_{k≥0} P(X &gt; k) = 1 + 1 + ¾ + ⅜ + 3/32 = <span class="ans">103/32 ≈ 3.22</span>.</li>
+</ol><p>∎</p>
+<p class="gap">⚠ The wording is "rolls <i>before</i> the first repetition", which would be 103/32 − 1. The course answers the roll index.</p></details></div>
+<div class="prob"><h3>Densities</h3><p>(a) f = 3x² on [0,1]: E[X]. (b) Uniform point in the unit disc: E[distance].</p>
+<details><summary>Key idea</summary><p>∫ x f(x) dx. The disc distance has f = 2r.</p></details>
+<details><summary>Solution</summary><ol class="pf"><li>(a) ∫₀¹ 3x³ = <span class="ans">3/4</span>.</li><li>(b) ∫₀¹ 2r² = <span class="ans">2/3</span>.</li></ol><p>∎</p></details></div>
+<div class="prob"><h3>Ferris wait</h3><p>Radius 1 m, period 1 min. You can board when height ≤ 0.5 m. Uniform arrival. E[wait]?</p>
+<details><summary>Key idea</summary><p>Boarding is possible for ⅓ of each cycle. The wait is 0 inside that window, and otherwise the time to the window's next start.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>h = 1 + cos 2πt ≤ ½ ⇔ t ∈ [⅓, ⅔] (mod 1).</li>
+<li>The unavailable stretch has length L = ⅔. Arriving in it at a uniform point leaves a remaining wait uniform on [0, L].</li>
+<li>E[W] = L·(L/2) = <span class="ans">2/9 ≈ 0.22222</span> min.</li>
+</ol><p>∎</p></details></div>
+
+<h2 id="p-tot-e">24 · Law of total expectation</h2>
+<div class="idea"><p>E[X] = Σ E[X | Y = y]P(Y = y), or ∫ E[X | Y = y] f_Y(y) dy. Compactly, the tower property: E[E[X | Y]] = E[X].</p></div>
+<div class="prob"><h3>Mixture and nested uniform</h3><p>(a) Pick a d6, d7 or d9 at random and roll it. (b) Y ~ U[0,1], then X ~ U[0,Y].</p>
+<details><summary>Key idea</summary><p>Condition on which die, or on Y.</p></details>
+<details><summary>Solution</summary><ol class="pf"><li>(a) (3.5 + 4 + 5)/3 ≈ <span class="ans">4.167</span>.</li><li>(b) E[X | Y] = Y/2, so E[X] = <span class="ans">1/4</span>.</li></ol><p>∎</p></details></div>
+
+<h2 id="p-lotus">25 · LOTUS</h2>
+<div class="idea"><p>E[g(X)] = Σ g(x)P(X = x), or ∫ g(x) f_X(x) dx. You never need the distribution of g(X).</p></div>
+<div class="prob"><h3>E[X²]</h3><p>(a) Die. (b) U[0,1].</p>
+<details><summary>Key idea</summary><p>Weight g(x) = x² by the law of X.</p></details>
+<details><summary>Solution</summary><ol class="pf"><li>(a) 91/6 ≈ <span class="ans">15.16667</span>.</li><li>(b) ∫₀¹x² = <span class="ans">1/3</span>.</li></ol><p>∎</p></details></div>
+
+<h2 id="p-tail">26 · Tail sum (discrete)</h2>
+<div class="idea"><p>For X ∈ {0,1,2,…}: E[X] = Σ_{k≥1} P(X ≥ k). <b>Proof:</b> X = Σ_{k≥1} 1[X ≥ k]; take expectations. Use it when "≥ k" is easy (minima: all ≥ k).</p></div>
+<div class="prob"><h3>Min of three d100</h3>
+<details><summary>Key idea</summary><p>min ≥ k ⇔ all three ≥ k.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>P(X ≥ k) = ((101−k)/100)³.</li>
+<li>E = Σ_{j=1}^{100} j³/100³ = 5050²/10⁶ = <span class="ans">25.5025</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Smallest ball in ball 10's box</h3><p>Balls 1..10 go independently into 5 boxes.</p>
+<details><summary>Key idea</summary><p>Y ≥ k ⇔ none of balls 1..k−1 shares ball 10's box.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>P(Y ≥ k) = (4/5)^{k−1} for k = 1..10.</li>
+<li>E = Σ_{k=1}^{10} (4/5)^{k−1} = 5(1 − 0.8¹⁰) ≈ <span class="ans">4.46313</span>.</li>
+</ol><p>∎</p></details></div>
+<h2 id="p-tailint">27 · Tail integral</h2>
+<div class="idea"><p>For X ≥ 0: E[X] = ∫₀^∞ P(X &gt; t) dt. <b>Proof:</b> X = ∫₀^∞ 1[X &gt; t] dt; take expectations (swapping is fine because the integrand is ≥ 0).</p></div>
+<div class="prob"><h3>Distance to the base of a triangle</h3><p>Uniform point in a triangle of height h. E[distance to the base]?</p>
+<details><summary>Key idea</summary><p>{D &gt; t} is a similar triangle of height h − t, so its area ratio is ((h−t)/h)².</p></details>
+<details><summary>Solution</summary><p>E[D] = ∫₀ʰ (1 − t/h)² dt = <span class="ans">h/3</span>. ∎</p></details></div>
+<div class="prob"><h3>Max of n uniforms</h3>
+<details><summary>Key idea</summary><p>P(M &gt; t) = 1 − tⁿ.</p></details>
+<details><summary>Solution</summary><p>E[M] = ∫₀¹(1 − tⁿ) dt = <span class="ans">n/(n+1)</span>. ∎</p></details></div>
+
+<h2 id="p-lin">28 · Linearity of expectation</h2>
+<div class="idea"><ol>
+<li>E[Σ cᵢXᵢ] = Σ cᵢE[Xᵢ]. This holds <b>always, even for dependent variables</b>.</li>
+<li>The method: name X, then write X = X₁ + … + Xₙ explicitly, using either (a) indicators or (b) "the extra amount added by step k".</li>
+<li>A geometric wait with success probability p has mean 1/p.</li>
+</ol></div>
+<div class="prob"><h3>Sum of three dice</h3>
+<details><summary>Key idea</summary><p>X = X₁ + X₂ + X₃.</p></details>
+<details><summary>Solution</summary><p>3·3.5 = <span class="ans">10.5</span>. ∎</p></details></div>
+<div class="prob"><h3>Letters in the right envelopes</h3>
+<details><summary>Key idea</summary><p>Iᵢ = 1 if letter i is correct, and P(Iᵢ = 1) = 1/n.</p></details>
+<details><summary>Solution</summary><p>E = n·(1/n) = <span class="ans">1</span>, for every n. ∎</p></details></div>
+<div class="prob"><h3>HT count in 10 flips</h3>
+<details><summary>Key idea</summary><p>9 adjacent pairs, each HT with probability ¼.</p></details>
+<details><summary>Solution</summary><p>9/4 = <span class="ans">2.25</span>. ∎</p></details></div>
+<div class="prob"><h3>Coupon collector (d6)</h3><p>E[rolls to see all 6 faces]?</p>
+<details><summary>Key idea</summary><p>T = T₁ + … + T₆, where T_k is the wait for the k-th new face. It is geometric with p = (7−k)/6.</p></details>
+<details><summary>Solution</summary><p>E[T] = 6(1/6 + 1/5 + … + 1/1) = 1 + 6/5 + 3/2 + 2 + 3 + 6 = <span class="ans">14.7</span>. ∎</p></details></div>
+<div class="prob"><h3>Rectangles from 20 random lines</h3><p>Each line is horizontal or vertical w.p. ½. E[number of grid cells]?</p>
+<details><summary>Key idea</summary><p>The k-th line adds (#perpendicular lines so far + 1) cells, which is (k+1)/2 on average.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>h horizontal and v vertical lines make (h+1)(v+1) cells.</li>
+<li>Adding the k-th line: horizontal adds v+1, vertical adds h+1. The mean is ½(h + v + 2) = (k+1)/2.</li>
+<li>E = 1 + Σ_{k=1}^{20} (k+1)/2 = 1 + 115 = <span class="ans">116</span>.</li>
+<li>Check: with h ~ Bin(20,½), E[(h+1)(21−h)] = 21 + 20·10 − (5 + 100) = 116 ✓.</li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course says "smaller rectangles" but its count includes the unbounded cells. Counting bounded ones only, (h−1)(v−1), gives 76.</p></details></div>
+<h2 id="p-ind">29 · Indicator variables</h2>
+<div class="idea"><p>I_A = 1 if A happens, 0 otherwise. E[I_A] = P(A). To count something, write count = Σ I and take expectations term by term.</p></div>
+<div class="prob"><h3>GB pairs; colour components</h3><p>(a) 5 boys and 5 girls in a random row: E[#adjacent GB]. (b) 10 squares, each R or B at random: E[#runs].</p>
+<details><summary>Key idea</summary><p>(a) One indicator per adjacent pair. (b) #runs = 1 + #colour changes.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>(a) P(seat i = G, seat i+1 = B) = (5/10)(5/9). E = 9·5/18 = <span class="ans">2.5</span>.</li>
+<li>(b) Each of the 9 boundaries is a change w.p. ½: E = 1 + 4.5 = <span class="ans">5.5</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Records among 10 i.i.d. values</h3>
+<details><summary>Key idea</summary><p>Xᵢ is a record ⇔ it is the largest of the first i, which has probability 1/i.</p></details>
+<details><summary>Solution</summary><p>E = H₁₀ = 1 + ½ + … + 1/10 ≈ <span class="ans">2.92897</span>. ∎</p></details></div>
+<div class="prob"><h3>2-cycles in a random permutation</h3>
+<details><summary>Key idea</summary><p>One indicator per pair i &lt; j. P(p(i) = j, p(j) = i) = (n−2)!/n!.</p></details>
+<details><summary>Solution</summary><p>E = C(n,2)/(n(n−1)) = <span class="ans">1/2</span>. ∎</p></details></div>
+<div class="prob"><h3>Divisor-erasing moves on 1..20</h3><p>Each move picks a uniform remaining number and erases it together with its divisors. E[#moves]?</p>
+<details><summary>Key idea</summary><p>#moves = #numbers that get picked. k is picked ⇔ k comes first among its multiples in a uniformly random order.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Model: take a uniform random permutation and scan it, picking each number that is still present. The next present number is uniform among those remaining, so this is the same process.</li>
+<li>Let A_k = multiples of k in 1..20, so |A_k| = ⌊20/k⌋. The first element of A_k in the scan is still present (only a multiple of it, which would also be in A_k and earlier, could have erased it). So it is picked and erases k.</li>
+<li>k is picked ⇔ k is first in A_k: probability 1/⌊20/k⌋.</li>
+<li>E = Σ_k 1/⌊20/k⌋ = 3.1 + 10 = <span class="ans">13.1</span>. <span class="why">(simulated 13.10)</span></li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course asserts "the order within A_k is random" without step 1 (why sequential uniform picks behave like a random permutation).</p></details></div>
+
+<h2 id="p-prod">30 · Products of independent variables</h2>
+<div class="idea"><p>If X ⊥ Y, then E[XY] = E[X]E[Y]; likewise for n independent variables. This <b>needs</b> independence. Trick: expand a square or product, and every cross term containing a mean-zero independent factor vanishes. Centre coordinates first when you are allowed to (e.g. area doesn't change under translation).</p></div>
+<div class="prob"><h3>Cut a 1×2 rectangle</h3><p>X ~ U(0,1) on the short side and Y ~ U(0,2) on the adjacent side, measured from the shared corner. E[larger piece]?</p>
+<details><summary>Key idea</summary><p>The corner triangle has area XY/2 ≤ 1, so the other piece is always the larger.</p></details>
+<details><summary>Solution</summary><p>E[2 − XY/2] = 2 − ½·½·1 = <span class="ans">7/4</span>. ∎</p></details></div>
+<div class="prob"><h3>Stock after 10 days</h3><p>Each day independently ×1.05 (w.p. 3/5) or ×0.97. Start at 100.</p>
+<details><summary>Key idea</summary><p>The expectation of a product of independent factors is the product of their expectations.</p></details>
+<details><summary>Solution</summary><p>E[F] = 1.018, so 100·1.018¹⁰ ≈ <span class="ans">119.53024</span>. ∎</p></details></div>
+<div class="prob"><h3>Random jumps, E[distance²]</h3><p>10 jumps, each with direction ~ U[0,2π) and length ~ U[0,1], all independent.</p>
+<details><summary>Key idea</summary><p>Cross terms contain E[cos θ] = E[sin θ] = 0.</p></details>
+<details><summary>Solution</summary><p>E[X² + Y²] = Σ E[rᵢ²] = 10/3 ≈ <span class="ans">3.33333</span>. ∎</p></details></div>
+<div class="prob"><h3>E[area²] for 3 grid points (9×9)</h3>
+<details><summary>Key idea</summary><p>Shift the coordinates to −4..4 (area is unchanged) so every coordinate has mean 0. Then only the 6 squared terms survive.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>2A = |D|, where D = x₁y₂ + x₂y₃ + x₃y₁ − x₂y₁ − x₃y₂ − x₁y₃.</li>
+<li>Every cross term in D² contains some coordinate to the first power, independent of the rest, with mean 0. So it vanishes.</li>
+<li>E[x²] = 60/9 = 20/3. So E[D²] = 6·(20/3)², and E[A²] = ¼·6·400/9 = <span class="ans">200/3 ≈ 66.66667</span>. <span class="why">(brute-force exact)</span></li>
+</ol><p>∎</p></details></div>
+<h2 id="p-evtab">31 · Means of common distributions</h2>
+<div class="idea"><div class="tw"><table>
+<tr><th>Distribution</th><th>E[X]</th><th>Distribution</th><th>E[X]</th></tr>
+<tr><td>Bernoulli(p)</td><td>p</td><td>U(a,b)</td><td>(a+b)/2</td></tr>
+<tr><td>Binomial(n,p)</td><td>np</td><td>Exp(λ)</td><td>1/λ</td></tr>
+<tr><td>Geometric(p)</td><td>1/p</td><td>N(μ,σ²)</td><td>μ</td></tr>
+<tr><td>NegBin(r,p)</td><td>r/p</td><td>Gamma(α, rate λ)</td><td>α/λ</td></tr>
+<tr><td>Poisson(λ)</td><td>λ</td><td>Beta(α,β)</td><td>α/(α+β)</td></tr>
+<tr><td>Uniform{1..n}</td><td>(n+1)/2</td><td>Hypergeo(N,K,n)</td><td>nK/N</td></tr>
+</table></div>
+<p><b>Short proofs.</b> Binomial and hypergeometric: a sum of n indicators, each with mean p (or K/N). NegBin: a sum of r geometrics. Geometric by first-step analysis: E = 1 + (1−p)E, so E = 1/p. Exponential: tail integral ∫₀^∞ e^{−λt} dt = 1/λ.</p></div>
+
+<h2 id="p-rece">32 · Recursion in expectation</h2>
+<div class="idea"><p>The same two methods as §12, now with "+1 per step" (or "+ the reward") added: E_s = cost(s) + Σ P(s→t)E_t, with E = 0 at the end. A self-loop E = 1 + qE + … solves as E = (1 + …)/(1 − q).</p></div>
+<div class="prob"><h3>Sum of rolls until a 6</h3>
+<details><summary>Key idea</summary><p>First roll: a 6 ends it; 1–5 adds that value and restarts.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>E = (1/6)·6 + (1/6)Σ_{i=1}^{5}(i + E) = 1 + 15/6 + (5/6)E.</li>
+<li>(1/6)E = 21/6, so E = <span class="ans">21</span>. (Check: 6 expected rolls × mean 3.5, by Wald's identity, Martingales page.)</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Bob's routes</h3><p>A: 4 h, then restart (0.2). B: 2 h, then restart (0.5). C: 3 h and done (0.3).</p>
+<details><summary>Key idea</summary><p>Condition on the first route taken.</p></details>
+<details><summary>Solution</summary><p>E = .2(4+E) + .5(2+E) + .3·3, so .3E = 2.7 and E = <span class="ans">9</span> hours. ∎</p></details></div>
+<div class="prob"><h3>Tosses until THH</h3>
+<details><summary>Key idea</summary><p>States are the useful suffixes: ∅, T, TH.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>E₀ = 1 + ½E₁ + ½E₀, so E₀ = 2 + E₁.</li>
+<li>E₁ = 1 + ½E₂ + ½E₁, so E₁ = 2 + E₂. (After TT the suffix is still T.)</li>
+<li>E₂ = 1 + ½·0 + ½E₁. (THT ends in T.)</li>
+<li>So E₂ = 1 + ½(2 + E₂), giving E₂ = 4, E₁ = 6, E₀ = <span class="ans">8</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>At least 3 H and 3 T</h3>
+<details><summary>Key idea</summary><p>State (i,j) with counts capped at 3. Fill the DP from (3,3) backwards.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>E(3,3) = 0. On an edge the self-loop gives E(3,j) = 2 + E(3,j+1), and likewise E(i,3).</li>
+<li>Inside: E(i,j) = 1 + ½E(i+1,j) + ½E(i,j+1).</li>
+<li>E(0,0) = <span class="ans">63/8 = 7.875</span>. <span class="why">(exact rational DP)</span></li>
+</ol><p>∎</p></details></div>
+
+<h2 id="p-syme1">33 · Symmetry in expectation I</h2>
+<div class="idea"><p>If a transformation T keeps the law of the randomness unchanged and sends X to c − X (or −X), then E[X] = E[c − X], so E[X] = c/2 (or 0). For random walks, pair the moves m and −m: E|v + m|² = |v|² + E|m|².</p></div>
+<div class="prob"><h3>Median of five d100</h3>
+<details><summary>Key idea</summary><p>Replacing each roll r by 101 − r keeps the law and sends the median z to 101 − z.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>The map r ↦ 101 − r preserves the uniform law on {1..100}ⁿ and reverses the sorted order.</li>
+<li>So z and 101 − z have the same distribution. E[z] = 101 − E[z] gives E[z] = <span class="ans">50.5</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>E[det] of a random 5×5 matrix</h3><p>Entries are i.i.d. uniform on {1..25}.</p>
+<details><summary>Key idea</summary><p>Swapping two rows keeps the law and flips the sign of the determinant.</p></details>
+<details><summary>Solution</summary><p>E[det A] = E[det A′] = −E[det A], so E = <span class="ans">0</span>. ∎</p></details></div>
+<div class="prob"><h3>Knight's walk, E[distance²] after 100 moves</h3>
+<details><summary>Key idea</summary><p>The move m is independent of the position v, and E[m] = 0.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>|v + m|² = |v|² + 2v·m + |m|². Here E[v·m] = E[v]·E[m] = 0 by independence and because the 8 moves cancel in ± pairs.</li>
+<li>|m|² = 2² + 1² = 5 for every move, so each move adds 5 in expectation.</li>
+<li>After 100 moves: <span class="ans">500</span>.</li>
+</ol><p>∎</p></details></div>
+<h2 id="p-syme2">34 · Symmetry in expectation II: fewer states</h2>
+<div class="prob"><h3>Ant to the opposite corner of a cube</h3>
+<details><summary>Key idea</summary><p>Use the distance to the target, 3/2/1/0, as the state.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>E₃ = 1 + E₂; E₂ = 1 + ⅓E₃ + ⅔E₁; E₁ = 1 + ⅔E₂ (and E₀ = 0).</li>
+<li>Substituting: E₂ = 1 + ⅓(1 + E₂) + ⅔(1 + ⅔E₂), so E₂(1 − ⅓ − 4/9) = 2, which gives E₂ = 9.</li>
+<li>E₃ = <span class="ans">10</span>.</li>
+</ol><p>∎</p></details></div>
+
+<h2 id="p-seg">35 · Random points on a segment</h2>
+<div class="idea"><p>n i.i.d. uniform points cut [0,L] into n+1 gaps that are <b>exchangeable</b> (every gap has the same law). So each has mean L/(n+1). The same holds for the gaps between randomly shuffled special items.</p></div>
+<div class="prob"><h3>Blue end of a 9-inch rod</h3><p>Two random breaks.</p>
+<details><summary>Key idea</summary><p>3 exchangeable pieces.</p></details>
+<details><summary>Solution</summary><p>9/3 = <span class="ans">3</span> in. ∎</p></details></div>
+<div class="prob"><h3>Smaller piece of a broken metre stick</h3>
+<details><summary>Key idea</summary><p>By symmetry, look at a break in the left half. It is uniform on [0, ½], and the smaller piece is exactly that length.</p></details>
+<details><summary>Solution</summary><p>E = ½·½ = <span class="ans">1/4</span> m. ∎</p></details></div>
+<div class="prob"><h3>Cards up to and including the first ace</h3>
+<details><summary>Key idea</summary><p>Each of the 48 non-aces lies before all 4 aces with probability 1/5.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>For each non-ace c, in the relative order of {c, 4 aces} c is equally likely to be in any of the 5 places, so P(c before every ace) = 1/5.</li>
+<li>E[#non-aces before the first ace] = 48/5 = 9.6. Add the ace itself: <span class="ans">10.6</span>.</li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course says the 48 non-aces are "equally distributed among 5 segments" without justifying it. Step 1 is the justification.</p></details></div>
+
+<h2 id="p-conde">36 · Conditional expectation</h2>
+<div class="idea"><p>E[X | A] = Σ x P(X = x | A) = E[X·1_A]/P(A). Always compute the conditional distribution; intuition fails here.</p></div>
+<div class="prob"><h3>Rolls until 6, given no 5 came first</h3>
+<details><summary>Key idea</summary><p>N is the first time a 5 or 6 appears, and that time is independent of which of the two it is. So conditioning on "6" doesn't change the law of N.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Let N = the first roll showing 5 or 6. Then P(N = n, the face is 6) = (2/3)ⁿ⁻¹·(1/6) = P(N = n)·½.</li>
+<li>So N is independent of A = {6 first}, and N | A ~ Geometric(1/3).</li>
+<li>E[N | A] = <span class="ans">3</span>. (Not 5: conditioning on A doesn't make the rolls "1–4 or 6 with 1/5 each".)</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Alice's tosses, given she beats Bob</h3>
+<details><summary>Key idea</summary><p>P(X = n, Y &gt; n) = 2⁻ⁿ·2⁻ⁿ = 4⁻ⁿ.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>P(X &lt; Y) = Σ 4⁻ⁿ = 1/3, so P(X = n | X &lt; Y) = 3·4⁻ⁿ = (¾)(¼)ⁿ⁻¹, a Geometric(¾).</li>
+<li>E = <span class="ans">4/3 ≈ 1.33333</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>E[X | X &lt; Y] for two uniforms</h3>
+<details><summary>Key idea</summary><p>The conditional density is proportional to P(Y &gt; x) = 1 − x.</p></details>
+<details><summary>Solution</summary><p>f = 2(1−x), so E = ∫2x(1−x) = <span class="ans">1/3</span>. (This is the minimum of two uniforms.) ∎</p></details></div>
+
+<h2 id="p-piee">37 · Inclusion–exclusion for waiting times</h2>
+<div class="idea"><p>Each trial produces at most one of the target events i, with probability pᵢ (the events are <b>mutually exclusive within a trial</b>), independently across trials. Let T be the time until every event has occurred. Then
+<span class="eq">E[T] = Σ_{∅≠J} (−1)^{|J|+1} / Σ_{j∈J} pⱼ.</span>
+<b>Proof:</b> tail sum plus PIE on {T ≥ t} = ⋃ᵢ{i unseen in t−1 trials}, and P(no j ∈ J in one trial) = 1 − Σ_J pⱼ (this uses exclusivity). Each term is a geometric series summing to 1/Σ_J pⱼ.</p>
+<p class="gap">⚠ Course omits the "mutually exclusive within a trial" condition. Without it, 1 − Σ_J pⱼ is wrong.</p></div>
+<div class="prob"><h3>See both 5 and 6; see both H and T (P(H) = ⅓)</h3>
+<details><summary>Key idea</summary><p>Two events: 1/p₁ + 1/p₂ − 1/(p₁+p₂).</p></details>
+<details><summary>Solution</summary><ol class="pf"><li>6 + 6 − 3 = <span class="ans">9</span>.</li><li>3 + 3/2 − 1 = <span class="ans">3.5</span>.</li></ol><p>∎</p></details></div>
+<div class="prob"><h3>d10: see 7, 8, 9 and one of {5,10}</h3>
+<details><summary>Key idea</summary><p>Four exclusive events with p = .1, .1, .1, .2.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Singletons: 10+10+10+5 = 35. Pairs: −(3·5 + 3·10/3) = −25.</li>
+<li>Triples: +(10/3 + 3·2.5). All four: −2.</li>
+<li>E = 113/6 ≈ <span class="ans">18.83333</span>. <span class="why">(exact; simulated 18.85)</span></li>
+</ol><p>∎</p></details></div>
+<h2 id="p-sume">38 · Summation via expectation</h2>
+<div class="idea"><p>Σ_{x∈K} x = |K| · (the mean of a uniform element of K). Write the number digit by digit, N = Σ 10ⁱdᵢ, and use linearity: E[N] = Σ 10ⁱE[dᵢ].</p></div>
+<div class="prob"><h3>Palindromes (third proof)</h3>
+<details><summary>Key idea</summary><p>For a uniform palindrome: E[a] = 5 and E[b] = E[c] = 4.5.</p></details>
+<details><summary>Solution</summary><p>E[N] = 10001·5 + 1010·4.5 + 100·4.5 = 55000, so the sum is 900·55000 = <span class="ans">49 500 000</span>. ∎</p></details></div>
+<div class="prob"><h3>8-digit strings of 1s and 9s</h3><p>Sum of all possible X.</p>
+<details><summary>Key idea</summary><p>The set of possible X is all 2⁸ strings over {1,9}. Averaging uniformly over that set, each digit has mean 5.</p></details>
+<details><summary>Solution</summary><p>2⁸ · 5 · 11 111 111 = <span class="ans">14 222 222 080</span>. ∎</p>
+<p class="gap">Note: the two-step random choice of k is a distraction. The question is about the <i>set</i> of possible values, so average uniformly over that set.</p></details></div>
+<div class="prob"><h3>0..99999 with no "11" (as 5-digit strings)</h3>
+<details><summary>Key idea</summary><p>Count the valid strings with fₙ = 9fₙ₋₁ + 9fₙ₋₂. For each position, find P(digit = 1). A non-1 digit is uniform over the other 9 digits (mean 44/9).</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>f₁ = 10, f₂ = 99, f₃ = 981, f₄ = 9720, f₅ = 96309.</li>
+<li>#{d₁ = 1} = 9·981 = 8829 (= #{d₅ = 1}); #{d₂ = 1} = 9·9·99 = 8019 (= #{d₄ = 1}); #{d₃ = 1} = 90·9·10 = 8100.</li>
+<li>The constraint only involves 1s, so given dᵢ ≠ 1 the digit is uniform on {0,2,…,9}.</li>
+<li>Sum = Σᵢ 10^{4−i}·[#(dᵢ=1)·1 + (96309 − #(dᵢ=1))·44/9] = <span class="ans">4 853 516 499</span>. <span class="why">(brute-force checked)</span></li>
+</ol><p>∎</p></details></div>
+
+<h2 id="p-var">39 · Variance</h2>
+<div class="idea"><ol>
+<li>Var X = E[(X − EX)²] = E[X²] − (EX)². SD = √Var.</li>
+<li>Var(aX + b) = a²Var X, and Var(c) = 0.</li>
+<li>Var(X + Y) = Var X + Var Y + 2Cov(X,Y). For independent (or just uncorrelated) variables the covariance is 0 and <b>variances add</b>. They do not add in general.</li>
+<li>For a count X = Σ Iᵢ: E[X²] = Σ P(Iᵢ) + Σ_{i≠j} P(Iᵢ Iⱼ).</li>
+<li><b>Law of total variance:</b> Var X = E[Var(X | Y)] + Var(E[X | Y]).</li>
+</ol>
+<div class="tw"><table>
+<tr><th>Dist.</th><th>Var</th><th>Dist.</th><th>Var</th></tr>
+<tr><td>Bernoulli(p)</td><td>p(1−p)</td><td>U(a,b)</td><td>(b−a)²/12</td></tr>
+<tr><td>Bin(n,p)</td><td>np(1−p)</td><td>Exp(λ)</td><td>1/λ²</td></tr>
+<tr><td>Geo(p)</td><td>(1−p)/p²</td><td>N(μ,σ²)</td><td>σ²</td></tr>
+<tr><td>NegBin(r,p)</td><td>r(1−p)/p²</td><td>Gamma(α, rate λ)</td><td>α/λ²</td></tr>
+<tr><td>Poisson(λ)</td><td>λ</td><td>Beta(α,β)</td><td>αβ/((α+β)²(α+β+1))</td></tr>
+<tr><td>Unif{1..n}</td><td>(n²−1)/12</td><td>Hypergeo</td><td>n(K/N)(1−K/N)(N−n)/(N−1)</td></tr>
+</table></div></div>
+<div class="prob"><h3>Die; uniform{1..n}; exponential</h3>
+<details><summary>Key idea</summary><p>E[X²] − (EX)².</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Unif{1..n}: (n+1)(2n+1)/6 − ((n+1)/2)² = (n²−1)/12. For a die, 35/12, SD ≈ <span class="ans">1.70783</span>.</li>
+<li>Exp(λ): E[Y²] = 2/λ² (integrate by parts twice), so Var = 2/λ² − 1/λ² = 1/λ².</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>x-coordinate of a uniform point on the sphere</h3>
+<details><summary>Key idea</summary><p>By symmetry E[X] = 0 and E[X²] = E[Y²] = E[Z²], and they sum to 1.</p></details>
+<details><summary>Solution</summary><p>3E[X²] = 1, so Var X = <span class="ans">1/3</span>. ∎</p></details></div>
+<div class="prob"><h3>Fixed points of a random permutation (n = 1000)</h3>
+<details><summary>Key idea</summary><p>X = Σ Iᵢ, with P(Iᵢ Iⱼ = 1) = 1/(n(n−1)).</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>E[X] = 1. E[X²] = Σ E[Iᵢ] + Σ_{i≠j} E[IᵢIⱼ] = 1 + n(n−1)·1/(n(n−1)) = 2.</li>
+<li>Var X = 2 − 1 = <span class="ans">1</span> (for every n ≥ 2).</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>|A ∩ B| for random subsets of {1..25}</h3>
+<details><summary>Key idea</summary><p>25 independent Bernoulli(¼) indicators.</p></details>
+<details><summary>Solution</summary><p>Var = 25·¼·¾ = <span class="ans">75/16 = 4.6875</span>. ∎</p></details></div>
+<div class="prob"><h3>Heads from a die-many coin tosses</h3><p>X ~ die, then Y ~ Bin(X, ½). Var Y?</p>
+<details><summary>Key idea</summary><p>Total variance: Var(Y | X) = X/4 and E[Y | X] = X/2.</p></details>
+<details><summary>Solution</summary><p>E[X]/4 + Var(X)/4 = 7/8 + 35/48 = <span class="ans">77/48 ≈ 1.60417</span>. ∎</p></details></div>
+<div class="prob"><h3>Mixture of two normals</h3><p>With prob h, Y ~ N(μ_h, σ_h²); otherwise N(μ_t, σ_t²).</p>
+<details><summary>Key idea</summary><p>Within-group variance + between-group variance.</p></details>
+<details><summary>Solution</summary><p>Var Y = hσ_h² + (1−h)σ_t² + h(1−h)(μ_h − μ_t)². ∎</p></details></div>
+</div>

@@ -1,0 +1,154 @@
+<title>Martingales Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+:root{
+  --bg:#f6f7f9; --ink:#171b24; --muted:#5a6273; --rule:#d9dee6; --card:#ffffff;
+  --accent:#2346a0; --gap:#8a4b00; --gapbg:#fdf1de; --idea:#eef2fb;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
+    --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
+  --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
+}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 "Source Sans 3",system-ui,sans-serif;padding-inline:16px;padding-block:24px 64px}
+.wrap{max-width:46rem;margin:0 auto}
+h1,h2,h3{font-family:"EB Garamond",Georgia,serif;font-weight:600;text-wrap:balance;line-height:1.2}
+h1{font-size:2.4rem;margin:0 0 .25rem}
+h2{font-size:1.7rem;margin:3rem 0 .75rem;padding-top:1rem;border-top:1px solid var(--rule)}
+h3{font-size:1.2rem;margin:0 0 .4rem}
+.sub{color:var(--muted);margin:0 0 1.25rem}
+.bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1rem}
+button{font:inherit;font-size:.9rem;color:var(--accent);background:transparent;border:1px solid var(--rule);border-radius:6px;padding:.3rem .8rem;cursor:pointer}
+button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav.toc{font-size:.92rem;columns:2 14rem;column-gap:2rem;margin:0 0 1rem;padding:0}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:.1rem 0;break-inside:avoid}
+nav.toc a:hover{color:var(--accent)}
+a{color:var(--accent)}
+.idea{background:var(--idea);border-radius:8px;padding:.8rem 1rem;margin:.5rem 0 1.25rem}
+.idea p,.idea ol,.idea ul{margin:.3rem 0}
+.prob{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:1rem 1.1rem;margin:1rem 0}
+.prob > p{margin:.2rem 0 .6rem}
+.ans{font-weight:600}
+details{border-top:1px solid var(--rule);padding:.45rem 0}
+summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.95rem}
+details > *:not(summary){margin-top:.5rem}
+ol.pf{padding-left:1.6rem;margin:.4rem 0}
+ol.pf li{margin:.2rem 0}
+.why{color:var(--muted);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.78rem;white-space:nowrap}
+.qed{float:right;color:var(--muted)}
+.claim{margin:.3rem 0}
+.gap{background:var(--gapbg);color:var(--gap);border-radius:6px;padding:.5rem .8rem;font-size:.92rem}
+.m{font-style:italic;font-family:"EB Garamond",Georgia,serif;font-size:1.08em}
+.eq{display:block;text-align:center;margin:.5rem 0;overflow-x:auto;font-family:"EB Garamond",Georgia,serif;font-size:1.1em}
+table{border-collapse:collapse;font-size:.92rem}
+.tw{overflow-x:auto}
+td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+<script>
+function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll("details").forEach(d=>d.open=open);b.dataset.open=open?"1":"0";b.textContent=open?"Collapse all":"Expand all";}
+</script>
+<div class="wrap">
+<h1>Martingales</h1>
+<p class="sub">QuantProf revision · each problem: key idea, then a numbered proof. Click to reveal.</p>
+<div class="bar"><button type="button" onclick="toggleAll(this)">Expand all</button></div>
+<nav class="toc">
+<a href="#sp">1 · Stochastic processes</a>
+<a href="#mg">2 · Martingales</a>
+<a href="#ost">3 · Optional stopping</a>
+<a href="#wald">4 · Wald's identity</a>
+<a href="#zoo">5 · Martingales to know</a>
+</nav>
+
+<h2 id="sp">1 · Stochastic processes</h2>
+<div class="idea"><p>A stochastic process is a family {X_t : t ∈ T} of random variables. It is discrete-time if T = {0,1,2,…} and continuous-time if T = [0,∞). One realisation t ↦ X_t(ω) is a <b>sample path</b>. Markov chains are one kind of stochastic process.</p></div>
+
+<h2 id="mg">2 · Martingales</h2>
+<div class="idea"><ol>
+<li><b>Martingale:</b> E|Xₙ| &lt; ∞ and E[Xₙ₊₁ | X₀..Xₙ] = Xₙ, a fair game. <b>Sub</b>martingale: ≥. <b>Super</b>martingale: ≤.</li>
+<li>Taking expectations: E[Xₙ] = E[X₀] for every <b>fixed</b> n.</li>
+<li>Examples: a sum of independent mean-0 steps. A product of independent mean-1 factors: E[Zₙ₊₁ | past] = Zₙ·E[Xₙ₊₁] = Zₙ.</li>
+</ol></div>
+
+<h2 id="ost">3 · Optional stopping</h2>
+<div class="idea"><ol>
+<li><b>Stopping time</b> T: whether {T = n} happened can be decided from X₀..Xₙ alone. "The first time Z hits 10" is one; "the last time Z &gt; 0" is not.</li>
+<li><b>Stopped process</b> Z_{min(n,T)} is again a martingale. Before T it moves fairly, and after T it is frozen.</li>
+<li><b>OST:</b> E[Z_T] = E[Z₀] if T &lt; ∞ a.s. and at least one of these holds: (a) |Z_{min(n,T)}| ≤ c for all n; (b) T ≤ c; (c) E[T] &lt; ∞ and E[|Zₙ₊₁ − Zₙ| | past] ≤ c.</li>
+<li>It can fail without them: the fair walk with T = the first hit of +10 has E[Z_T] = 10 ≠ 0. There, E[T] = ∞ and the walk is unbounded below.</li>
+<li><b>Finite E[T] trick:</b> if from every position there is probability ≥ p of stopping within N steps, then T ≤ N·Geometric(p), so E[T] ≤ N/p.</li>
+</ol>
+<p class="gap">⚠ Course's condition (a) bounds Zᵢ itself; what is needed is a bound on the stopped process, plus T &lt; ∞. Always check a condition before applying OST.</p></div>
+<div class="prob"><h3>Fair walk from 0 to +4 or −8</h3><p>P(ends at +4)?</p>
+<details><summary>Key idea</summary><p>The stopped walk is bounded, so E[X_T] = 0.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>|X_{min(n,T)}| ≤ 8 and T &lt; ∞ a.s., so OST (a) applies. <span class="why">(finite-E[T] trick with N = 12)</span></li>
+<li>4p − 8(1−p) = 0, so p = <span class="ans">2/3</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Stop and bet on the next card being red</h3><p>52 cards are revealed one by one. You may stop at any point, and you win if the next card is red. What is the best possible P(win)?</p>
+<details><summary>Key idea</summary><p>Xₙ = (reds left)/(cards left) is a martingale, and P(win) = E[X_T].</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>E[Xₙ₊₁ | past] = (r/m)·(r−1)/(m−1) + ((m−r)/m)·r/(m−1) = r/m, with m = 52 − n.</li>
+<li>Given the past at time T, P(win) = X_T. So P(win) = E[X_T].</li>
+<li>T ≤ 51, so OST (b) gives E[X_T] = X₀ = ½. Every strategy gives <span class="ans">1/2</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>2-D walk: expected exit time from the radius-10 disc</h3>
+<details><summary>Key idea</summary><p>Zₙ = Xₙ² + Yₙ² − n is a martingale, so E[T] = E[X_T² + Y_T²].</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>One step changes exactly one coordinate by ±1: E[X² + Y² after | past] = X² + Y² + 1. So Zₙ is a martingale.</li>
+<li>Let T = min{n : Xₙ² + Yₙ² ≥ 100}, the exit time. Before T the walk is in a finite set, so E[T] &lt; ∞ (trick) and the steps of Z are bounded. OST (c) applies.</li>
+<li>E[T] = E[X_T² + Y_T²]. On exit X_T² + Y_T² ≥ 100, and it can overshoot. For example, (9,4) → (10,4) has r² = 116.</li>
+<li>Solving the exact linear system on the 305 interior lattice points gives E[T] ≈ <span class="ans">104.69</span>. It is <b>not</b> 100.</li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course error. It defines T as the first time x² + y² = 100 <i>exactly</i> and claims the walk stays inside the disc until then, which gives 100. But a lattice walk can jump past the circle without landing on it (the circle has only 12 lattice points). So that T is not the exit time, and its expectation is not 100. The identity E[T] = E[R_T²] is right; the value R_T² = 100 is not.</p></details></div>
+
+<h2 id="wald">4 · Wald's identity</h2>
+<div class="idea"><p>If X₁, X₂, … are i.i.d. with E|X| &lt; ∞, T is a stopping time with E[T] &lt; ∞, and S_T = X₁ + … + X_T, then <b>E[S_T] = E[T]·E[X]</b>. (It is OST applied to Sₙ − nE[X].)</p></div>
+<div class="prob"><h3>Biased walk to +6</h3><p>Steps are +1 w.p. ⅔ and −1 w.p. ⅓. E[time to reach +6]?</p>
+<details><summary>Key idea</summary><p>S_T = 6 exactly, and E[X] = ⅓.</p></details>
+<details><summary>Solution</summary><p>E[T] &lt; ∞ because of the positive drift. Then 6 = E[T]·⅓, so E[T] = <span class="ans">18</span>. ∎</p></details></div>
+<div class="prob"><h3>Roll until the first value repeats: E[sum]</h3>
+<details><summary>Key idea</summary><p>T = 1 + Geometric(1/6), so E[T] = 7. T is a stopping time for the i.i.d. rolls.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>E[S_T] = 7·3.5 = <span class="ans">49/2 = 24.5</span>.</li>
+<li>Check: given the first roll x, the ≈5 non-matching rolls have mean (21−x)/5 each, so E[S | x] = x + (21−x) + x = 21 + x. Averaging gives 24.5 ✓.</li>
+</ol><p>∎</p></details></div>
+
+<h2 id="zoo">5 · Martingales to know</h2>
+<div class="idea"><div class="tw"><table>
+<tr><th>Walk</th><th>Martingale</th><th>Gives</th></tr>
+<tr><td>fair ±1</td><td>Sₙ</td><td>hitting probabilities</td></tr>
+<tr><td>fair ±1</td><td>Sₙ² − n</td><td>E[T] = E[S_T²]</td></tr>
+<tr><td>p up, q down</td><td>(q/p)^{Sₙ}</td><td>hitting probabilities</td></tr>
+<tr><td>p up, q down</td><td>Sₙ − n(p−q)</td><td>E[T] = E[S_T]/(p−q)</td></tr>
+<tr><td>coin patterns</td><td>(gamblers' wealth) − n</td><td>E[T] = Σ over prefixes of the pattern that are also suffixes, of 2^{length}</td></tr>
+</table></div>
+<p>Checks: E[(q/p)^{ε}] = p·(q/p) + q·(p/q) = 1. E[(S+ε)² − (n+1) | S] = S² + 1 − (n+1) = S² − n.</p></div>
+<div class="prob"><h3>Fair walk, boundaries −4 and +8</h3><p>(a) P(hit +8 first). (b) E[T].</p>
+<details><summary>Key idea</summary><p>(a) Sₙ, then (b) Sₙ² − n.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>(a) 8p − 4(1−p) = 0, so p = <span class="ans">1/3</span>.</li>
+<li>(b) E[T] = E[S_T²] = 64·⅓ + 16·⅔ = <span class="ans">32</span>. (In general, a·b for boundaries −a and +b.)</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Biased walk (p = ⅔), boundaries −4 and +8</h3><p>(a) P(hit +8 first). (b) E[T].</p>
+<details><summary>Key idea</summary><p>(a) (q/p)^S = (½)^S. (b) S − n/3.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>(a) r·2⁻⁸ + (1−r)·2⁴ = 1, so r = 15/(16 − 1/256) = <span class="ans">256/273 ≈ 0.93773</span>.</li>
+<li>(b) E[S_T] = 8r − 4(1−r) = 660/91, so E[T] = 3·660/91 = <span class="ans">1980/91 ≈ 21.75824</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>E[tosses until HHTTHTT]</h3>
+<details><summary>Key idea</summary><p>Before each toss a new gambler bets $1 on the pattern, doubling on every correct symbol. (Total wealth) − n is a martingale. At time T only the gamblers whose matched part is both a prefix and a suffix of the pattern still hold money.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>All bets are fair and $1 enters per toss, so Mₙ = Wₙ − n is a martingale. E[T] &lt; ∞, and the increments are bounded before T. So OST gives E[W_T] = E[T].</li>
+<li>A gambler still alive at T has matched a prefix of the pattern that also ends at T, i.e. a prefix that is also a suffix.</li>
+<li>HHTTHTT: no proper prefix equals a suffix (H/T, HH/TT, HHT/HTT, …). So only the full match survives: W_T = 2⁷.</li>
+<li>E[T] = <span class="ans">128</span>. (Contrast HH: the prefixes that are also suffixes are HH and H, giving 4 + 2 = 6.)</li>
+</ol><p>∎</p></details></div>
+</div>

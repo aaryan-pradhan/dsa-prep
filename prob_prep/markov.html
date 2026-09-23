@@ -1,0 +1,184 @@
+<title>Markov Chains Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+:root{
+  --bg:#f6f7f9; --ink:#171b24; --muted:#5a6273; --rule:#d9dee6; --card:#ffffff;
+  --accent:#2346a0; --gap:#8a4b00; --gapbg:#fdf1de; --idea:#eef2fb;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
+    --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
+  --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
+}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 "Source Sans 3",system-ui,sans-serif;padding-inline:16px;padding-block:24px 64px}
+.wrap{max-width:46rem;margin:0 auto}
+h1,h2,h3{font-family:"EB Garamond",Georgia,serif;font-weight:600;text-wrap:balance;line-height:1.2}
+h1{font-size:2.4rem;margin:0 0 .25rem}
+h2{font-size:1.7rem;margin:3rem 0 .75rem;padding-top:1rem;border-top:1px solid var(--rule)}
+h3{font-size:1.2rem;margin:0 0 .4rem}
+.sub{color:var(--muted);margin:0 0 1.25rem}
+.bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1rem}
+button{font:inherit;font-size:.9rem;color:var(--accent);background:transparent;border:1px solid var(--rule);border-radius:6px;padding:.3rem .8rem;cursor:pointer}
+button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav.toc{font-size:.92rem;columns:2 14rem;column-gap:2rem;margin:0 0 1rem;padding:0}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:.1rem 0;break-inside:avoid}
+nav.toc a:hover{color:var(--accent)}
+a{color:var(--accent)}
+.idea{background:var(--idea);border-radius:8px;padding:.8rem 1rem;margin:.5rem 0 1.25rem}
+.idea p,.idea ol,.idea ul{margin:.3rem 0}
+.prob{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:1rem 1.1rem;margin:1rem 0}
+.prob > p{margin:.2rem 0 .6rem}
+.ans{font-weight:600}
+details{border-top:1px solid var(--rule);padding:.45rem 0}
+summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.95rem}
+details > *:not(summary){margin-top:.5rem}
+ol.pf{padding-left:1.6rem;margin:.4rem 0}
+ol.pf li{margin:.2rem 0}
+.why{color:var(--muted);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.78rem;white-space:nowrap}
+.qed{float:right;color:var(--muted)}
+.claim{margin:.3rem 0}
+.gap{background:var(--gapbg);color:var(--gap);border-radius:6px;padding:.5rem .8rem;font-size:.92rem}
+.m{font-style:italic;font-family:"EB Garamond",Georgia,serif;font-size:1.08em}
+.eq{display:block;text-align:center;margin:.5rem 0;overflow-x:auto;font-family:"EB Garamond",Georgia,serif;font-size:1.1em}
+table{border-collapse:collapse;font-size:.92rem}
+.tw{overflow-x:auto}
+td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+<script>
+function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll("details").forEach(d=>d.open=open);b.dataset.open=open?"1":"0";b.textContent=open?"Collapse all":"Expand all";}
+</script>
+<div class="wrap">
+<h1>Markov Chains</h1>
+<p class="sub">QuantProf revision · each problem: key idea, then a numbered proof. Click to reveal.</p>
+<div class="bar"><button type="button" onclick="toggleAll(this)">Expand all</button></div>
+<nav class="toc">
+<a href="#def">1 · Definition</a>
+<a href="#path">2 · Probability of a path</a>
+<a href="#ck">3 · n-step transitions</a>
+<a href="#class">4 · Classifying states</a>
+<a href="#decomp">5 · Decomposition</a>
+<a href="#steady">6 · Steady state</a>
+<a href="#absorb">7 · Absorption probability</a>
+<a href="#time">8 · Time to absorption</a>
+<a href="#pass">9 · First passage &amp; return</a>
+</nav>
+
+<h2 id="def">1 · Definition</h2>
+<div class="idea"><ol>
+<li>(Xₙ) on a finite set S is a Markov chain if P(Xₙ₊₁ = j | Xₙ = i, past) = P(Xₙ₊₁ = j | Xₙ = i) = pᵢⱼ. <b>Markov property</b>: only the present matters.</li>
+<li>Transition matrix P = (pᵢⱼ): row i gives where you go from i, so every row sums to 1.</li>
+<li>If the next step depends on the last two states, use <b>pairs</b> (previous, current) as the states. The chain on pairs is Markov.</li>
+</ol></div>
+
+<h2 id="path">2 · Probability of a path</h2>
+<div class="idea"><p>P(X₀=i₀, …, Xₙ=iₙ) = P(X₀=i₀)·p_{i₀i₁}⋯p_{iₙ₋₁iₙ}. This is the chain rule with each conditional cut down by the Markov property.</p></div>
+<div class="prob"><h3>Path B → A → C</h3><p>City chain P = [[.5,.3,.2],[.1,.6,.3],[.4,.2,.4]] (order A,B,C). X₀ ~ (.9, .05, .05).</p>
+<details><summary>Key idea</summary><p>Multiply the start probability by the two transitions.</p></details>
+<details><summary>Solution</summary><p>.05 · p_BA · p_AC = .05 · .1 · .2 = <span class="ans">0.001</span>. ∎</p></details></div>
+
+<h2 id="ck">3 · n-step transitions (Chapman–Kolmogorov)</h2>
+<div class="idea"><p>Tᵢⱼ(n) = Σₖ Tᵢₖ(n−1)pₖⱼ. This is total probability over the state at time n−1. In matrix form T(n) = T(n−1)P, so <b>T(n) = Pⁿ</b>.</p></div>
+<div class="prob"><h3>City chain: T₁₂(2), P², and T₁₃(3)</h3>
+<details><summary>Key idea</summary><p>Row 1 of P times column j of P (then of P²).</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>T₁₂(2) = .5·.3 + .3·.6 + .2·.2 = <span class="ans">0.37</span>.</li>
+<li>P² = [[.36,.37,.27],[.23,.45,.32],[.38,.32,.30]].</li>
+<li>P³ has row 1 = (.325, .384, .291), so T₁₃(3) = <span class="ans">0.291</span>. <span class="why">(computed)</span></li>
+</ol><p>∎</p></details></div>
+
+<h2 id="class">4 · Classifying states</h2>
+<div class="idea"><ol>
+<li><b>Accessible</b> i → j: Pⁿᵢⱼ &gt; 0 for some n ≥ 1, i.e. there is a path of positive-probability steps. <b>Communicate</b> i ↔ j: both directions.</li>
+<li><b>Recurrent</b> i: every j with i → j also has j → i. (In a finite chain this is the same as returning to i with probability 1.)</li>
+<li><b>Transient</b>: not recurrent. <b>Absorbing</b>: pᵢᵢ = 1.</li>
+</ol></div>
+
+<h2 id="decomp">5 · Decomposition</h2>
+<div class="idea"><ol>
+<li><b>Recurrent class</b>: a recurrent i together with everything accessible from it. All of these states communicate, and the chain can never leave the class.</li>
+<li>S = (one or more recurrent classes) ∪ (transient states).</li>
+<li><b>Periodic</b> class: it splits into S₁ → S₂ → ⋯ → S_d → S₁ with d &gt; 1. Test: if some n has Pⁿᵢⱼ &gt; 0 for all j in the class, the class is aperiodic.</li>
+<li><b>Irreducible</b>: a single class and no transient states.</li>
+</ol></div>
+<div class="prob"><h3>Every transient state reaches a recurrent state</h3><p>(Finite chain.)</p>
+<details><summary>Key idea</summary><p>In the graph of positive transitions, walk from t into a <b>sink</b> strongly connected component. Nothing leaves a sink, so its states are recurrent.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>Draw an edge i → j when pᵢⱼ &gt; 0. Group the states into strongly connected components (maximal sets of mutually communicating states).</li>
+<li>The components form a directed acyclic graph with finitely many nodes, so from t's component some path ends at a component C with no outgoing edges (a sink).</li>
+<li>Let r ∈ C. If r → j then j ∈ C (C has no exits), so j → r (C is strongly connected). So r is recurrent by definition, and t → r.</li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course argues with "transient states are visited only finitely often", a probabilistic fact it never proved and that doesn't match its graph definition of "transient". The sink-component argument uses only the definitions.</p></details></div>
+
+<h2 id="steady">6 · Steady state</h2>
+<div class="idea"><ol>
+<li><b>Stationary</b> π: π = πP and Σπᵢ = 1. Every finite chain has one. It is unique iff there is exactly one recurrent class.</li>
+<li><b>Convergence theorem:</b> if there is one recurrent class and it is aperiodic, then P(Xₙ = j | X₀ = i) → πⱼ for every i.</li>
+<li>If the class is periodic, the limit can fail to exist (A ⇄ B deterministically). But with one recurrent class, the <b>fraction of time</b> spent in j still → πⱼ.</li>
+<li>πᵢpᵢⱼ = the long-run fraction of steps that are i → j.</li>
+</ol></div>
+<div class="prob"><h3>Two-state chain P = [[.7,.3],[.5,.5]]</h3>
+<details><summary>Key idea</summary><p>Balance: the flow 1→2 equals the flow 2→1.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>π₁·.3 = π₂·.5, so π₂ = .6π₁.</li>
+<li>π₁ + .6π₁ = 1, so π₁ = <span class="ans">0.625</span> and π₂ = 0.375.</li>
+</ol><p>∎</p></details></div>
+
+<h2 id="absorb">7 · Absorption probabilities</h2>
+<div class="idea"><p>aᵢ = P(eventually absorbed in s | X₀ = i). Then a_s = 1, a_t = 0 for every other absorbing t, and aᵢ = Σⱼ pᵢⱼaⱼ for transient i (first-step analysis). For recurrent <b>classes</b>, collapse each class into a single absorbing node first.</p></div>
+<div class="prob"><h3>Absorbing states 3, 4</h3><p>Rows: 1 → (.5,.3,.2,0), 2 → (.4,.4,0,.2). P(absorbed at 3)?</p>
+<details><summary>Key idea</summary><p>Two linear equations in a₁, a₂.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>a₁ = .5a₁ + .3a₂ + .2 and a₂ = .4a₁ + .4a₂.</li>
+<li>The second gives a₂ = ⅔a₁. The first gives .3a₁ = .2.</li>
+<li>a₁ = <span class="ans">2/3</span>, a₂ = <span class="ans">4/9</span>.</li>
+</ol><p>∎</p>
+<p class="gap">⚠ Course's matrix has row 4 = (0, .2, 0, 1), which sums to 1.2. An absorbing row must be (0,0,0,1). The answer is unaffected.</p></details></div>
+<div class="prob"><h3>Two recurrent classes C₁ = {3,4}, C₂ = {5,6,7}</h3><p>From 1: to 2 w.p. .2, to C₁ w.p. .2, to C₂ w.p. .6. From 2: to 1 w.p. .2, to C₁ w.p. .4, to C₂ w.p. .4. Report a₁ + a₂ for C₁.</p>
+<details><summary>Key idea</summary><p>Collapse each class to a single node.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>a₁ = .2a₂ + .2 and a₂ = .2a₁ + .4.</li>
+<li>a₁ = .04a₁ + .28, so a₁ = <span class="ans">7/24</span> and a₂ = <span class="ans">11/24</span>. Sum = 0.75.</li>
+</ol><p>∎</p></details></div>
+
+<h2 id="time">8 · Expected time to absorption</h2>
+<div class="idea"><p>tᵢ = E[steps to absorption | X₀ = i]. t = 0 on absorbing states (or collapsed classes), and tᵢ = 1 + Σⱼ pᵢⱼtⱼ for transient i.</p></div>
+<div class="prob"><h3>Rows 1 → (.7,.1,.2,0), 2 → (.4,.3,0,.3)</h3><p>Report t₁ + t₂.</p>
+<details><summary>Key idea</summary><p>Solve the two linear equations.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>.3t₁ − .1t₂ = 1 and −.4t₁ + .7t₂ = 1.</li>
+<li>t₂ = 3t₁ − 10, so 1.7t₁ = 8: t₁ = 80/17 and t₂ = 70/17.</li>
+<li>Sum = 150/17 ≈ <span class="ans">8.82353</span>.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Two classes again</h3><p>From 1: to 2 w.p. .3, otherwise absorbed. From 2: to 1 w.p. .1, otherwise absorbed. Report t₁ + t₂.</p>
+<details><summary>Key idea</summary><p>Only the transient-to-transient moves add time.</p></details>
+<details><summary>Solution</summary><p>t₁ = 1 + .3t₂ and t₂ = 1 + .1t₁, so t₁ = 130/97 and t₂ = 110/97. Sum = 240/97 ≈ <span class="ans">2.47423</span>. ∎</p></details></div>
+
+<h2 id="pass">9 · First passage &amp; return times</h2>
+<div class="idea"><ol>
+<li>First passage to s: t_s = 0 and tᵢ = 1 + Σⱼ pᵢⱼtⱼ for i ≠ s.</li>
+<li>Return time: t*_s = 1 + Σⱼ p_sⱼtⱼ.</li>
+<li><b>Kac:</b> in an irreducible chain, t*ᵢ = 1/πᵢ. (Sketch: you visit i once every t*ᵢ steps on average, so the long-run fraction of time in i is 1/t*ᵢ, and that fraction is πᵢ.)</li>
+<li><b>Random walk on a graph:</b> if pᵢⱼ &gt; 0 ⇔ pⱼᵢ &gt; 0 and pᵢⱼ = 1/dᵢ, then π ∝ d. Proof: (dP)ⱼ = Σᵢ dᵢ·1[i~j]/dᵢ = #neighbours of j = dⱼ.</li>
+</ol></div>
+<div class="prob"><h3>p₁₁ = .8, p₁₂ = .2, p₂₁ = .6, p₂₂ = .4</h3><p>(a) E[time from 2 to 1]. (b) E[return time to 1].</p>
+<details><summary>Key idea</summary><p>First-step analysis. Check (b) with Kac.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>(a) t₂ = 1 + .4t₂, so t₂ = <span class="ans">5/3 ≈ 1.67</span>.</li>
+<li>(b) t*₁ = 1 + .2·5/3 = <span class="ans">4/3 ≈ 1.33</span>.</li>
+<li>Check: π₁·.2 = π₂·.6 gives π₁ = ¾, and 1/π₁ = 4/3 ✓.</li>
+</ol><p>∎</p></details></div>
+<div class="prob"><h3>Five bulbs: return to all-off</h3><p>Each second a uniformly chosen bulb is toggled.</p>
+<details><summary>Key idea</summary><p>This is a random walk on the 5-cube. Every vertex has degree 5, so π is uniform on the 32 states.</p></details>
+<details><summary>Solution</summary><ol class="pf">
+<li>32 states. Each has 5 neighbours, each chosen w.p. 1/5, and every move can be undone.</li>
+<li>By the graph theorem π = 1/32 for every state. By Kac, the expected return time = <span class="ans">32</span> seconds.</li>
+</ol><p>∎</p></details></div>
+</div>
