@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta charset="utf-8">
 <title>Combinatorics Ledger</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -58,6 +59,8 @@ td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-v
 function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll("details").forEach(d=>d.open=open);b.dataset.open=open?"1":"0";b.textContent=open?"Collapse all":"Expand all";}
 </script>
 <div class="wrap">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahp" d="M0,0L10,5L0,10z"/></marker><marker id="aha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahpa" d="M0,0L10,5L0,10z"/></marker></defs></svg>
+
 <h1>Combinatorics</h1>
 <p class="sub">QuantProf revision · each problem: key idea, then a numbered proof. Click to reveal.</p>
 <div class="bar"><button type="button" onclick="toggleAll(this)">Expand all</button></div>
@@ -245,7 +248,7 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 
 <h2 id="stars">9 · Stars and bars</h2>
 <div class="idea"><ol>
-<li>Non-negative solutions of \(z_1+\dots+z_k = n\) correspond one-to-one with rows of \(n\) stars and \(k-1\) bars. Count: \(\binom{n+k-1}{k-1}\).</li>
+<li>Non-negative solutions of \(z_1+\dots+z_k = n\) correspond one-to-one with rows of \(n\) stars and \(k-1\) bars. Count: \(\binom{n+k-1}{k-1}\) (choose which of the \(n+k-1\) slots are bars).<br><code>★★★|★★|★★★★★★★</code> ↔ \((3, 2, 7)\); <code>|★★★★★|★★★★★★★</code> ↔ \((0, 5, 7)\).</li>
 <li>Lower bounds \(z_i \ge a_i\): substitute \(y_i = z_i - a_i\), so \(n\) drops to \(n - \sum a_i\). Positive solutions: \(\binom{n-1}{k-1}\).</li>
 <li>For \(\le n\), add a slack variable \(z_{k+1} \ge 0\) to make it \(= n\).</li>
 </ol></div>
@@ -388,13 +391,13 @@ Find \(A, B\) from \(x_1, x_2\).</li>
 <details><summary>Solution</summary><ol class="pf">
 <li>Given the \(7\times7\) block, the first 7 cells of the last column are forced (row parity), and so are the first 7 cells of the last row (column parity).</li>
 <li>Corner: row 8 needs parity = (whites in the first 7 cells of row 8) = (whites in the \(7\times7\) block) mod 2. Column 8 needs the same quantity. So both demand the same corner colour. <span class="why">(sum rows vs sum columns)</span></li>
-<li>So valid grids ↔ \(7\times7\) fillings: \(2^{49}\).</li>
+<li>So valid grids ↔ \(7\times7\) fillings: \(2^{49}\).<svg class="fig" viewBox="0 0 320 215" width="464" role="img" aria-label="8 by 8 grid: top-left 7 by 7 block free; last column forced by rows, last row forced by columns; corner consistent"><rect class="rg" x="10" y="10" width="154" height="154"/><text x="87.0" y="87.0" text-anchor="middle" class="a">free</text><text x="87.0" y="105.0" text-anchor="middle" class="a" font-size="12">2⁴⁹ ways</text><rect class="mu" x="164" y="10" width="22" height="22"/><rect class="mu" x="10" y="164" width="22" height="22"/><rect class="mu" x="164" y="32" width="22" height="22"/><rect class="mu" x="32" y="164" width="22" height="22"/><rect class="mu" x="164" y="54" width="22" height="22"/><rect class="mu" x="54" y="164" width="22" height="22"/><rect class="mu" x="164" y="76" width="22" height="22"/><rect class="mu" x="76" y="164" width="22" height="22"/><rect class="mu" x="164" y="98" width="22" height="22"/><rect class="mu" x="98" y="164" width="22" height="22"/><rect class="mu" x="164" y="120" width="22" height="22"/><rect class="mu" x="120" y="164" width="22" height="22"/><rect class="mu" x="164" y="142" width="22" height="22"/><rect class="mu" x="142" y="164" width="22" height="22"/><rect class="bad" x="164" y="164" width="22" height="22"/><text x="192" y="91.0" text-anchor="start" class="m" font-size="12">forced by</text><text x="192" y="107.0" text-anchor="start" class="m" font-size="12">row parity</text><text x="87.0" y="204" text-anchor="middle" class="m" font-size="12">forced by column parity</text><text x="192" y="179.0" text-anchor="start" class="g" font-size="12">corner: rows and</text><text x="192" y="195.0" text-anchor="start" class="g" font-size="12">columns agree</text></svg></li>
 </ol><p>∎ &nbsp;<span class="ans">\(a = 49\)</span></p></details></div>
 
 <h2 id="refl">14 · Reflection principle</h2>
 <div class="idea"><ol>
 <li>\(\pm1\) walks of \(n\) steps from 0 to \(d\): \(\binom{n}{(n+d)/2}\), when \(n+d\) is even.</li>
-<li><b>Reflection:</b> suppose the walk ends on one side of a level \(m\) and must touch \(m\). Flip every step after the first visit to \(m\). This is a bijection with the walks ending at \(2m - \text{end}\). The inverse is the same flip, because the first visit to \(m\) is the same in both.</li>
+<li><b>Reflection:</b> suppose the walk ends on one side of a level \(m\) and must touch \(m\). Flip every step after the first visit to \(m\). This is a bijection with the walks ending at \(2m - \text{end}\). The inverse is the same flip, because the first visit to \(m\) is the same in both.<svg class="fig" viewBox="0 0 340 160" width="493" role="img" aria-label="Walk from 0 to 0 in 8 steps touching -1; flipping every step after the first touch gives a walk ending at -2"><line class="mu" x1="40" y1="150" x2="280" y2="150" stroke-opacity=".35"/><text x="30" y="154" text-anchor="end" class="m" font-size="11">−3</text><line class="mu" x1="40" y1="126" x2="280" y2="126" stroke-opacity=".35"/><text x="30" y="130" text-anchor="end" class="m" font-size="11">−2</text><line class="mu" x1="40" y1="102" x2="280" y2="102" stroke-opacity=".35"/><text x="30" y="106" text-anchor="end" class="m" font-size="11">−1</text><line class="ln" x1="40" y1="78" x2="280" y2="78" stroke-opacity=".5"/><text x="30" y="82" text-anchor="end" class="m" font-size="11">0</text><line class="mu" x1="40" y1="54" x2="280" y2="54" stroke-opacity=".35"/><text x="30" y="58" text-anchor="end" class="m" font-size="11">1</text><line class="mu" x1="40" y1="30" x2="280" y2="30" stroke-opacity=".35"/><text x="30" y="34" text-anchor="end" class="m" font-size="11">2</text><line class="ac" x1="40" y1="102" x2="280" y2="102" stroke-dasharray="2 3" style="stroke-width:1.5"/><polyline class="ln" style="stroke-width:2.5" points="40,78 70,54 100,78 130,102 160,78 190,54 220,78 250,54 280,78"/><polyline class="ac" stroke-dasharray="6 4" points="130,102 160,126 190,150 220,126 250,150 280,126"/><circle class="adot" cx="130" cy="102" r="5"/><text x="122" y="122" text-anchor="end" class="a" font-size="12">first touch of −1</text><text x="288" y="82" text-anchor="start" font-size="12">end 0</text><text x="288" y="130" text-anchor="start" class="a" font-size="12">end −2</text></svg></li>
 </ol></div>
 <div class="prob"><h3>Walk counts</h3><p>8 steps: (a) \(0\to0\); (b) \(0\to2\); (c) \(0\to0\) dipping below 0. And (d) 10 steps \(0\to4\) touching 6.</p>
 <details><summary>Key idea</summary><p>(c) reflect at \(-1\), so the end becomes \(-2\). (d) reflect at 6, so the end becomes 8.</p></details>
@@ -412,3 +415,17 @@ Find \(A, B\) from \(x_1, x_2\).</li>
 </div>
 
 <style>.katex{font-size:1.15em}.katex-display{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}</style>
+<style>
+pre{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:.6rem .8rem;font-size:.85rem;overflow-x:auto}
+.fig{display:block;margin:.8rem auto;max-width:100%;height:auto;font-size:13px}
+.fig text{fill:var(--ink);font-family:inherit}
+.fig .m{fill:var(--muted)} .fig .a{fill:var(--accent)} .fig .g{fill:var(--gap)}
+.fig .ln{stroke:var(--ink);fill:none;stroke-width:1.5}
+.fig .mu{stroke:var(--muted);fill:none;stroke-width:1}
+.fig .ac{stroke:var(--accent);fill:none;stroke-width:2.5}
+.fig .rg{fill:var(--accent);fill-opacity:.22;stroke:var(--accent);stroke-width:1.5}
+.fig .bad{fill:var(--gap);fill-opacity:.28;stroke:var(--gap);stroke-width:1.5}
+.fig .nd{fill:var(--card);stroke:var(--ink);stroke-width:1.5}
+.fig .dot{fill:var(--ink)} .fig .adot{fill:var(--accent)}
+.ahp{fill:var(--ink)} .ahpa{fill:var(--accent)}
+</style>

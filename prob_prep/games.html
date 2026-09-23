@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta charset="utf-8">
 <title>Two Player Games Ledger</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -57,6 +58,8 @@ td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-v
 function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll("details").forEach(d=>d.open=open);b.dataset.open=open?"1":"0";b.textContent=open?"Collapse all":"Expand all";}
 </script>
 <div class="wrap">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahp" d="M0,0L10,5L0,10z"/></marker><marker id="aha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahpa" d="M0,0L10,5L0,10z"/></marker></defs></svg>
+
 <h1>Two Player Games</h1>
 <p class="sub">QuantProf revision · each problem: key idea, then a numbered proof. Click to reveal.</p>
 <div class="bar"><button type="button" onclick="toggleAll(this)">Expand all</button></div>
@@ -87,7 +90,7 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <p class="claim"><b>Claim.</b> <span class="ans">Bob wins.</span></p>
 <ol class="pf">
 <li>After Alice's first move, a line of 10 or 9 petals remains. <span class="why">(\(11 - 1\) or \(11 - 2\))</span></li>
-<li>Bob removes the middle 2 (from 10) or the middle 1 (from 9). That leaves two separate lines of 4 petals each.</li>
+<li>Bob removes the middle 2 (from 10) or the middle 1 (from 9). That leaves two separate lines of 4 petals each.<svg class="fig" viewBox="0 0 380 142" width="551" role="img" aria-label="Circle of 11 petals; Alice removes 1 leaving a line of 10; Bob removes the middle 2 leaving two lines of 4"><circle class="nd" cx="60.0" cy="28.0" r="6" style="stroke:none"/><circle class="bad" cx="60.0" cy="28.0" r="6"/><circle class="dot" cx="82.7" cy="34.7" r="6"/><circle class="dot" cx="98.2" cy="52.6" r="6"/><circle class="dot" cx="101.6" cy="76.0" r="6"/><circle class="dot" cx="91.7" cy="97.5" r="6"/><circle class="dot" cx="71.8" cy="110.3" r="6"/><circle class="dot" cx="48.2" cy="110.3" r="6"/><circle class="dot" cx="28.3" cy="97.5" r="6"/><circle class="dot" cx="18.4" cy="76.0" r="6"/><circle class="dot" cx="21.8" cy="52.6" r="6"/><circle class="dot" cx="37.3" cy="34.7" r="6"/><text x="60" y="132" text-anchor="middle" class="g" font-size="12">Alice takes 1</text><line class="ln" x1="115" y1="70" x2="150" y2="70" marker-end="url(#ah)"/><circle class="dot" cx="165" cy="70" r="6"/><circle class="dot" cx="185" cy="70" r="6"/><circle class="dot" cx="205" cy="70" r="6"/><circle class="dot" cx="225" cy="70" r="6"/><circle class="nd" cx="245" cy="70" r="6" style="stroke:none"/><circle class="rg" cx="245" cy="70" r="6"/><circle class="nd" cx="265" cy="70" r="6" style="stroke:none"/><circle class="rg" cx="265" cy="70" r="6"/><circle class="dot" cx="285" cy="70" r="6"/><circle class="dot" cx="305" cy="70" r="6"/><circle class="dot" cx="325" cy="70" r="6"/><circle class="dot" cx="345" cy="70" r="6"/><text x="195" y="100" text-anchor="middle" font-size="14">4</text><text x="315" y="100" text-anchor="middle" font-size="14">4</text><text x="255" y="50" text-anchor="middle" class="a" font-size="12">Bob takes the middle 2</text><text x="255" y="132" text-anchor="middle" class="m" font-size="12">then Bob mirrors Alice</text></svg></li>
 <li>From then on, whatever Alice removes from one line, Bob removes the same positions from the other. The two lines stay identical after each of Bob's moves.</li>
 <li>So Bob always has a reply. Petals run out, so Alice is the one who gets stuck.</li>
 </ol><p>∎</p>
@@ -99,7 +102,7 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Alice wins.</span></p>
 <ol class="pf">
-<li>Only the cyclic order of the points matters, so place them evenly. Alice joins two opposite points, \(D_1\) and \(D_2\). That leaves 9 points on each side. Let \(\sigma\) be the reflection in line \(D_1D_2\).</li>
+<li>Only the cyclic order of the points matters, so place them evenly. Alice joins two opposite points, \(D_1\) and \(D_2\). That leaves 9 points on each side. Let \(\sigma\) be the reflection in line \(D_1D_2\).<svg class="fig" viewBox="0 0 240 222" width="348" role="img" aria-label="20 points on a circle; Alice's first chord is a diameter D1D2; Alice answers each Bob chord with its mirror image"><circle class="mu" cx="110" cy="110" r="85"/><line class="ln" x1="110.0" y1="25.0" x2="110.0" y2="195.0" style="stroke-width:2.5"/><line class="ln" x1="60.0" y1="41.2" x2="60.0" y2="178.8"/><line class="ac" x1="160.0" y1="41.2" x2="160.0" y2="178.8" stroke-dasharray="5 4"/><circle class="dot" cx="110.0" cy="25.0" r="3"/><circle class="dot" cx="83.7" cy="29.2" r="3"/><circle class="dot" cx="60.0" cy="41.2" r="3"/><circle class="dot" cx="41.2" cy="60.0" r="3"/><circle class="dot" cx="29.2" cy="83.7" r="3"/><circle class="dot" cx="25.0" cy="110.0" r="3"/><circle class="dot" cx="29.2" cy="136.3" r="3"/><circle class="dot" cx="41.2" cy="160.0" r="3"/><circle class="dot" cx="60.0" cy="178.8" r="3"/><circle class="dot" cx="83.7" cy="190.8" r="3"/><circle class="dot" cx="110.0" cy="195.0" r="3"/><circle class="dot" cx="136.3" cy="190.8" r="3"/><circle class="dot" cx="160.0" cy="178.8" r="3"/><circle class="dot" cx="178.8" cy="160.0" r="3"/><circle class="dot" cx="190.8" cy="136.3" r="3"/><circle class="dot" cx="195.0" cy="110.0" r="3"/><circle class="dot" cx="190.8" cy="83.7" r="3"/><circle class="dot" cx="178.8" cy="60.0" r="3"/><circle class="dot" cx="160.0" cy="41.2" r="3"/><circle class="dot" cx="136.3" cy="29.2" r="3"/><text x="110.0" y="17.0" text-anchor="middle">D₁</text><text x="110.0" y="213.0" text-anchor="middle">D₂</text><text x="66.0" y="114.0" text-anchor="start" font-size="12">Bob</text><text x="154.0" y="114.0" text-anchor="end" class="a" font-size="12">Alice</text></svg></li>
 <li>Invariant: after each of Alice's moves, the drawing is mapped to itself by \(\sigma\). <span class="why">(true after 1)</span></li>
 <li>Bob draws a legal chord \(c\). No chord crosses \(D_1D_2\), so \(c\) lies in one closed half and \(\sigma(c)\) lies in the other.</li>
 <li>\(\sigma(c)\) is legal. It is not already drawn: if it were, \(c\) would be too, by 2. It does not cross \(c\): the two meet only on \(D_1D_2\), and at most at shared endpoints. It does not cross any older chord \(e\): if it did, \(c\) would cross \(\sigma(e)\), which is also drawn by 2.</li>
@@ -153,11 +156,23 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 </ol><p>∎</p></details></div>
 
 <h2 id="wl">3 · Winning / losing states</h2>
-<div class="idea"><p>Guess the L-positions from small cases, then prove two things: (i) every move from L goes to W; (ii) from every W there is a move to L.</p></div>
+<div class="idea"><p>Guess the L-positions from small cases, then prove two things: (i) every move from L goes to W; (ii) from every W there is a move to L.</p>
+<p>The small cases come from a rec:</p>
+<ol>
+<li><b>Level</b>: position \(n\); win(n) = the player to move wins.</li>
+<li><b>Choice</b>: every legal move \(n \to m\).</li>
+<li><b>Check</b>: no legal move → lose.</li>
+<li><b>Move</b>: win(n) = some move reaches a losing \(m\), i.e. \(\exists\, m: \neg\text{win}(m)\).</li>
+</ol></div>
 
 <div class="prob"><h3>300 marbles</h3>
 <p>A move removes \(r\) marbles, with \(1 \le r \le \lfloor n/2 \rfloor\). The player who can't move loses. Start with 300. Alice moves first. Who wins?</p>
-<details><summary>Key idea</summary><p>The L-positions are \(n = 2^k - 1\).</p></details>
+<details><summary>Key idea</summary><p>The L-positions are \(n = 2^k - 1\). Found by printing the rec:</p>
+<pre>bool win(ll n) {
+    for (ll r = 1; r &lt;= n / 2; r++)
+        if (!win(n - r)) return true;
+    return false;
+}   // !win(n) for n = 1, 3, 7, 15, 31, ...</pre></details>
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Alice wins</span> (take 45, leaving 255).</p>
 <ol class="pf">
@@ -192,9 +207,9 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <li>A move takes \((a,b)\) to \((a-1,b)\), \((a,b-1)\) or \((a-1,b-1)\). Reaching \((0,0)\) wins, so for the player to move, \((0,0)\) is L.</li>
 <li>From \((\text{even}, \text{even}) \ne (0,0)\), every move makes \(a\) or \(b\) odd.</li>
 <li>From a position that is not (even, even): if both are odd, move diagonally; if only one is odd, reduce that one. Either way you reach (even, even).</li>
-<li>So \(L = \{(\text{even}, \text{even})\}\). The start is \((7,7)\), so it is W.</li>
+<li>So \(L = \{(\text{even}, \text{even})\}\). The start is \((7,7)\), so it is W.<svg class="fig" viewBox="0 0 250 262" width="362" role="img" aria-label="8 by 8 board; cells whose distances to the top-right corner are both even are shaded as losing; king starts bottom-left on an unshaded cell"><rect class="mu" x="20" y="20" width="26" height="26"/><rect class="rg" x="46" y="20" width="26" height="26"/><rect class="mu" x="72" y="20" width="26" height="26"/><rect class="rg" x="98" y="20" width="26" height="26"/><rect class="mu" x="124" y="20" width="26" height="26"/><rect class="rg" x="150" y="20" width="26" height="26"/><rect class="mu" x="176" y="20" width="26" height="26"/><rect class="rg" x="202" y="20" width="26" height="26"/><rect class="mu" x="20" y="46" width="26" height="26"/><rect class="mu" x="46" y="46" width="26" height="26"/><rect class="mu" x="72" y="46" width="26" height="26"/><rect class="mu" x="98" y="46" width="26" height="26"/><rect class="mu" x="124" y="46" width="26" height="26"/><rect class="mu" x="150" y="46" width="26" height="26"/><rect class="mu" x="176" y="46" width="26" height="26"/><rect class="mu" x="202" y="46" width="26" height="26"/><rect class="mu" x="20" y="72" width="26" height="26"/><rect class="rg" x="46" y="72" width="26" height="26"/><rect class="mu" x="72" y="72" width="26" height="26"/><rect class="rg" x="98" y="72" width="26" height="26"/><rect class="mu" x="124" y="72" width="26" height="26"/><rect class="rg" x="150" y="72" width="26" height="26"/><rect class="mu" x="176" y="72" width="26" height="26"/><rect class="rg" x="202" y="72" width="26" height="26"/><rect class="mu" x="20" y="98" width="26" height="26"/><rect class="mu" x="46" y="98" width="26" height="26"/><rect class="mu" x="72" y="98" width="26" height="26"/><rect class="mu" x="98" y="98" width="26" height="26"/><rect class="mu" x="124" y="98" width="26" height="26"/><rect class="mu" x="150" y="98" width="26" height="26"/><rect class="mu" x="176" y="98" width="26" height="26"/><rect class="mu" x="202" y="98" width="26" height="26"/><rect class="mu" x="20" y="124" width="26" height="26"/><rect class="rg" x="46" y="124" width="26" height="26"/><rect class="mu" x="72" y="124" width="26" height="26"/><rect class="rg" x="98" y="124" width="26" height="26"/><rect class="mu" x="124" y="124" width="26" height="26"/><rect class="rg" x="150" y="124" width="26" height="26"/><rect class="mu" x="176" y="124" width="26" height="26"/><rect class="rg" x="202" y="124" width="26" height="26"/><rect class="mu" x="20" y="150" width="26" height="26"/><rect class="mu" x="46" y="150" width="26" height="26"/><rect class="mu" x="72" y="150" width="26" height="26"/><rect class="mu" x="98" y="150" width="26" height="26"/><rect class="mu" x="124" y="150" width="26" height="26"/><rect class="mu" x="150" y="150" width="26" height="26"/><rect class="mu" x="176" y="150" width="26" height="26"/><rect class="mu" x="202" y="150" width="26" height="26"/><rect class="mu" x="20" y="176" width="26" height="26"/><rect class="rg" x="46" y="176" width="26" height="26"/><rect class="mu" x="72" y="176" width="26" height="26"/><rect class="rg" x="98" y="176" width="26" height="26"/><rect class="mu" x="124" y="176" width="26" height="26"/><rect class="rg" x="150" y="176" width="26" height="26"/><rect class="mu" x="176" y="176" width="26" height="26"/><rect class="rg" x="202" y="176" width="26" height="26"/><rect class="mu" x="20" y="202" width="26" height="26"/><rect class="mu" x="46" y="202" width="26" height="26"/><rect class="mu" x="72" y="202" width="26" height="26"/><rect class="mu" x="98" y="202" width="26" height="26"/><rect class="mu" x="124" y="202" width="26" height="26"/><rect class="mu" x="150" y="202" width="26" height="26"/><rect class="mu" x="176" y="202" width="26" height="26"/><rect class="mu" x="202" y="202" width="26" height="26"/><text x="215.0" y="38.0" text-anchor="middle" class="a">★</text><text x="33.0" y="220.0" text-anchor="middle">K</text><text x="124" y="246" text-anchor="middle" class="m" font-size="12">shaded = L (both distances even)</text></svg></li>
 </ol><p>∎</p>
-<p class="gap">⚠ Course shows only coloured board pictures. Steps 2–3 are the proof behind them.</p></details></div>
+<p class="gap">⚠ Course shows only the board picture (above). Steps 2–3 are the proof behind it.</p></details></div>
 
 <h2 id="adhoc">5 · Ad-hoc</h2>
 <div class="idea"><p>Look for a quantity fixed by the rules (so the total number of moves is decided in advance), or a pairing/colouring from the brainteasers toolkit.</p></div>
@@ -217,7 +232,7 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <details><summary>Solution</summary>
 <p class="claim"><b>Claim.</b> <span class="ans">Bob wins.</span></p>
 <ol class="pf">
-<li>Pairing: top row without the corner, 180 cells (even), in horizontal pairs. The remaining 182 rows (even) in vertical pairs, column by column.</li>
+<li>Pairing: top row without the corner, 180 cells (even), in horizontal pairs. The remaining 182 rows (even) in vertical pairs, column by column. Same shape on \(5\times5\):<svg class="fig" viewBox="0 0 200 200" width="290" role="img" aria-label="5 by 5 grid: start top-left; the rest tiled by adjacent pairs, horizontal in the top row and vertical below"><rect class="mu" x="10" y="10" width="36" height="36"/><rect class="mu" x="46" y="10" width="36" height="36"/><rect class="mu" x="82" y="10" width="36" height="36"/><rect class="mu" x="118" y="10" width="36" height="36"/><rect class="mu" x="154" y="10" width="36" height="36"/><rect class="mu" x="10" y="46" width="36" height="36"/><rect class="mu" x="46" y="46" width="36" height="36"/><rect class="mu" x="82" y="46" width="36" height="36"/><rect class="mu" x="118" y="46" width="36" height="36"/><rect class="mu" x="154" y="46" width="36" height="36"/><rect class="mu" x="10" y="82" width="36" height="36"/><rect class="mu" x="46" y="82" width="36" height="36"/><rect class="mu" x="82" y="82" width="36" height="36"/><rect class="mu" x="118" y="82" width="36" height="36"/><rect class="mu" x="154" y="82" width="36" height="36"/><rect class="mu" x="10" y="118" width="36" height="36"/><rect class="mu" x="46" y="118" width="36" height="36"/><rect class="mu" x="82" y="118" width="36" height="36"/><rect class="mu" x="118" y="118" width="36" height="36"/><rect class="mu" x="154" y="118" width="36" height="36"/><rect class="mu" x="10" y="154" width="36" height="36"/><rect class="mu" x="46" y="154" width="36" height="36"/><rect class="mu" x="82" y="154" width="36" height="36"/><rect class="mu" x="118" y="154" width="36" height="36"/><rect class="mu" x="154" y="154" width="36" height="36"/><rect class="rg" x="51" y="15" width="62" height="26" rx="7"/><rect class="rg" x="123" y="15" width="62" height="26" rx="7"/><rect class="rg" x="15" y="51" width="26" height="62" rx="7"/><rect class="rg" x="15" y="123" width="26" height="62" rx="7"/><rect class="rg" x="51" y="51" width="26" height="62" rx="7"/><rect class="rg" x="51" y="123" width="26" height="62" rx="7"/><rect class="rg" x="87" y="51" width="26" height="62" rx="7"/><rect class="rg" x="87" y="123" width="26" height="62" rx="7"/><rect class="rg" x="123" y="51" width="26" height="62" rx="7"/><rect class="rg" x="123" y="123" width="26" height="62" rx="7"/><rect class="rg" x="159" y="51" width="26" height="62" rx="7"/><rect class="rg" x="159" y="123" width="26" height="62" rx="7"/><rect class="bad" x="15" y="15" width="26" height="26" rx="7"/><text x="28.0" y="33.0" text-anchor="middle">S</text></svg></li>
 <li>Invariant: after each of Bob's moves, every pair is either fully visited or fully unvisited.</li>
 <li>Alice therefore steps into an untouched pair. Its partner is adjacent and unvisited, so Bob moves there and keeps 2.</li>
 <li>So Bob always has a move. The cells run out, so Alice is stuck.</li>
@@ -226,3 +241,17 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 </div>
 
 <style>.katex{font-size:1.15em}.katex-display{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}</style>
+<style>
+pre{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:.6rem .8rem;font-size:.85rem;overflow-x:auto}
+.fig{display:block;margin:.8rem auto;max-width:100%;height:auto;font-size:13px}
+.fig text{fill:var(--ink);font-family:inherit}
+.fig .m{fill:var(--muted)} .fig .a{fill:var(--accent)} .fig .g{fill:var(--gap)}
+.fig .ln{stroke:var(--ink);fill:none;stroke-width:1.5}
+.fig .mu{stroke:var(--muted);fill:none;stroke-width:1}
+.fig .ac{stroke:var(--accent);fill:none;stroke-width:2.5}
+.fig .rg{fill:var(--accent);fill-opacity:.22;stroke:var(--accent);stroke-width:1.5}
+.fig .bad{fill:var(--gap);fill-opacity:.28;stroke:var(--gap);stroke-width:1.5}
+.fig .nd{fill:var(--card);stroke:var(--ink);stroke-width:1.5}
+.fig .dot{fill:var(--ink)} .fig .adot{fill:var(--accent)}
+.ahp{fill:var(--ink)} .ahpa{fill:var(--accent)}
+</style>

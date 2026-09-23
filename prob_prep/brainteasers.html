@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta charset="utf-8">
 <title>Brainteasers Ledger</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -57,6 +58,8 @@ td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-v
 function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll("details").forEach(d=>d.open=open);b.dataset.open=open?"1":"0";b.textContent=open?"Collapse all":"Expand all";}
 </script>
 <div class="wrap">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahp" d="M0,0L10,5L0,10z"/></marker><marker id="aha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahpa" d="M0,0L10,5L0,10z"/></marker></defs></svg>
+
 <h1>Brainteasers</h1>
 <p class="sub">QuantProf revision · each problem: key idea, then a numbered proof. Click to reveal.</p>
 <div class="bar"><button type="button" onclick="toggleAll(this)">Expand all</button></div>
@@ -243,7 +246,7 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <ol class="pf">
 <li>4 consecutive cells in a row or a column have 4 consecutive values of \(i+j\), so they cover each colour once.</li>
 <li>So a tiling would use each colour equally often: 9 each.</li>
-<li>Counting on \(6\times6\) (\(i,j\) from 0): colour 1 appears 10 times and colour 3 appears 8 times. This contradicts 2.</li>
+<li>Counting on \(6\times6\) (\(i,j\) from 0): colour 1 appears 10 times and colour 3 appears 8 times. This contradicts 2.<svg class="fig" viewBox="0 0 200 245" width="290" role="img" aria-label="6 by 6 grid coloured (i+j) mod 4; colour 1 has 10 cells and colour 3 has 8; an outlined 1x4 tile covers 0,1,2,3 once each"><rect class="mu" x="10" y="10" width="30" height="30"/><text x="25.0" y="30.0" text-anchor="middle">0</text><rect class="rg" x="40" y="10" width="30" height="30"/><text x="55.0" y="30.0" text-anchor="middle">1</text><rect class="mu" x="70" y="10" width="30" height="30"/><text x="85.0" y="30.0" text-anchor="middle">2</text><rect class="bad" x="100" y="10" width="30" height="30"/><text x="115.0" y="30.0" text-anchor="middle">3</text><rect class="mu" x="130" y="10" width="30" height="30"/><text x="145.0" y="30.0" text-anchor="middle">0</text><rect class="rg" x="160" y="10" width="30" height="30"/><text x="175.0" y="30.0" text-anchor="middle">1</text><rect class="rg" x="10" y="40" width="30" height="30"/><text x="25.0" y="60.0" text-anchor="middle">1</text><rect class="mu" x="40" y="40" width="30" height="30"/><text x="55.0" y="60.0" text-anchor="middle">2</text><rect class="bad" x="70" y="40" width="30" height="30"/><text x="85.0" y="60.0" text-anchor="middle">3</text><rect class="mu" x="100" y="40" width="30" height="30"/><text x="115.0" y="60.0" text-anchor="middle">0</text><rect class="rg" x="130" y="40" width="30" height="30"/><text x="145.0" y="60.0" text-anchor="middle">1</text><rect class="mu" x="160" y="40" width="30" height="30"/><text x="175.0" y="60.0" text-anchor="middle">2</text><rect class="mu" x="10" y="70" width="30" height="30"/><text x="25.0" y="90.0" text-anchor="middle">2</text><rect class="bad" x="40" y="70" width="30" height="30"/><text x="55.0" y="90.0" text-anchor="middle">3</text><rect class="mu" x="70" y="70" width="30" height="30"/><text x="85.0" y="90.0" text-anchor="middle">0</text><rect class="rg" x="100" y="70" width="30" height="30"/><text x="115.0" y="90.0" text-anchor="middle">1</text><rect class="mu" x="130" y="70" width="30" height="30"/><text x="145.0" y="90.0" text-anchor="middle">2</text><rect class="bad" x="160" y="70" width="30" height="30"/><text x="175.0" y="90.0" text-anchor="middle">3</text><rect class="bad" x="10" y="100" width="30" height="30"/><text x="25.0" y="120.0" text-anchor="middle">3</text><rect class="mu" x="40" y="100" width="30" height="30"/><text x="55.0" y="120.0" text-anchor="middle">0</text><rect class="rg" x="70" y="100" width="30" height="30"/><text x="85.0" y="120.0" text-anchor="middle">1</text><rect class="mu" x="100" y="100" width="30" height="30"/><text x="115.0" y="120.0" text-anchor="middle">2</text><rect class="bad" x="130" y="100" width="30" height="30"/><text x="145.0" y="120.0" text-anchor="middle">3</text><rect class="mu" x="160" y="100" width="30" height="30"/><text x="175.0" y="120.0" text-anchor="middle">0</text><rect class="mu" x="10" y="130" width="30" height="30"/><text x="25.0" y="150.0" text-anchor="middle">0</text><rect class="rg" x="40" y="130" width="30" height="30"/><text x="55.0" y="150.0" text-anchor="middle">1</text><rect class="mu" x="70" y="130" width="30" height="30"/><text x="85.0" y="150.0" text-anchor="middle">2</text><rect class="bad" x="100" y="130" width="30" height="30"/><text x="115.0" y="150.0" text-anchor="middle">3</text><rect class="mu" x="130" y="130" width="30" height="30"/><text x="145.0" y="150.0" text-anchor="middle">0</text><rect class="rg" x="160" y="130" width="30" height="30"/><text x="175.0" y="150.0" text-anchor="middle">1</text><rect class="rg" x="10" y="160" width="30" height="30"/><text x="25.0" y="180.0" text-anchor="middle">1</text><rect class="mu" x="40" y="160" width="30" height="30"/><text x="55.0" y="180.0" text-anchor="middle">2</text><rect class="bad" x="70" y="160" width="30" height="30"/><text x="85.0" y="180.0" text-anchor="middle">3</text><rect class="mu" x="100" y="160" width="30" height="30"/><text x="115.0" y="180.0" text-anchor="middle">0</text><rect class="rg" x="130" y="160" width="30" height="30"/><text x="145.0" y="180.0" text-anchor="middle">1</text><rect class="mu" x="160" y="160" width="30" height="30"/><text x="175.0" y="180.0" text-anchor="middle">2</text><rect x="42" y="132" width="116" height="26" rx="4" fill="none" stroke="var(--ink)" style="stroke-width:2.5"/><text x="100" y="210" text-anchor="middle" class="a" font-size="12">colour 1: 10 cells</text><text x="100" y="228" text-anchor="middle" class="g" font-size="12">colour 3: 8 cells</text></svg></li>
 </ol><p>∎</p></details></div>
 
 <h2 id="ind">6 · Induction</h2>
@@ -355,3 +358,17 @@ whatever \(x\) is.</li>
 </div>
 
 <style>.katex{font-size:1.15em}.katex-display{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}</style>
+<style>
+pre{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:.6rem .8rem;font-size:.85rem;overflow-x:auto}
+.fig{display:block;margin:.8rem auto;max-width:100%;height:auto;font-size:13px}
+.fig text{fill:var(--ink);font-family:inherit}
+.fig .m{fill:var(--muted)} .fig .a{fill:var(--accent)} .fig .g{fill:var(--gap)}
+.fig .ln{stroke:var(--ink);fill:none;stroke-width:1.5}
+.fig .mu{stroke:var(--muted);fill:none;stroke-width:1}
+.fig .ac{stroke:var(--accent);fill:none;stroke-width:2.5}
+.fig .rg{fill:var(--accent);fill-opacity:.22;stroke:var(--accent);stroke-width:1.5}
+.fig .bad{fill:var(--gap);fill-opacity:.28;stroke:var(--gap);stroke-width:1.5}
+.fig .nd{fill:var(--card);stroke:var(--ink);stroke-width:1.5}
+.fig .dot{fill:var(--ink)} .fig .adot{fill:var(--accent)}
+.ahp{fill:var(--ink)} .ahpa{fill:var(--accent)}
+</style>

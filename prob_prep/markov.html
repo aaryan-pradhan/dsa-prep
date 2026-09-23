@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta charset="utf-8">
 <title>Markov Chains Ledger</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -57,6 +58,8 @@ td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-v
 function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll("details").forEach(d=>d.open=open);b.dataset.open=open?"1":"0";b.textContent=open?"Collapse all":"Expand all";}
 </script>
 <div class="wrap">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahp" d="M0,0L10,5L0,10z"/></marker><marker id="aha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahpa" d="M0,0L10,5L0,10z"/></marker></defs></svg>
+
 <h1>Markov Chains</h1>
 <p class="sub">QuantProf revision · each problem: key idea, then a numbered proof. Click to reveal.</p>
 <div class="bar"><button type="button" onclick="toggleAll(this)">Expand all</button></div>
@@ -129,18 +132,19 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <li>\(\pi_i p_{ij}\) = the long-run fraction of steps that are \(i \to j\).</li>
 </ol></div>
 <div class="prob"><h3>Two-state chain \(P = \begin{pmatrix} .7 &amp; .3 \\ .5 &amp; .5 \end{pmatrix}\)</h3>
-<details><summary>Key idea</summary><p>Balance: the flow \(1\to2\) equals the flow \(2\to1\).</p></details>
+<details><summary>Key idea</summary><p>Balance: the flow \(1\to2\) equals the flow \(2\to1\).</p><svg class="fig" viewBox="0 0 380 140" width="551" role="img" aria-label="Two-state chain: 1 stays .7, 1 to 2 .3; 2 to 1 .5, stays .5"><path class="ln" d="M100,55 C82,12 138,12 120,55" marker-end="url(#ah)"/><text x="110" y="18" text-anchor="middle">.7</text><path class="ln" d="M260,55 C242,12 298,12 280,55" marker-end="url(#ah)"/><text x="270" y="18" text-anchor="middle">.5</text><line class="ac" x1="128" y1="63" x2="250" y2="63" marker-end="url(#aha)"/><text x="190" y="56" text-anchor="middle" class="a">.3</text><line class="ac" x1="252" y1="78" x2="130" y2="78" marker-end="url(#aha)"/><text x="190" y="96" text-anchor="middle" class="a">.5</text><circle class="nd" cx="110" cy="70" r="18"/><text x="110" y="75" text-anchor="middle">1</text><circle class="nd" cx="270" cy="70" r="18"/><text x="270" y="75" text-anchor="middle">2</text><text x="190" y="128" text-anchor="middle" class="a" font-size="13">flow 1→2 = flow 2→1: π₁·.3 = π₂·.5</text></svg></details>
 <details><summary>Solution</summary><ol class="pf">
 <li>\(\pi_1 \cdot .3 = \pi_2 \cdot .5\), so \(\pi_2 = .6\,\pi_1\).</li>
 <li>\(\pi_1 + .6\,\pi_1 = 1\), so \(\pi_1 = \) <span class="ans">\(0.625\)</span> and \(\pi_2 = 0.375\).</li>
 </ol><p>∎</p></details></div>
 
 <h2 id="absorb">7 · Absorption probabilities</h2>
-<div class="idea"><p>\(a_i = P(\text{eventually absorbed in } s \mid X_0 = i)\). Then \(a_s = 1\), \(a_t = 0\) for every other absorbing \(t\), and
-\[a_i = \sum_j p_{ij}\,a_j \quad \text{for transient } i \quad \text{(first-step analysis)}.\]
+<div class="idea"><p><b>rec(i)</b> \(= a_i = P(\text{eventually absorbed in } s \mid \text{at } i \text{ now})\). Condition on the next step:
+\[\text{rec}(i) = \sum_j p_{ij}\,\text{rec}(j) \quad \text{for transient } i.\]
+Base: \(\text{rec}(s) = 1\), and \(\text{rec}(t) = 0\) for every other absorbing \(t\).
 For recurrent <b>classes</b>, collapse each class into a single absorbing node first.</p></div>
 <div class="prob"><h3>Absorbing states 3, 4</h3><p>Rows: \(1 \to (.5,.3,.2,0)\), \(2 \to (.4,.4,0,.2)\). \(P(\text{absorbed at } 3)\)?</p>
-<details><summary>Key idea</summary><p>Two linear equations in \(a_1, a_2\).</p></details>
+<details><summary>Key idea</summary><p>Two linear equations in \(a_1, a_2\): read one per node off the picture.</p><svg class="fig" viewBox="0 0 380 195" width="551" role="img" aria-label="Chain: 1 stays .5, to 2 .3, to 3 .2; 2 to 1 .4, stays .4, to 4 .2; 3 and 4 absorbing"><path class="ln" d="M110,55 C92,12 148,12 130,55" marker-end="url(#ah)"/><text x="120" y="18" text-anchor="middle">.5</text><path class="ln" d="M250,55 C232,12 288,12 270,55" marker-end="url(#ah)"/><text x="260" y="18" text-anchor="middle">.4</text><line class="ln" x1="138" y1="63" x2="240" y2="63" marker-end="url(#ah)"/><text x="190" y="56" text-anchor="middle">.3</text><line class="ln" x1="242" y1="78" x2="140" y2="78" marker-end="url(#ah)"/><text x="190" y="96" text-anchor="middle">.4</text><line class="ln" x1="107" y1="84" x2="55" y2="136" marker-end="url(#ah)"/><text x="72" y="104" text-anchor="end">.2</text><line class="ln" x1="273" y1="84" x2="325" y2="136" marker-end="url(#ah)"/><text x="308" y="104" text-anchor="start">.2</text><circle class="nd" cx="120" cy="70" r="18"/><text x="120" y="75" text-anchor="middle">1</text><circle class="nd" cx="260" cy="70" r="18"/><text x="260" y="75" text-anchor="middle">2</text><circle class="nd" cx="40" cy="150" r="18" style="stroke:none"/><circle class="rg" cx="40" cy="150" r="18"/><text x="40" y="155" text-anchor="middle">3</text><circle class="nd" cx="340" cy="150" r="18" style="stroke:none"/><circle class="bad" cx="340" cy="150" r="18"/><text x="340" y="155" text-anchor="middle">4</text><text x="40" y="186" text-anchor="middle" class="a" font-size="12">target</text><text x="340" y="186" text-anchor="middle" class="g" font-size="12">absorbing</text></svg></details>
 <details><summary>Solution</summary><ol class="pf">
 <li>\(a_1 = .5a_1 + .3a_2 + .2\) and \(a_2 = .4a_1 + .4a_2\).</li>
 <li>The second gives \(a_2 = \tfrac23 a_1\). The first gives \(.3a_1 = .2\).</li>
@@ -148,15 +152,16 @@ For recurrent <b>classes</b>, collapse each class into a single absorbing node f
 </ol><p>∎</p>
 <p class="gap">⚠ Course's matrix has row 4 \(= (0, .2, 0, 1)\), which sums to 1.2. An absorbing row must be \((0,0,0,1)\). The answer is unaffected.</p></details></div>
 <div class="prob"><h3>Two recurrent classes \(C_1 = \{3,4\}\), \(C_2 = \{5,6,7\}\)</h3><p>From 1: to 2 w.p. .2, to \(C_1\) w.p. .2, to \(C_2\) w.p. .6. From 2: to 1 w.p. .2, to \(C_1\) w.p. .4, to \(C_2\) w.p. .4. Report \(a_1 + a_2\) for \(C_1\).</p>
-<details><summary>Key idea</summary><p>Collapse each class to a single node.</p></details>
+<details><summary>Key idea</summary><p>Collapse each class to a single node. Where you land inside a class never matters.</p><svg class="fig" viewBox="0 0 380 194" width="551" role="img" aria-label="Transient 1 and 2 with each recurrent class collapsed to one node"><rect class="rg" x="135" y="150" width="110" height="34" rx="8"/><text x="190" y="172" text-anchor="middle">C₁={3,4}</text><rect class="bad" x="135" y="10" width="110" height="34" rx="8"/><text x="190" y="32" text-anchor="middle">C₂={5,6,7}</text><line class="ln" x1="118" y1="92" x2="262" y2="92" marker-end="url(#ah)"/><text x="190" y="86" text-anchor="middle">.2</text><line class="ln" x1="262" y1="106" x2="118" y2="106" marker-end="url(#ah)"/><text x="190" y="124" text-anchor="middle">.2</text><line class="ln" x1="112" y1="84" x2="148" y2="46" marker-end="url(#ah)"/><text x="118" y="58" text-anchor="end">.6</text><line class="ln" x1="268" y1="84" x2="232" y2="46" marker-end="url(#ah)"/><text x="262" y="58" text-anchor="start">.4</text><line class="ln" x1="112" y1="114" x2="148" y2="148" marker-end="url(#ah)"/><text x="118" y="144" text-anchor="end">.2</text><line class="ln" x1="268" y1="114" x2="232" y2="148" marker-end="url(#ah)"/><text x="262" y="144" text-anchor="start">.4</text><circle class="nd" cx="100" cy="99" r="18"/><text x="100" y="104" text-anchor="middle">1</text><circle class="nd" cx="280" cy="99" r="18"/><text x="280" y="104" text-anchor="middle">2</text></svg></details>
 <details><summary>Solution</summary><ol class="pf">
 <li>\(a_1 = .2a_2 + .2\) and \(a_2 = .2a_1 + .4\).</li>
 <li>\(a_1 = .04a_1 + .28\), so \(a_1 = \) <span class="ans">\(\tfrac{7}{24}\)</span> and \(a_2 = \) <span class="ans">\(\tfrac{11}{24}\)</span>. Sum \(= 0.75\).</li>
 </ol><p>∎</p></details></div>
 
 <h2 id="time">8 · Expected time to absorption</h2>
-<div class="idea"><p>\(t_i = \mathbb{E}[\text{steps to absorption} \mid X_0 = i]\). \(t = 0\) on absorbing states (or collapsed classes), and
-\[t_i = 1 + \sum_j p_{ij}\,t_j \quad \text{for transient } i.\]</p></div>
+<div class="idea"><p><b>rec(i)</b> \(= t_i = \mathbb{E}[\text{steps to absorption} \mid \text{at } i \text{ now}]\). One step costs 1, then condition on where it went:
+\[\text{rec}(i) = 1 + \sum_j p_{ij}\,\text{rec}(j) \quad \text{for transient } i,\]
+with \(\text{rec} = 0\) on absorbing states (or collapsed classes).</p></div>
 <div class="prob"><h3>Rows \(1 \to (.7,.1,.2,0)\), \(2 \to (.4,.3,0,.3)\)</h3><p>Report \(t_1 + t_2\).</p>
 <details><summary>Key idea</summary><p>Solve the two linear equations.</p></details>
 <details><summary>Solution</summary><ol class="pf">
@@ -192,3 +197,17 @@ For recurrent <b>classes</b>, collapse each class into a single absorbing node f
 </div>
 
 <style>.katex{font-size:1.15em}.katex-display{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}</style>
+<style>
+pre{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:.6rem .8rem;font-size:.85rem;overflow-x:auto}
+.fig{display:block;margin:.8rem auto;max-width:100%;height:auto;font-size:13px}
+.fig text{fill:var(--ink);font-family:inherit}
+.fig .m{fill:var(--muted)} .fig .a{fill:var(--accent)} .fig .g{fill:var(--gap)}
+.fig .ln{stroke:var(--ink);fill:none;stroke-width:1.5}
+.fig .mu{stroke:var(--muted);fill:none;stroke-width:1}
+.fig .ac{stroke:var(--accent);fill:none;stroke-width:2.5}
+.fig .rg{fill:var(--accent);fill-opacity:.22;stroke:var(--accent);stroke-width:1.5}
+.fig .bad{fill:var(--gap);fill-opacity:.28;stroke:var(--gap);stroke-width:1.5}
+.fig .nd{fill:var(--card);stroke:var(--ink);stroke-width:1.5}
+.fig .dot{fill:var(--ink)} .fig .adot{fill:var(--accent)}
+.ahp{fill:var(--ink)} .ahpa{fill:var(--accent)}
+</style>

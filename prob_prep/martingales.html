@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta charset="utf-8">
 <title>Martingales Ledger</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -57,6 +58,8 @@ td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-v
 function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll("details").forEach(d=>d.open=open);b.dataset.open=open?"1":"0";b.textContent=open?"Collapse all":"Expand all";}
 </script>
 <div class="wrap">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahp" d="M0,0L10,5L0,10z"/></marker><marker id="aha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahpa" d="M0,0L10,5L0,10z"/></marker></defs></svg>
+
 <h1>Martingales</h1>
 <p class="sub">QuantProf revision · each problem: key idea, then a numbered proof. Click to reveal.</p>
 <div class="bar"><button type="button" onclick="toggleAll(this)">Expand all</button></div>
@@ -89,7 +92,7 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 </ol>
 <p class="gap">⚠ Course's condition (a) bounds \(Z_i\) itself; what is needed is a bound on the stopped process, plus \(T &lt; \infty\). Always check a condition before applying OST.</p></div>
 <div class="prob"><h3>Fair walk from 0 to +4 or −8</h3><p>\(P(\text{ends at } +4)\)?</p>
-<details><summary>Key idea</summary><p>The stopped walk is bounded, so \(\mathbb{E}[X_T] = 0\).</p></details>
+<details><summary>Key idea</summary><p>The stopped walk is bounded, so \(\mathbb{E}[X_T] = 0\): the two endpoints, weighted by their probabilities, balance at the start.</p><svg class="fig" viewBox="0 0 360 95" width="522" role="img" aria-label="Number line from -8 to +4; the mean end point must balance at the start 0"><line class="ln" x1="30" y1="45" x2="330" y2="45"/><line class="mu" x1="30" y1="40" x2="30" y2="50"/><line class="mu" x1="55" y1="40" x2="55" y2="50"/><line class="mu" x1="80" y1="40" x2="80" y2="50"/><line class="mu" x1="105" y1="40" x2="105" y2="50"/><line class="mu" x1="130" y1="40" x2="130" y2="50"/><line class="mu" x1="155" y1="40" x2="155" y2="50"/><line class="mu" x1="180" y1="40" x2="180" y2="50"/><line class="mu" x1="205" y1="40" x2="205" y2="50"/><line class="mu" x1="230" y1="40" x2="230" y2="50"/><line class="mu" x1="255" y1="40" x2="255" y2="50"/><line class="mu" x1="280" y1="40" x2="280" y2="50"/><line class="mu" x1="305" y1="40" x2="305" y2="50"/><line class="mu" x1="330" y1="40" x2="330" y2="50"/><circle class="nd" cx="30" cy="45" r="9" style="stroke:none"/><circle class="bad" cx="30" cy="45" r="9"/><circle class="nd" cx="330" cy="45" r="9" style="stroke:none"/><circle class="rg" cx="330" cy="45" r="9"/><polygon class="dot" points="230,52 222,66 238,66"/><text x="30" y="25" text-anchor="middle" class="g">−8</text><text x="330" y="25" text-anchor="middle" class="a">+4</text><text x="230" y="25" text-anchor="middle">0 = start</text><text x="22" y="84" text-anchor="start" class="g" font-size="12">weight 1−p</text><text x="338" y="84" text-anchor="end" class="a" font-size="12">weight p</text><text x="180" y="84" text-anchor="middle" class="m" font-size="12">balance at 0</text></svg></details>
 <details><summary>Solution</summary><ol class="pf">
 <li>\(|X_{\min(n,T)}| \le 8\) and \(T &lt; \infty\) a.s., so OST (a) applies. <span class="why">(finite-\(\mathbb{E}[T]\) trick with \(N = 12\))</span></li>
 <li>\(4p - 8(1-p) = 0\), so \(p = \) <span class="ans">\(\tfrac{2}{3}\)</span>.</li>
@@ -107,7 +110,7 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 <details><summary>Solution</summary><ol class="pf">
 <li>One step changes exactly one coordinate by \(\pm 1\): \(\mathbb{E}[X^2 + Y^2 \text{ after} \mid \text{past}] = X^2 + Y^2 + 1\). So \(Z_n\) is a martingale.</li>
 <li>Let \(T = \min\{n : X_n^2 + Y_n^2 \ge 100\}\), the exit time. Before \(T\) the walk is in a finite set, so \(\mathbb{E}[T] &lt; \infty\) (trick) and the steps of \(Z\) are bounded. OST (c) applies.</li>
-<li>\(\mathbb{E}[T] = \mathbb{E}[X_T^2 + Y_T^2]\). On exit \(X_T^2 + Y_T^2 \ge 100\), and it can overshoot. For example, \((9,4) \to (10,4)\) has \(r^2 = 116\).</li>
+<li>\(\mathbb{E}[T] = \mathbb{E}[X_T^2 + Y_T^2]\). On exit \(X_T^2 + Y_T^2 \ge 100\), and it can overshoot: \((9,4) \to (10,4)\) jumps from \(r^2 = 97\) to \(116\) without touching the circle.<svg class="fig" viewBox="0 0 340 240" width="493" role="img" aria-label="Lattice points near the circle x^2+y^2=100; the step from (9,4) to (10,4) jumps past it"><circle class="dot" cx="30" cy="215" r="2.5"/><circle class="dot" cx="30" cy="185" r="2.5"/><circle class="dot" cx="30" cy="155" r="2.5"/><circle class="dot" cx="30" cy="125" r="2.5"/><circle class="dot" cx="30" cy="95" r="2.5"/><circle class="dot" cx="30" cy="65" r="2.5"/><circle class="dot" cx="30" cy="35" r="2.5"/><circle class="dot" cx="62" cy="215" r="2.5"/><circle class="dot" cx="62" cy="185" r="2.5"/><circle class="dot" cx="62" cy="155" r="2.5"/><circle class="dot" cx="62" cy="125" r="2.5"/><circle class="dot" cx="62" cy="95" r="2.5"/><circle class="dot" cx="62" cy="65" r="2.5"/><circle class="dot" cx="62" cy="35" r="2.5"/><circle class="dot" cx="94" cy="215" r="2.5"/><circle class="dot" cx="94" cy="185" r="2.5"/><circle class="dot" cx="94" cy="155" r="2.5"/><circle class="dot" cx="94" cy="125" r="2.5"/><circle class="dot" cx="94" cy="95" r="2.5"/><circle class="dot" cx="94" cy="65" r="2.5"/><circle class="dot" cx="94" cy="35" r="2.5"/><circle class="dot" cx="126" cy="215" r="2.5"/><circle class="dot" cx="126" cy="185" r="2.5"/><circle class="dot" cx="126" cy="155" r="2.5"/><circle class="dot" cx="126" cy="125" r="2.5"/><circle class="dot" cx="126" cy="95" r="2.5"/><circle class="dot" cx="126" cy="65" r="2.5"/><circle class="adot" cx="126" cy="35" r="4"/><circle class="dot" cx="158" cy="215" r="2.5"/><circle class="dot" cx="158" cy="185" r="2.5"/><circle class="dot" cx="158" cy="155" r="2.5"/><circle class="dot" cx="158" cy="125" r="2.5"/><circle class="dot" cx="158" cy="95" r="2.5"/><circle cx="158" cy="65" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="158" cy="35" r="2" fill="var(--muted)" fill-opacity=".6"/><circle class="adot" cx="190" cy="215" r="4"/><circle cx="190" cy="185" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="190" cy="155" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="190" cy="125" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="190" cy="95" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="190" cy="65" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="190" cy="35" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="222" cy="215" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="222" cy="185" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="222" cy="155" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="222" cy="125" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="222" cy="95" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="222" cy="65" r="2" fill="var(--muted)" fill-opacity=".6"/><circle cx="222" cy="35" r="2" fill="var(--muted)" fill-opacity=".6"/><polyline class="ln" points="190.0,215.0 190.0,209.8 189.8,204.5 189.6,199.3 189.2,194.1 188.8,188.9 188.2,183.6 187.6,178.4 186.9,173.2 186.1,168.1 185.1,162.9 184.1,157.8 183.0,152.6 181.8,147.5 180.5,142.4 179.1,137.4 177.6,132.3 176.0,127.3 174.3,122.3 172.6,117.3 170.7,112.4 168.7,107.5 166.7,102.6 164.6,97.8 162.3,93.0 160.0,88.2 157.6,83.5 155.1,78.8 152.5,74.2 149.9,69.6 147.1,65.0 144.3,60.5 141.4,56.0 138.4,51.6 135.3,47.2 132.1,42.9 128.9,38.7 125.6,34.5 122.2,30.3 118.7,26.2 115.1,22.2"/><line class="ac" x1="163" y1="95" x2="183" y2="95" marker-end="url(#aha)"/><text x="158" y="83" text-anchor="end" font-size="12">(9,4) r²=97</text><text x="198" y="99" text-anchor="start" class="a" font-size="12">(10,4) r²=116</text><text x="198" y="189" text-anchor="start" class="m" font-size="12">x²+y²=100</text><text x="30" y="232" text-anchor="start" class="m" font-size="11">blue = lattice point on the circle</text></svg></li>
 <li>Solving the exact linear system on the 305 interior lattice points gives \(\mathbb{E}[T] \approx\) <span class="ans">\(104.69\)</span>. It is <b>not</b> 100.</li>
 </ol><p>∎</p>
 <p class="gap">⚠ Course error. It defines \(T\) as the first time \(x^2 + y^2 = 100\) <i>exactly</i> and claims the walk stays inside the disc until then, which gives 100. But a lattice walk can jump past the circle without landing on it (the circle has only 12 lattice points). So that \(T\) is not the exit time, and its expectation is not 100. The identity \(\mathbb{E}[T] = \mathbb{E}[R_T^2]\) is right; the value \(R_T^2 = 100\) is not.</p></details></div>
@@ -162,3 +165,17 @@ function toggleAll(b){const open=b.dataset.open!=="1";document.querySelectorAll(
 </div>
 
 <style>.katex{font-size:1.15em}.katex-display{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}</style>
+<style>
+pre{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:.6rem .8rem;font-size:.85rem;overflow-x:auto}
+.fig{display:block;margin:.8rem auto;max-width:100%;height:auto;font-size:13px}
+.fig text{fill:var(--ink);font-family:inherit}
+.fig .m{fill:var(--muted)} .fig .a{fill:var(--accent)} .fig .g{fill:var(--gap)}
+.fig .ln{stroke:var(--ink);fill:none;stroke-width:1.5}
+.fig .mu{stroke:var(--muted);fill:none;stroke-width:1}
+.fig .ac{stroke:var(--accent);fill:none;stroke-width:2.5}
+.fig .rg{fill:var(--accent);fill-opacity:.22;stroke:var(--accent);stroke-width:1.5}
+.fig .bad{fill:var(--gap);fill-opacity:.28;stroke:var(--gap);stroke-width:1.5}
+.fig .nd{fill:var(--card);stroke:var(--ink);stroke-width:1.5}
+.fig .dot{fill:var(--ink)} .fig .adot{fill:var(--accent)}
+.ahp{fill:var(--ink)} .ahpa{fill:var(--accent)}
+</style>
