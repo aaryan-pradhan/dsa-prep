@@ -94,3 +94,31 @@ topic cards, and every table update themselves.
 - **Strings**: MIGRATED. `String_Ledger_1_Scans.html` (1), data file `strings_1`. No recognition rules until a second problem exists.
 - **ICPC/**: not a ledger topic (contest scratch files); not covered.
 - **LEDGER.html**: Loads every data file above. A new child ledger adds one script tag there.
+
+## Prob ledger
+
+Separate from the DSA ledger system above — shares only the Golden Rules.
+
+### Prob ledger
+Revision pages for the QuantProf course (quantprof.org, "curing the weak
+mind" course). One self-contained HTML page per course **section**
+(Brainteasers, Two Player Games, Combinatorics, Probability, Betting Games,
+Markov Chains, Martingales), chapters as headings inside. Source lives in
+`prob_prep/`; each page is published as a private claude.ai artifact. No
+`data.js`, no `ledger.css`, not linked from `LEDGER.html`. The mindset-only
+"Getting Started" section is a short principles box on the first page, not
+a page of its own.
+
+### Prob entry
+One problem in a prob ledger page. Shape:
+
+1. **Statement** — short, simple notation.
+2. **Key idea** — hidden until clicked. The one fact the solution rests on.
+3. **Solution** — hidden until clicked. Euclid-style numbered proof: one
+   fact per line, reason in brackets, ends with ∎.
+4. **⚠ Course gap** — only when QuantProf's own argument is incomplete or
+   wrong. The page's proof is written from scratch; the course solution is
+   never the standard.
+
+Final answers to games/probability problems are checked by brute force or
+simulation before they go on the page.
