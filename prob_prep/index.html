@@ -56,12 +56,15 @@ td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-v
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 .sec{margin:.2rem 0 .8rem}.sec>a{font-weight:600;text-decoration:none}
 .sec ul{margin:.1rem 0;padding-left:1.4rem;color:var(--muted);font-size:.9rem}
+.idea td{text-align:left}
+pre{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:.6rem .8rem;font-size:.85rem;overflow-x:auto}
 #q{font:inherit;font-size:.95rem;width:100%;box-sizing:border-box;padding:.4rem .7rem;background:var(--card);color:var(--ink);border:1px solid var(--rule);border-radius:6px}
 </style>
 <div class="wrap">
 <h1>Quant Prep</h1>
 <p class="sub">QuantProf revision ledgers · 7 pages · 196 problems.</p>
 <nav class="toc">
+<a href="#forms">The DP template</a>
 <a href="#brainteasers">Brainteasers</a>
 <a href="#combinatorics">Combinatorics</a>
 <a href="#probability">Probability</a>
@@ -71,6 +74,17 @@ td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-v
 <a href="#games">Two Player Games</a>
 </nav>
 <input id="q" type="search" placeholder="Filter sections / problems…" aria-label="Filter">
+<h2 id="forms">The DP template (Form → Level → Choice → Check → Move)</h2>
+<div class="idea"><p>From Vivek Gupta's DP workshop. Every recursion, DP and "repeat until" solution in these ledgers is written in these steps, in this order.</p><ol><li><b>FORM</b>: decide which of the five forms below the problem is. The form gives the picture and the first argument of rec.</li><li><b>LEVEL</b> (state design): rec(level, …) = the question asked, but only for what is left, given what has already happened. Put in the state exactly what the CHECK or the base case needs to know. The choice never goes in the state.</li><li><b>CHOICE</b>: every option at this level (with its probability, in probability problems).</li><li><b>CHECK</b>: is the option legal? Does it end the process, with a known value?</li><li><b>MOVE</b>: go to the smaller state and combine: or (is it possible?), + (count, or probability-weighted), max / min (best), not (games).</li><li><b>MEMORYLESS</b> (probability only, and only now): is the future from turn i+1 exactly the future from turn i? Yes → drop i. A fixed deadline → keep i.</li><li><b>COST</b> (TLE check): #states × (1 + #transitions) must fit the limit.</li><li><b>CODE</b>, always in this order: pruning → base case → cache check → transition → save and return.</li></ol><pre>T dp[..][..];                        // every entry -1 before the first call
+T rec(level, state...) {
+    if (state is invalid) return BAD;            // 1. pruning
+    if (level == end) return BASE;               // 2. base case (written the form's way)
+    if (dp[level][state] != -1) return dp[...];  // 3. cache check
+    T ans = identity;                            // 4. transition: CHOICE -&gt; CHECK -&gt; MOVE
+    for (each choice c)
+        if (check(c)) ans = combine(ans, rec(next level, next state));
+    return dp[level][state] = ans;               // 5. save and return
+}</pre><div class="tw"><table><tr><th>Form</th><th>State</th><th>rec means</th><th>In these ledgers</th></tr><tr><td><b id="form1">1 · i → end</b></td><td>rec(i, what is taken so far)</td><td>the question, for items / turns i … end, given the past</td><td>every "repeat until" problem, Coupon collector, HHT vs HTT, Frog to 10, No "00", Dice game, Secretary, Markov absorption</td></tr><tr><td><b id="form2">2 · ending at i</b></td><td>rec(i)</td><td>the best answer that ends exactly at i; loop over the previous element / last cut j</td><td>subsequences and partitions (LIS). No problem in these ledgers needs it.</td></tr><tr><td><b id="form3">3 · multi-sequence</b></td><td>rec(i, j)</td><td>the question for s₁[i…] and s₂[j…]; a move advances i, j or both</td><td>LCS, edit distance. No problem in these ledgers needs it.</td></tr><tr><td><b id="form4">4 · LR</b></td><td>rec(l, r)</td><td>the question for the segment l … r</td><td>Alternate guessing (the range of possible secrets)</td></tr><tr><td><b id="form5">5 · game</b></td><td>win(configuration)</td><td>can the player about to move force a win? Win ⇔ some move sends the opponent to a losing configuration; no move ⇒ lose</td><td>300 marbles, Divisors II, Moving king, Alternate guessing, First to roll a 6</td></tr></table></div></div>
 <h2 id="brainteasers"><a href="brainteasers.html">Brainteasers</a></h2>
 <div class="sec"><a href="brainteasers.html#method">0 · How to practise</a></div>
 <div class="sec"><a href="brainteasers.html#small">1 · Small, special, random cases</a><ul><li>Lighter box</li><li>Two piles of stones</li></ul></div>
