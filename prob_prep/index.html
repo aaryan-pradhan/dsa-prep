@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<title>Quant Prep Ledgers</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quant Prep Index</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
 <style>
 :root{
   --bg:#f6f7f9; --ink:#171b24; --muted:#5a6273; --rule:#d9dee6; --card:#ffffff;
@@ -50,17 +54,117 @@ table{border-collapse:collapse;font-size:.92rem}
 .tw{overflow-x:auto}
 td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+.sec{margin:.2rem 0 .8rem}.sec>a{font-weight:600;text-decoration:none}
+.sec ul{margin:.1rem 0;padding-left:1.4rem;color:var(--muted);font-size:.9rem}
+#q{font:inherit;font-size:.95rem;width:100%;box-sizing:border-box;padding:.4rem .7rem;background:var(--card);color:var(--ink);border:1px solid var(--rule);border-radius:6px}
 </style>
 <div class="wrap">
 <h1>Quant Prep</h1>
-<p class="sub">QuantProf revision ledgers.</p>
+<p class="sub">QuantProf revision ledgers · 7 pages · 196 problems.</p>
 <nav class="toc">
-<a href="brainteasers.html">Brainteasers</a>
-<a href="combinatorics.html">Combinatorics</a>
-<a href="probability.html">Probability</a>
-<a href="markov.html">Markov Chains</a>
-<a href="martingales.html">Martingales</a>
-<a href="betting.html">Betting Games</a>
-<a href="games.html">Two Player Games</a>
+<a href="#brainteasers">Brainteasers</a>
+<a href="#combinatorics">Combinatorics</a>
+<a href="#probability">Probability</a>
+<a href="#markov">Markov Chains</a>
+<a href="#martingales">Martingales</a>
+<a href="#betting">Betting Games</a>
+<a href="#games">Two Player Games</a>
 </nav>
+<input id="q" type="search" placeholder="Filter sections / problems…" aria-label="Filter">
+<h2 id="brainteasers"><a href="brainteasers.html">Brainteasers</a></h2>
+<div class="sec"><a href="brainteasers.html#method">0 · How to practise</a></div>
+<div class="sec"><a href="brainteasers.html#small">1 · Small, special, random cases</a><ul><li>Lighter box</li><li>Two piles of stones</li></ul></div>
+<div class="sec"><a href="brainteasers.html#inv">2 · Invariants</a><ul><li>Make all equal</li><li>Reaching zero</li></ul></div>
+<div class="sec"><a href="brainteasers.html#mono">3 · Monovariants</a><ul><li>Return configuration</li><li>Infection spread</li></ul></div>
+<div class="sec"><a href="brainteasers.html#php">4 · Pigeonhole principle</a><ul><li>Same number of friends</li><li>Ant cover</li><li>Arrows on a grid</li></ul></div>
+<div class="sec"><a href="brainteasers.html#color">5 · Proof by colouring</a><ul><li>Mutilated chessboard</li><li>Corner-to-corner walk</li><li>Unequal neighbours</li><li>\(6\times6\) with \(1\times4\) tiles</li></ul></div>
+<div class="sec"><a href="brainteasers.html#ind">6 · Induction</a><ul><li>Sum \(1 + \dots + n\)</li><li>Gas cans on a circular track</li><li>Two-colouring regions cut by lines</li><li>Splitting 1000 coins</li><li>Water pistols (\(n\) odd)</li></ul></div>
+<div class="sec"><a href="brainteasers.html#sym">7 · Symmetry</a><ul><li>Placing coins</li><li>Sum of five-digit palindromes</li><li>Average median of subsets</li></ul></div>
+<h2 id="combinatorics"><a href="combinatorics.html">Combinatorics</a></h2>
+<div class="sec"><a href="combinatorics.html#rules">1 · Multiplication &amp; addition</a><ul><li>Books and boxes</li></ul></div>
+<div class="sec"><a href="combinatorics.html#perm">2 · Linear permutations</a><ul><li>Quick counts</li></ul></div>
+<div class="sec"><a href="combinatorics.html#circ">3 · Circular permutations</a><ul><li>Table and necklace</li></ul></div>
+<div class="sec"><a href="combinatorics.html#comb">4 · Combinations</a><ul><li>Committees and subsets</li><li>Languages</li></ul></div>
+<div class="sec"><a href="combinatorics.html#ids">5 · Identities (with counting proofs)</a><ul><li>Sum of squares</li><li>Red and green objects</li></ul></div>
+<div class="sec"><a href="combinatorics.html#binom">6 · Binomial theorem</a><ul><li>Coefficient</li><li>Odd binomials</li><li>Weighted sum</li><li>\((1+\sqrt2)^{3000}\)</li></ul></div>
+<div class="sec"><a href="combinatorics.html#tech">7 · Complement, block, gap</a><ul><li>Four quick ones</li></ul></div>
+<div class="sec"><a href="combinatorics.html#pie">8 · Inclusion–exclusion (PIE)</a><ul><li>Soccer and hockey</li><li>Divisible by 2, 3 or 5 (\(\le 180\))</li><li>Twins</li><li>At least two subjects</li></ul></div>
+<div class="sec"><a href="combinatorics.html#stars">9 · Stars and bars</a><ul><li>Four variants</li></ul></div>
+<div class="sec"><a href="combinatorics.html#sum">10 · Summation by counting</a><ul><li>Permutations of 12345</li><li>Palindromes again</li></ul></div>
+<div class="sec"><a href="combinatorics.html#sym">11 · Symmetry</a><ul><li>Subsets with sum \(&gt; 232\)</li><li>Relative order</li></ul></div>
+<div class="sec"><a href="combinatorics.html#rec">12 · Recursion &amp; DP</a><ul><li>Frog to 10</li><li>No "00" (length 10, digits 0/1/2)</li><li>Grid paths</li><li>Solving recurrences (corrected)</li></ul></div>
+<div class="sec"><a href="combinatorics.html#bij">13 · Bijection</a><ul><li>Increasing words &amp; lattice paths</li><li>Chess club</li><li>Diagonal crossings in a 12-gon</li><li>Even rows and columns</li></ul></div>
+<div class="sec"><a href="combinatorics.html#refl">14 · Reflection principle</a><ul><li>Walk counts</li><li>Valid brackets (\(n = 4\))</li></ul></div>
+<h2 id="probability"><a href="probability.html">Probability</a></h2>
+<div class="sec"><a href="probability.html#p-basics">1 · Basic terms</a></div>
+<div class="sec"><a href="probability.html#p-event">2 · Probability of an event</a><ul><li>Warm-ups</li></ul></div>
+<div class="sec"><a href="probability.html#p-pie">3 · Inclusion–exclusion</a><ul><li>Sports and drinks</li></ul></div>
+<div class="sec"><a href="probability.html#p-comb">4 · Counting in probability</a><ul><li>A and B not adjacent</li><li>First HH exactly at toss 10</li><li>\(3\times2\) matrix, rows and columns \(\equiv 0 \pmod 3\)</li><li>Partial sums of 1..13 never \(\equiv 0 \pmod 3\)</li></ul></div>
+<div class="sec"><a href="probability.html#p-cond">5 · Conditional probability</a><ul><li>Red → diamond; even → \(&gt;3\)</li><li>First ace at 27, then 2♥?</li><li>Robot clicks H</li><li>7 before 11</li></ul></div>
+<div class="sec"><a href="probability.html#p-mult">6 · Multiplication rule &amp; independence</a><ul><li>Draws without replacement</li><li>Ant on an icosahedron</li><li>Shooting stars</li></ul></div>
+<div class="sec"><a href="probability.html#p-total">7 · Law of total probability</a><ul><li>Defects and coins</li></ul></div>
+<div class="sec"><a href="probability.html#p-bayes">8 · Bayes</a><ul><li>Three bags</li><li>9 fair + 1 double-headed coin</li><li>Disease test</li></ul></div>
+<div class="sec"><a href="probability.html#p-para">9 · Paradoxes</a><ul><li>Three coins (HH, HT, TT)</li><li>Children and coins</li><li>Falling frog</li><li>Three prisoners</li></ul></div>
+<div class="sec"><a href="probability.html#p-reduced">10 · Reduced sample space</a><ul><li>Tennis from 30–30</li><li>Two 2s and two 3s before the first 6</li></ul></div>
+<div class="sec"><a href="probability.html#p-geo">11 · Geometric probability</a><ul><li>\(1 \le y/x \le 2\)</li><li>Two friends, 30-minute stays</li><li>\(xy \le \tfrac12\)</li><li>Sum of \(n\) uniforms \(&lt; 1\)</li><li>Crawling ant (max 3 steps)</li><li>\(a_1 &lt; a_2 &lt; a_3\) with \(a_k \sim U[0,k]\)</li></ul></div>
+<div class="sec"><a href="probability.html#p-rec">12 · Recursion in probability</a><ul><li>First to roll a 6</li><li>Strictly first to heads</li><li>HH ends on an even toss</li><li>Parcel around 5 seats</li><li>HHT before HTT</li><li>Score-dependent best-of-7</li></ul></div>
+<div class="sec"><a href="probability.html#p-sym1">13 · Symmetry I: ad hoc</a><ul><li>Marbles 3 and 98</li><li>Growing die</li><li>\(X_6\) smaller than \(X_5\) and \(X_7\)</li><li>More HT than TH in 10 tosses</li><li>\(n+1\) coins vs \(n\) coins</li></ul></div>
+<div class="sec"><a href="probability.html#p-sym2">14 · Symmetry II: fewer states</a><ul><li>Tetrahedron walk</li><li>Mouse on a cube</li></ul></div>
+<div class="sec"><a href="probability.html#p-sym3">15 · Symmetry III: continuous → discrete</a><ul><li>Two random segments on a line</li><li>Two random chords</li><li>Goalkeeper interval</li></ul></div>
+<div class="sec"><a href="probability.html#p-rv">16 · Random variables</a></div>
+<div class="sec"><a href="probability.html#p-pmf">17 · PMF and CDF (discrete)</a><ul><li>Sum of two dice</li><li>CDF from a PMF</li><li>Max of five d10</li></ul></div>
+<div class="sec"><a href="probability.html#p-disc">18 · Common discrete distributions</a><ul><li>Identify the distribution</li></ul></div>
+<div class="sec"><a href="probability.html#p-pdf">19 · PDF and CDF (continuous)</a><ul><li>Integrate a density</li><li>Distance of a uniform point in the unit disc</li><li>Minimum of 10 uniforms</li></ul></div>
+<div class="sec"><a href="probability.html#p-cont">20 · Common continuous distributions</a><ul><li>70% failure time</li></ul></div>
+<div class="sec"><a href="probability.html#p-normal">21 · The normal distribution</a><ul><li>\(X \sim N(100, 36)\): \(P(94 \le X \le 112)\)</li></ul></div>
+<div class="sec"><a href="probability.html#p-totalc">22 · Total probability, continuous case</a><ul><li>Rain and humidity</li><li>Nested points in the disc</li><li>Three points, pairwise \(\ge 90^\circ\) apart</li></ul></div>
+<div class="sec"><a href="probability.html#p-ev">23 · Expected value</a><ul><li>Die, and a d30 difference</li><li>First repeat on a d4</li><li>Densities</li><li>Ferris wait</li></ul></div>
+<div class="sec"><a href="probability.html#p-tot-e">24 · Law of total expectation</a><ul><li>Mixture and nested uniform</li></ul></div>
+<div class="sec"><a href="probability.html#p-lotus">25 · LOTUS</a><ul><li>\(\mathbb{E}[X^2]\)</li></ul></div>
+<div class="sec"><a href="probability.html#p-tail">26 · Tail sum (discrete)</a><ul><li>Min of three d100</li><li>Smallest ball in ball 10's box</li></ul></div>
+<div class="sec"><a href="probability.html#p-tailint">27 · Tail integral</a><ul><li>Distance to the base of a triangle</li><li>Max of \(n\) uniforms</li></ul></div>
+<div class="sec"><a href="probability.html#p-lin">28 · Linearity of expectation</a><ul><li>Sum of three dice</li><li>Letters in the right envelopes</li><li>HT count in 10 flips</li><li>Coupon collector (d6)</li><li>Rectangles from 20 random lines</li></ul></div>
+<div class="sec"><a href="probability.html#p-ind">29 · Indicator variables</a><ul><li>GB pairs; colour components</li><li>Records among 10 i.i.d. values</li><li>2-cycles in a random permutation</li><li>Divisor-erasing moves on 1..20</li></ul></div>
+<div class="sec"><a href="probability.html#p-prod">30 · Products of independent variables</a><ul><li>Cut a \(1\times2\) rectangle</li><li>Stock after 10 days</li><li>Random jumps, \(\mathbb{E}[\text{distance}^2]\)</li><li>\(\mathbb{E}[\text{area}^2]\) for 3 grid points (\(9\times9\))</li></ul></div>
+<div class="sec"><a href="probability.html#p-evtab">31 · Means of common distributions</a></div>
+<div class="sec"><a href="probability.html#p-rece">32 · Recursion in expectation</a><ul><li>Sum of rolls until a 6</li><li>Bob's routes</li><li>Tosses until THH</li><li>At least 3 H and 3 T</li></ul></div>
+<div class="sec"><a href="probability.html#p-syme1">33 · Symmetry in expectation I</a><ul><li>Median of five d100</li><li>\(\mathbb{E}[\det]\) of a random \(5\times5\) matrix</li><li>Knight's walk, \(\mathbb{E}[\text{distance}^2]\) after 100 moves</li></ul></div>
+<div class="sec"><a href="probability.html#p-syme2">34 · Symmetry in expectation II: fewer states</a><ul><li>Ant to the opposite corner of a cube</li></ul></div>
+<div class="sec"><a href="probability.html#p-seg">35 · Random points on a segment</a><ul><li>Blue end of a 9-inch rod</li><li>Smaller piece of a broken metre stick</li><li>Cards up to and including the first ace</li></ul></div>
+<div class="sec"><a href="probability.html#p-conde">36 · Conditional expectation</a><ul><li>Rolls until 6, given no 5 came first</li><li>Alice's tosses, given she beats Bob</li><li>\(\mathbb{E}[X \mid X &lt; Y]\) for two uniforms</li></ul></div>
+<div class="sec"><a href="probability.html#p-piee">37 · Inclusion–exclusion for waiting times</a><ul><li>See both 5 and 6; see both H and T (\(P(H) = \tfrac13\))</li><li>d10: see 7, 8, 9 and one of \(\{5,10\}\)</li></ul></div>
+<div class="sec"><a href="probability.html#p-sume">38 · Summation via expectation</a><ul><li>Palindromes (third proof)</li><li>8-digit strings of 1s and 9s</li><li>0..99999 with no "11" (as 5-digit strings)</li></ul></div>
+<div class="sec"><a href="probability.html#p-var">39 · Variance</a><ul><li>Die; uniform\(\{1..n\}\); exponential</li><li>\(x\)-coordinate of a uniform point on the sphere</li><li>Fixed points of a random permutation (\(n = 1000\))</li><li>\(|A \cap B|\) for random subsets of \(\{1..25\}\)</li><li>Heads from a die-many coin tosses</li><li>Mixture of two normals</li></ul></div>
+<h2 id="markov"><a href="markov.html">Markov Chains</a></h2>
+<div class="sec"><a href="markov.html#def">1 · Definition</a></div>
+<div class="sec"><a href="markov.html#path">2 · Probability of a path</a><ul><li>Path B → A → C</li></ul></div>
+<div class="sec"><a href="markov.html#ck">3 · n-step transitions (Chapman–Kolmogorov)</a><ul><li>City chain: \(T_{12}(2)\), \(P^2\), and \(T_{13}(3)\)</li></ul></div>
+<div class="sec"><a href="markov.html#class">4 · Classifying states</a></div>
+<div class="sec"><a href="markov.html#decomp">5 · Decomposition</a><ul><li>Every transient state reaches a recurrent state</li></ul></div>
+<div class="sec"><a href="markov.html#steady">6 · Steady state</a><ul><li>Two-state chain \(P = \begin{pmatrix} .7 &amp; .3 \\ .5 &amp; .5 \end{pmatrix}\)</li></ul></div>
+<div class="sec"><a href="markov.html#absorb">7 · Absorption probabilities</a><ul><li>Absorbing states 3, 4</li><li>Two recurrent classes \(C_1 = \{3,4\}\), \(C_2 = \{5,6,7\}\)</li></ul></div>
+<div class="sec"><a href="markov.html#time">8 · Expected time to absorption</a><ul><li>Rows \(1 \to (.7,.1,.2,0)\), \(2 \to (.4,.3,0,.3)\)</li><li>Two classes again</li></ul></div>
+<div class="sec"><a href="markov.html#pass">9 · First passage &amp; return times</a><ul><li>\(p_{11} = .8,\ p_{12} = .2,\ p_{21} = .6,\ p_{22} = .4\)</li><li>Five bulbs: return to all-off</li></ul></div>
+<h2 id="martingales"><a href="martingales.html">Martingales</a></h2>
+<div class="sec"><a href="martingales.html#sp">1 · Stochastic processes</a></div>
+<div class="sec"><a href="martingales.html#mg">2 · Martingales</a></div>
+<div class="sec"><a href="martingales.html#ost">3 · Optional stopping</a><ul><li>Fair walk from 0 to +4 or −8</li><li>Stop and bet on the next card being red</li><li>2-D walk: expected exit time from the radius-10 disc</li></ul></div>
+<div class="sec"><a href="martingales.html#wald">4 · Wald's identity</a><ul><li>Biased walk to +6</li><li>Roll until the first value repeats: \(\mathbb{E}[\text{sum}]\)</li></ul></div>
+<div class="sec"><a href="martingales.html#zoo">5 · Martingales to know</a><ul><li>Fair walk, boundaries \(-4\) and \(+8\)</li><li>Biased walk (\(p = \tfrac23\)), boundaries \(-4\) and \(+8\)</li><li>\(\mathbb{E}[\text{tosses until HHTTHTT}]\)</li></ul></div>
+<h2 id="betting"><a href="betting.html">Betting Games</a></h2>
+<div class="sec"><a href="betting.html#ev">1 · Plain expected value</a><ul><li>Known urn (10B, 10W), $10 for the right colour</li><li>Secret urn, unknown mix</li><li>$10 per red card before the first spade</li></ul></div>
+<div class="sec"><a href="betting.html#stop">2 · Present vs future</a><ul><li>Dice game: up to 2 rolls, then up to 3</li><li>Push your luck with a d10</li></ul></div>
+<div class="sec"><a href="betting.html#param">3 · Optimal parameters</a><ul><li>Secretary problem, \(n = 6\)</li><li>Paid redraws from 1..100</li></ul></div>
+<div class="sec"><a href="betting.html#dp">4 · Dynamic programming</a><ul><li>Guess the colour of each draw (3W, 3B)</li><li>+1 red, −1 black, quit any time (4R, 4B)</li></ul></div>
+<div class="sec"><a href="betting.html#old">5 · Lessons from the past</a><ul><li>Is \(X_1\) the min, the median or the max?</li><li>Alternate guessing a secret in 1..100</li></ul></div>
+<h2 id="games"><a href="games.html">Two Player Games</a></h2>
+<div class="sec"><a href="games.html#base">0 · Ground rules</a></div>
+<div class="sec"><a href="games.html#sym">1 · Symmetry</a><ul><li>Removing petals</li><li>Chords</li></ul></div>
+<div class="sec"><a href="games.html#steal">2 · Strategy stealing</a><ul><li>Game of Reduction</li><li>Game of primes</li><li>Divisors III</li></ul></div>
+<div class="sec"><a href="games.html#wl">3 · Winning / losing states</a><ul><li>300 marbles</li><li>Divisors II</li></ul></div>
+<div class="sec"><a href="games.html#end">4 · Endgame analysis</a><ul><li>Moving king</li></ul></div>
+<div class="sec"><a href="games.html#adhoc">5 · Ad-hoc</a><ul><li>Three piles</li><li>Moving the piece</li></ul></div>
 </div>
+<script>
+q.oninput=()=>{const t=q.value.toLowerCase();document.querySelectorAll('.sec').forEach(s=>{let any=s.firstChild.textContent.toLowerCase().includes(t);s.querySelectorAll('li').forEach(l=>{const k=!t||any||l.textContent.toLowerCase().includes(t);l.hidden=!k;any||=k&&!!t});s.hidden=!any&&!!t})}
+</script>
