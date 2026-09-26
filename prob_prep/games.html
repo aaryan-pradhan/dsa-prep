@@ -137,24 +137,48 @@ function vizPage(V) {
     ctl.lastChild.click();
   };
 
-  // ---------- reduction: small version solved exactly ----------
+  // ---------- reduction, small boards: you are Bob, Alice plays the proof ----------
   V.reduction = root => {
-    root.appendChild(html('<p class="cap">A small version you can solve exactly: numbers a &lt; b &lt; c. Alice either moves c → v directly, or plays the waiting move c → b + 1, after which Bob must move b + 1 → v himself.</p>'));
-    const ctl = root.appendChild(html('<div class="ctl"></div>')), out = root.appendChild(html('<p class="out"></p>'));
-    let a = 5, b = 10, c = 13; const memo = new Map();
+    root.appendChild(html('<p class="cap">Small boards, same rules. You are Bob. Alice moves first with the move the proof picks (Case A: jump straight to a losing {a, b, v}; Case B: the waiting move c → b + 1), then plays perfectly. Pick a board, then click a new value for the largest number.</p>'));
+    const s = root.appendChild(svg(360, 90, 'Three numbers on the board'));
+    const brd = root.appendChild(html('<div class="ctl"></div>')), ctl = root.appendChild(html('<div class="ctl"></div>')), out = root.appendChild(html('<p class="out"></p>'));
+    const memo = new Map(), srt = T => T.slice().sort((p, q) => p - q);
     const win = (x, y, z) => { // x<y<z, replace z by v<z, v not x,y
       const k = x + ',' + y + ',' + z; if (memo.has(k)) return memo.get(k);
-      let w = false; for (let v = 1; v < z && !w; v++) { if (v === x || v === y) continue; const t = [x, y, v].sort((p, q) => p - q); if (!win(...t)) w = true; }
+      let w = false; for (let v = 1; v < z && !w; v++) { if (v === x || v === y) continue; if (!win(...srt([x, y, v]))) w = true; }
       memo.set(k, w); return w; };
-    function show() {
-      if (!(a < b && b < c)) { out.innerHTML = 'Need a &lt; b &lt; c.'; return; }
-      const Ls = []; for (let v = 1; v < b; v++) if (v !== a && !win(...[a, b, v].sort((p, q) => p - q))) Ls.push(v);
-      out.innerHTML = `Positions S(v) = {${a}, ${b}, v} that are losing for the player to move: ${Ls.length ? Ls.join(', ') : 'none'}.<br>` +
-        (Ls.length ? `<b>Case A:</b> Alice moves ${c} → ${Ls[0]} directly.` : `<b>Case B:</b> every S(v) is winning, so Alice plays the waiting move ${c} → ${b + 1}; Bob must then create some S(v) and hand Alice a winning position.`) +
-        `<br>Exact check: Alice ${win(a, b, c) ? '<b>wins</b>' : 'loses'} from {${a}, ${b}, ${c}}.`;
+    const vals = T => { const r = []; for (let v = 1; v < T[2]; v++) if (v !== T[0] && v !== T[1]) r.push(v); return r; };
+    const nxt = (T, v) => srt([T[0], T[1], v]);
+    let T, hit, who;
+    function draw() {
+      s.innerHTML = '';
+      T.forEach((x, i) => { const cx = 30 + i * 110;
+        el('rect', { x: cx, y: 14, width: 90, height: 48, rx: 8, class: x === hit ? (who === 'A' ? 'bad' : 'rg') : 'nd' }, s);
+        txt(s, cx + 45, 45, x).style.fontSize = '20px'; if (i === 2) txt(s, cx + 45, 80, 'largest', 'm'); });
     }
-    slider(ctl, 'a', 1, 20, 1, a, v => { a = v; show(); }); slider(ctl, 'b', 2, 30, 1, b, v => { b = v; show(); }); slider(ctl, 'c', 3, 40, 1, c, v => { c = v; show(); });
-    show();
+    function render(msg) {
+      draw(); ctl.innerHTML = ''; const o = vals(T);
+      if (!o.length) { out.innerHTML = msg + `<br><b>No smaller value is free for ${T[2]}: you cannot move. Alice wins.</b>`; return; }
+      out.innerHTML = msg + `<br>Your move: replace ${T[2]} with`;
+      o.forEach(v => btn(ctl, `${T[2]} → ${v}`, () => bob(v)));
+    }
+    function bob(v) {
+      const z = T[2]; T = nxt(T, v); hit = v; who = 'B'; ctl.innerHTML = ''; draw();
+      later(() => { const o = vals(T);
+        if (!o.length) { out.innerHTML = `<b>Alice cannot move: you win.</b> (Only possible if Alice slipped.)`; return; }
+        const w = o.find(u => !win(...nxt(T, u))) ?? o[0], y = T[2]; T = nxt(T, w); hit = w; who = 'A';
+        render(`You played ${z} → ${v}. Alice replies ${y} → <b>${w}</b>: {${T.join(', ')}} is losing for you.`); });
+    }
+    function start(B) {
+      T = B.slice(); const [a, b, c] = T; let v, msg;
+      const Ls = []; for (let u = 1; u < b; u++) if (u !== a && !win(...srt([a, b, u]))) Ls.push(u);
+      if (Ls.length) { v = Ls[0]; msg = `<b>Case A.</b> {${srt([a, b, v]).join(', ')}} is losing for whoever moves next, so Alice jumps there directly: ${c} → <b>${v}</b>.`; }
+      else { v = b + 1; msg = `<b>Case B.</b> Every {${a}, ${b}, v} with v &lt; ${b} is winning for whoever moves next, so none is worth jumping to. Alice plays the waiting move ${c} → <b>${v}</b>. Now you must replace ${v} with some v &lt; ${b}, and whichever you pick is one of those winning positions, handed to her.`; }
+      T = nxt(T, v); hit = v; who = 'A'; render(msg);
+    }
+    btn(brd, 'Board {3, 7, 11} (Case A)', () => start([3, 7, 11]));
+    btn(brd, 'Board {4, 8, 12} (Case B)', () => start([4, 8, 12]));
+    start([4, 8, 12]);
   };
 
   // ---------- primes: you are Bob, Alice plays perfectly ----------
@@ -181,19 +205,46 @@ function vizPage(V) {
     start();
   };
 
-  // ---------- divisor erase game on 1..n, solved exactly ----------
+  // ---------- divisor erase game on 1..n: you are Bob, Alice steals ----------
   V.erase = root => {
-    root.appendChild(html('<p class="cap">The same game on 1..n, solved exactly by computer. Alice\'s winning first move is shown. Whatever it is, the stealing argument says one exists.</p>'));
+    root.appendChild(html('<p class="cap">The same game on 1..n. You are Bob. Click a number to erase it together with its divisors still on the board. Alice plays perfectly, and her first move is the steal from the proof.</p>'));
+    const s = root.appendChild(svg(560, 100, 'Numbers on the board'));
     const ctl = root.appendChild(html('<div class="ctl"></div>')), out = root.appendChild(html('<p class="out"></p>'));
-    function solve(n) {
-      const full = (1 << n) - 1, memo = new Int8Array(1 << n).fill(-1), down = [];
-      for (let x = 1; x <= n; x++) { let m = 0; for (let d = 1; d <= x; d++) if (x % d === 0) m |= 1 << (d - 1); down[x] = m; }
-      const win = S => { if (!S) return 0; if (memo[S] >= 0) return memo[S]; let w = 0; for (let x = 1; x <= n && !w; x++) if (S >> (x - 1) & 1 && !win(S & ~down[x])) w = 1; return memo[S] = w; };
-      const moves = []; for (let x = 1; x <= n; x++) if (!win(full & ~down[x])) moves.push(x);
-      return { w: win(full), moves };
+    let n = 10, down, memo, S, who, turn;
+    const has = x => S >> (x - 1) & 1;
+    const win = X => { if (!X) return 0; if (memo[X] >= 0) return memo[X]; let w = 0; for (let x = 1; x <= n && !w; x++) if (X >> (x - 1) & 1 && !win(X & ~down[x])) w = 1; return memo[X] = w; };
+    const erase = (x, p) => { const g = []; for (let d = 1; d <= x; d++) if (x % d === 0 && has(d)) { S &= ~(1 << (d - 1)); who[d] = p; g.push(d); } return g.join(', '); };
+    function draw() {
+      s.innerHTML = ''; const w = 520 / n;
+      for (let x = 1; x <= n; x++) { const cx = 20 + (x - 1) * w, on = has(x);
+        const r = el('rect', { x: cx + 2, y: 16, width: w - 4, height: 44, rx: 6, class: on ? 'nd' : who[x] === 'A' ? 'bad' : 'rg', style: on ? (turn === 'B' ? 'cursor:pointer' : '') : 'stroke-dasharray:3 3;fill-opacity:.3' }, s);
+        if (on) r.addEventListener('click', () => bob(x));
+        txt(s, cx + w / 2, 43, x, on ? '' : 'm').style.pointerEvents = 'none'; }
+      txt(s, 20, 88, 'dashed = erased · orange = by Alice · blue = by you', 'm', 'start');
     }
-    const show = n => { const r = solve(n); out.innerHTML = `1..${n}: Alice <b>${r.w ? 'wins' : 'loses'}</b>. Her winning first moves: <b>erase ${r.moves.join(', erase ')}</b>` + (r.moves.includes(1) ? ' (erasing 1 itself works).' : ' (erasing 1 is not one of them, so Bob would have a winning reply x, and Alice steals it by erasing x first).'); };
-    slider(ctl, 'n', 1, 16, 1, 10, show); show(10);
+    function alice(first) {
+      let x = 0; for (let y = 1; y <= n && !x; y++) if (has(y) && !win(S & ~down[y])) x = y;
+      if (!x) for (let y = n; y >= 1 && !x; y--) if (has(y)) x = y;
+      const one = first && !win(S & ~1), g = erase(x, 'A'); turn = 'B'; draw();
+      let msg = first ? (one ? `Erasing just 1 leaves you a losing board, so Alice erases <b>1</b>: the waiting move itself wins.`
+        : `Erasing just 1 would lose for Alice: you would reply “erase ${x}”, which removes ${g} (1 is always among them, since 1 divides everything). So Alice <b>steals that reply</b> and erases ${x} herself, reaching the very same board.`)
+        : `Alice erases <b>${x}</b> (${g}): the board she leaves is losing for you.`;
+      if (!S) msg += ' <b>The board is empty: you cannot move. Alice wins.</b>';
+      out.innerHTML = msg;
+    }
+    function bob(x) {
+      if (turn !== 'B' || !has(x)) return;
+      const g = erase(x, 'B'); turn = 'A'; draw();
+      if (!S) { out.innerHTML = `You erased ${g}. <b>The board is empty: Alice cannot move, you win.</b> (Only possible if Alice slipped.)`; return; }
+      out.innerHTML = `You erased ${g}.`; later(() => { const m = out.innerHTML; alice(false); out.innerHTML = m + ' ' + out.innerHTML; });
+    }
+    function start() {
+      down = [0]; for (let x = 1; x <= n; x++) { let m = 0; for (let d = 1; d <= x; d++) if (x % d === 0) m |= 1 << (d - 1); down[x] = m; }
+      memo = new Int8Array(1 << n).fill(-1); S = (1 << n) - 1; who = {}; turn = 'A'; alice(true);
+    }
+    slider(ctl, 'n', 3, 12, 1, n, v => { n = v; start(); });
+    btn(ctl, 'Restart', start);
+    start();
   };
 
   // ---------- subtraction games: marbles and divisors ----------
