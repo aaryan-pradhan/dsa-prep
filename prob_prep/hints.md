@@ -29,9 +29,9 @@ Contest: **Sun 27 Sep 2026**.
 - **About 83% is mathematics (probability).** That's 80 of 96 marks. It matches everything except one 16-mark problem (C or D2) being mathematics, so expect one problem that is mostly implementation.
 - **Sub-parts:** B1 → B2 and D1 → D2 are probably an easy version then a hard one. Solve B1 and D1 first, then look for the insight that scales them up.
 - **Order of attack:** A (8) → B1 (6) → D1 (14) → C (16) → B2 (12) → D2 (16) → E (24). E is a quarter of the paper, so read it early even if you solve it last.
-- **Prep:** the coding problems are probability derivations turned into code: expectation DP, modular inverses mod 998244353, and doubles to 1e-6. See `regionals_mock/C*.cpp`.
+- **Prep:** the coding problems are probability derivations turned into code: expectation DP, modular inverses mod 998244353, and doubles to 1e-6. See [quantfest_mock.html#code](quantfest_mock.html#code).
 
-## Format (shape from `QuantFest_2026_Mock_Regionals.md`; organizer hints above override it)
+## Format (shape from [quantfest_mock.html](quantfest_mock.html); organizer hints above override it)
 
 | Test | Format | Time | Calculator |
 |---|---|---|---|

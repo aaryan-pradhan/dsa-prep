@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QuantFest Mock Papers</title>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<style>
+:root{--bg:#f6f7f9;--ink:#171b24;--muted:#5a6273;--rule:#d9dee6;--card:#ffffff;--accent:#2346a0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f1218;--ink:#e4e7ee;--muted:#98a1b3;--rule:#283042;--card:#161a22;--accent:#93abff}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0f1218;--ink:#e4e7ee;--muted:#98a1b3;--rule:#283042;--card:#161a22;--accent:#93abff}
+body{background:var(--bg);color:var(--ink);font:18px/1.7 "MesloLGS Nerd Font Propo","MesloLGS NF",ui-monospace,monospace;padding:24px 16px 64px;margin:0}
+.wrap{max-width:52rem;margin:0 auto}
+a{color:var(--accent)}
+nav{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;font-size:.9rem;margin-bottom:1rem}
+section{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:.5rem 1.2rem 1rem;margin:1.5rem 0}
+h1{font-size:1.8rem;line-height:1.2} h2{font-size:1.4rem;border-top:1px solid var(--rule);padding-top:1rem;margin-top:2rem} h3{font-size:1.1rem}
+table{border-collapse:collapse;font-size:.9rem;display:block;overflow-x:auto}
+td,th{border:1px solid var(--rule);padding:.25rem .6rem}
+pre{background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:.6rem .8rem;font-size:.8rem;overflow-x:auto}
+code{font-size:.9em} hr{border:0;border-top:1px solid var(--rule)}
+</style>
+<div class="wrap">
+<p><a href="index.html">← Ledgers</a> · <a href="hints.md">hints.md</a></p>
+<nav><a href="#paper">Mock Paper</a><a href="#solutions">Mock Paper: Solutions</a><a href="#regionals">Mock Regionals</a><a href="#answers">Mock Regionals: Answers</a><a href="#code">Mock Regionals: My C++ Solutions</a></nav>
+<section id="paper"><script type="text/markdown">
+# QuantFest 2026 — Mock Paper
+
+**Total: 240 marks · Solutions in `QuantFest_2026_Mock_Solutions.md`**
+
+| Paper | Format | Questions | Marks | Time |
+|---|---|---|---|---|
+| 1 | Coding | 6 × 16 | 96 | 1 h 30 min |
+| 2 | Relay | 12 × 4 | 48 | 45 min |
+| 3 | Written | 5 × (5 + 7) + 3 × 12 | 96 | 2 h |
+
+**Instructions**
+- Calculators are not allowed in Papers 2 and 3. Give exact answers unless a question asks for decimals.
+- In Paper 1, real outputs are accepted within an absolute or relative error of 1e-6. Modular outputs are taken mod 998244353.
+- In Paper 2, T is the answer to the previous question. Marks are awarded only for correct answers.
+- Show your working in Paper 3; partial credit is available.
+
+---
+
+## Paper 1 — Coding (96 marks, 1 h 30 min)
+
+### C1. Minimise the Rank (16 marks)
+`n` candidates, ranked 1 (best) to n, are interviewed in uniformly random order. After each interview you learn only that candidate's rank **among those seen so far**, and you must immediately hire them or reject them for good. You must hire exactly one candidate; if you reach the last one, you must hire them.
+
+Output the minimum possible expected rank of the person hired.
+
+**Input:** one integer `n` (1 ≤ n ≤ 10⁶).
+**Output:** one real number.
+
+| Input | Output |
+|---|---|
+| `3` | `1.666667` |
+| `10` | `2.557937` |
+
+### C2. Random Walk on a Tree (16 marks)
+A tree has `n` vertices. A walker at a vertex moves to a uniformly random neighbour at each step. For each query `(u, v)` with u ≠ v, output the expected number of steps to first reach `v` when starting from `u`. Every answer is an integer.
+
+**Input:** `n q` on the first line. Then n − 1 edges `a b`. Then q queries `u v`.
+**Constraints:** 2 ≤ n ≤ 2·10⁵, 1 ≤ q ≤ 2·10⁵.
+
+Example: the input is
+```
+3 1
+1 2
+2 3
+1 3
+```
+and the output is `4`.
+
+### C3. Max of Different Uniforms (16 marks)
+The `X_i` are independent, with `X_i` uniform on `[a_i, b_i]`. Output E[max(X₁, …, Xₙ)].
+
+**Input:** `n`, then n lines `a_i b_i`.
+**Constraints:** 1 ≤ n ≤ 300, and the endpoints are integers with 0 ≤ a_i < b_i ≤ 10⁶.
+
+| Input | Output |
+|---|---|
+| `2` / `0 1` / `0 1` | `0.666667` |
+| `2` / `0 1` / `0 2` | `1.083333` |
+
+### C4. Bold Play (16 marks)
+You have fortune `x` with 0 < x < 1 and want to reach 1. Each bet wins its stake with probability `p` and loses it otherwise. You always stake min(x, 1 − x). Output the probability that you ever reach 1.
+
+**Input:** a real `p` (0.01 ≤ p ≤ 0.99) and a fraction `a/b` (1 ≤ a < b ≤ 10⁹).
+
+| Input | Output |
+|---|---|
+| `0.5 3/10` | `0.300000` |
+| `0.4 3/4` | `0.640000` |
+
+### C5. Many-way Penney (16 marks)
+Letters are drawn independently and uniformly from an alphabet of `k` letters until one of the `n` given patterns appears as a block of consecutive letters. No pattern is a substring of another.
+
+For each pattern, output the probability that it appears first, as p·q⁻¹ mod 998244353.
+
+**Input:** `n k`, then n patterns, one per line.
+**Constraints:** 2 ≤ n ≤ 10, 2 ≤ k ≤ 26, each pattern has length between 1 and 10⁵, and the patterns are written with the first k uppercase letters.
+
+Example: the input is
+```
+2 2
+HH
+TTT
+```
+and the output is
+```
+99824436
+898419918
+```
+
+### C6. Longest Run (16 marks)
+A coin with P(H) = p is tossed n times. Output the expected length of the longest run of consecutive heads.
+
+**Input:** `n p`.
+**Constraints:** 1 ≤ n ≤ 5000.
+
+| Input | Output |
+|---|---|
+| `3 0.5` | `1.375000` |
+
+---
+
+## Paper 2 — Relay (48 marks, 45 min)
+
+Each question is worth 4 marks.
+
+1. A fair coin is tossed until HTHT appears. What is the expected number of tosses?
+2. Let n = T/4. The probability that a uniformly random permutation of {1, …, n} has no fixed point is p/q in lowest terms. Find p + q.
+3. Let n = T − 36. Roll n fair six-sided dice. In how many of the 6ⁿ outcomes are all n faces different?
+4. How many positive divisors does T have?
+5. Let k = T/10. A fair coin is tossed until k consecutive tosses show the same face (all H or all T). What is the expected number of tosses?
+6. A pair of fair dice is rolled repeatedly. What is the expected number of rolls until a total of T comes up on two consecutive rolls?
+7. Let n = T/6. How many triangles whose vertices are vertices of a regular n-gon contain the centre of the n-gon in their interior?
+8. Find the Catalan number C_{T/2}.
+9. Let n = T mod 10. The expected number of records (values larger than every earlier value; the first value always counts) in a uniformly random permutation of n distinct numbers is p/2520. Find p.
+10. Let m = T mod 100. How many primes are ≤ m?
+11. Let a = T − 7 and b = T/2. A fair ±1 random walk starts at 0 and stops on first reaching −a or +b. Find 3 × E[number of steps | the walk stops at +b].
+12. Let k = T mod 7. Find 10 × (expected number of rolls of a fair k-sided die until every face has appeared at least once).
+
+---
+
+## Paper 3 — Written (96 marks, 2 h)
+
+**Q1. Overlapping patterns** (5 + 7)
+A fair coin is tossed repeatedly.
+(a) Find the expected number of tosses until HTHT first appears.
+(b) Find the expected number of tosses until HTHT **or** THTH first appears.
+
+**Q2. Shattered stick** (5 + 7)
+(a) A unit stick is broken at 4 points chosen independently and uniformly. Find the probability that the 5 pieces can form a pentagon.
+(b) A unit stick is broken at 3 independent uniform points. Find the expected length of the longest of the 4 pieces.
+
+**Q3. Buses and callers** (5 + 7)
+(a) Buses arrive at a stop as a Poisson process with rate 4 per hour. You arrive at a random time. Find the expected length of the gap between the bus before you and the bus after you.
+(b) Calls arrive as a Poisson process with rate 5 per hour. Each call is from a VIP independently with probability 0.3. Given that exactly 4 VIP calls arrived in a particular hour, find the expected total number of calls in that hour.
+
+**Q4. Gaussian geometry** (5 + 7)
+X, Y, Z are independent standard normal random variables.
+(a) Find P(X > Y | X > 0).
+(b) Find E[max(X, Y, Z)].
+
+**Q5. Make me a market** (5 + 7)
+(a) Two fair dice are rolled and you are paid the product of the faces. What is the fair price?
+(b) After seeing both dice you may reroll one of them (once), or keep both, and you are paid the final product. What is the fair price under optimal play?
+
+**Q6. Lost boarding pass** (12)
+100 passengers with assigned seats board a 100-seat plane in order 1, 2, …, 100. Passenger 1 has lost their boarding pass and sits in a uniformly random seat. Every later passenger sits in their own seat if it is free, and otherwise in a uniformly random free seat. Find the expected number of passengers who do not sit in their own seat.
+
+**Q7. Landing on 100** (12)
+A fair die is rolled repeatedly and the running total is kept, stopping as soon as the total is at least 100. Which final total is most likely? Give its probability to 4 decimal places, with justification.
+
+**Q8. The conditioned walk** (12)
+A fair ±1 random walk starts at 0 and stops on first reaching −3 or +5. Given that it stops at +5, find the expected number of steps.
+
+</script></section><section id="solutions"><script type="text/markdown">
+# QuantFest 2026 — Mock Paper: Full Solutions
+
+The questions are in `QuantFest_2026_Mock_Paper.md`. Every answer was checked by exact computation or simulation. All six C++ solutions pass the samples and matched brute force on random tests.
+
+| Paper | Answers |
+|---|---|
+| 2 (Relay) | 20, 41, 720, 30, 7, 42, 14, 429, 7129, 10, 55, 147 |
+| 3 (Written) | 1: 20, 15 · 2: 11/16, 25/48 · 3: 30 min, 7.5 · 4: 3/4, 3/(2√π) · 5: 49/4, 617/36 · 6: H₁₀₀ − 1/100 ≈ 5.1774 · 7: 100, 0.2857 · 8: 55/3 |
+
+---
+
+## Paper 1 — Coding
+
+### C1. Minimise the Rank
+
+**Setup.** Suppose candidate i has relative rank r among the first i candidates. Their absolute rank then has expectation r(n+1)/(i+1).
+- Why: given relative rank r, the r-th smallest of i uniformly random positions among {1..n} has mean r(n+1)/(i+1).
+
+**Recursion.**
+- V_i is the best expected rank achievable when you are about to see candidate i and have not yet hired anyone.
+- At the last candidate you are forced to hire: r is uniform on 1..n, so V_n = (n+1)/2.
+- Otherwise V_i = (1/i) · Σ_{r=1}^{i} min(r(n+1)/(i+1), V_{i+1}), because r is uniform on 1..i and you either hire now or continue.
+
+**Speed.** r(n+1)/(i+1) increases with r, so you hire exactly when r ≤ t = ⌊V_{i+1}(i+1)/(n+1)⌋ (capped at i). That makes each step an arithmetic series plus (i − t)·V_{i+1}: O(1) per step, O(n) in total.
+
+**Check.** n = 3 gives 5/3 and n = 10 gives 3223/1260 ≈ 2.557937 (exact fractions). As n → ∞ the value tends to ≈ 3.8695; n = 10⁵ gives 3.868966.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    long long n; cin >> n;
+    double V = (n + 1) / 2.0;                       // forced to take the last candidate
+    for (long long i = n - 1; i >= 1; i--) {
+        double c = (n + 1.0) / (i + 1);             // expected rank per unit of relative rank
+        long long t = min<long long>(i, (long long)floor(V / c));   // take r <= t
+        V = (c * t * (t + 1) / 2 + (i - t) * V) / i;
+    }
+    printf("%.6f\n", V);
+}
+```
+
+### C2. Random Walk on a Tree
+
+**Key fact.** Root the tree. Let e(x) = E[steps from x to its parent], and let sub(x) be the size of x's subtree. Claim: e(x) = 2·sub(x) − 1.
+
+Proof by induction from the leaves up:
+- A leaf has one neighbour (its parent), so e(x) = 1 = 2·1 − 1.
+- Otherwise x has d = c + 1 neighbours: c children and 1 parent.
+  - With probability 1/d the walk steps straight to the parent: cost 1.
+  - With probability 1/d it steps into child y. It then needs e(y) steps to come back to x, and e(x) more from there: cost 1 + e(y) + e(x).
+- So e(x) = 1 + (1/d)·Σ_y (e(y) + e(x)). Multiply by d and move the c·e(x) terms to the left:
+  e(x) = d + Σ_y e(y) = 1 + c + Σ_y (2·sub(y) − 1) = 1 + 2·Σ_y sub(y) = 1 + 2(sub(x) − 1) = 2·sub(x) − 1.
+
+Re-rooting at the child gives the downward cost: E[steps from the parent into child x] = 2(n − sub(x)) − 1.
+
+**Queries.**
+- Let U[x] be the sum of the "up" costs from x to the root, and D[x] the sum of the "down" costs from the root to x.
+- The path u → v goes up to l = lca(u, v) and then down to v, so E = (U[u] − U[l]) + (D[v] − D[l]).
+- Hitting times add along the path because in a tree the walk must pass through every vertex on it.
+
+**Complexity.** O((n + q) log n) with binary lifting. Values reach about 4·10¹⁰, so use `long long`.
+
+**Check.** The path 1–2–3 gives 1 + 3 = 4 = (n − 1)². Random small trees were checked against an exact linear solve.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    vector<vector<int>> g(n + 1);
+    for (int i = 0; i < n - 1; i++) { int a, b; scanf("%d %d", &a, &b); g[a].push_back(b); g[b].push_back(a); }
+    const int LG = 18;
+    vector<array<int, LG>> up(n + 1);
+    vector<int> dep(n + 1, 0), order, par(n + 1, 0);
+    vector<long long> sub(n + 1, 1), U(n + 1, 0), D(n + 1, 0);
+    order.reserve(n); vector<int> st = {1}; par[1] = 1;
+    while (!st.empty()) { int x = st.back(); st.pop_back(); order.push_back(x);
+        for (int y : g[x]) if (y != par[x]) { par[y] = x; dep[y] = dep[x] + 1; st.push_back(y); } }
+    for (int i = n - 1; i > 0; i--) sub[par[order[i]]] += sub[order[i]];
+    for (int x : order) {
+        if (x != 1) { U[x] = U[par[x]] + 2 * sub[x] - 1; D[x] = D[par[x]] + 2 * (n - sub[x]) - 1; }
+        up[x][0] = par[x]; for (int k = 1; k < LG; k++) up[x][k] = up[up[x][k - 1]][k - 1];
+    }
+    auto lca = [&](int a, int b) {
+        if (dep[a] < dep[b]) swap(a, b);
+        for (int k = LG - 1; k >= 0; k--) if (dep[a] - (1 << k) >= dep[b]) a = up[a][k];
+        if (a == b) return a;
+        for (int k = LG - 1; k >= 0; k--) if (up[a][k] != up[b][k]) a = up[a][k], b = up[b][k];
+        return up[a][0];
+    };
+    while (q--) { int u, v; scanf("%d %d", &u, &v); int l = lca(u, v);
+        printf("%lld\n", (U[u] - U[l]) + (D[v] - D[l])); }
+}
+```
+
+### C3. Max of Different Uniforms
+
+**Formula.** For M ≥ 0, E[M] = ∫₀^∞ P(M > t) dt = ∫₀^{max b} (1 − Π_i F_i(t)) dt, where F_i(t) = clamp((t − a_i)/(b_i − a_i), 0, 1).
+
+**Segments.**
+- Sort all endpoints. On each segment [L, R] between consecutive endpoints, every F_i is either 0, 1 or linear.
+- If some F_i = 0 on the whole segment, the integrand is 1 and the segment contributes R − L.
+- Otherwise Π F_i is a polynomial of degree d = the number of active (linear) factors.
+
+**Exact numerical integration.** Gauss–Legendre with ⌊d/2⌋ + 1 nodes integrates a polynomial of degree d exactly.
+- Evaluate the product directly at each node, so no polynomial coefficients are ever stored.
+- There are O(n) segments, each needing O(n) nodes × O(n) factors: O(n³), about 2.7·10⁷ operations for n = 300.
+
+**Trap.** Expanding the product into coefficients loses all precision.
+
+**Check.** [0,1],[0,1] gives 2/3, and [0,1],[0,2] gives 13/12. Monte Carlo agreed on random inputs.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    int n; cin >> n; vector<double> a(n), b(n); vector<double> pts;
+    for (int i = 0; i < n; i++) { cin >> a[i] >> b[i]; pts.push_back(a[i]); pts.push_back(b[i]); }
+    pts.push_back(0); sort(pts.begin(), pts.end()); pts.erase(unique(pts.begin(), pts.end()), pts.end());
+    // Gauss-Legendre nodes, m points exact for degree 2m-1
+    auto gl = [](int m) { vector<double> x(m), w(m);
+        for (int i = 0; i < m; i++) { double z = cos(M_PI * (i + 0.75) / (m + 0.5)), pp;
+            for (int it = 0; it < 100; it++) { double p1 = 1, p2 = 0; for (int j = 1; j <= m; j++) { double p3 = p2; p2 = p1; p1 = ((2 * j - 1) * z * p2 - (j - 1) * p3) / j; }
+                pp = m * (z * p1 - p2) / (z * z - 1); double z1 = z; z = z1 - p1 / pp; if (fabs(z - z1) < 1e-15) break; }
+            x[i] = z; w[i] = 2 / ((1 - z * z) * pp * pp); } return make_pair(x, w); };
+    double E = 0;                                     // E[max] = integral over t >= 0 of (1 - prod F_i(t))
+    for (size_t s = 0; s + 1 < pts.size(); s++) {
+        double L = pts[s], R = pts[s + 1]; int deg = 0; bool zero = false;
+        for (int i = 0; i < n; i++) { if (b[i] <= L) continue; if (a[i] >= R) { zero = true; break; } deg++; }
+        if (zero) { E += R - L; continue; }           // some F_i = 0 on the whole segment
+        auto [x, w] = gl(deg / 2 + 1);
+        double I = 0;
+        for (size_t k = 0; k < x.size(); k++) { double t = (L + R) / 2 + (R - L) / 2 * x[k], pr = 1;
+            for (int i = 0; i < n; i++) if (b[i] > L) pr *= (t - a[i]) / (b[i] - a[i]);
+            I += w[k] * (1 - pr); }
+        E += I * (R - L) / 2;
+    }
+    printf("%.6f\n", E);
+}
+```
+
+### C4. Bold Play
+
+**Recursion.** With stake min(x, 1 − x):
+- For x < ½: win → 2x, lose → 0. So Q(x) = p·Q(2x).
+- For x ≥ ½: win → 1, lose → 2x − 1. So Q(x) = p + (1 − p)·Q(2x − 1).
+- Boundaries: Q(0) = 0 and Q(1) = 1.
+
+**Unrolling.** Each step maps x to 2x mod 1, i.e. it reads x's next binary digit, and adds p times a running multiplier when that digit is 1. So Q(x) = Σ_k p·Π(multipliers so far) over the 1-bits of x.
+
+**Implementation.**
+- Keep x = a/b exactly with integers: a ← 2a or 2a − b, which stays below 2·10⁹, so `long long` is enough.
+- Stop when a = 0 (x hit 0 exactly) or when the multiplier drops below 1e-15.
+- The multiplier shrinks by at least max(p, 1 − p) ≤ 0.99 per step, so about 3500 steps are enough. A fixed 60 iterations is wrong for p near 0.99.
+
+**Check.** p = ½ gives Q(x) = x (a fair game). p = 0.4 with x = ¾ gives 0.4 + 0.6·0.4 = 0.64.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    double p; long long a, b; char sl; cin >> p >> a >> sl >> b;
+    // Q(x) = p Q(2x) (x < 1/2);  p + (1-p) Q(2x-1) (x >= 1/2).  Accumulate the linear chain.
+    double ans = 0, mult = 1;
+    for (int it = 0; it < 6000 && mult > 1e-15; it++) {
+        if (a == 0) break;                            // Q(0) = 0
+        if (2 * a < b) { mult *= p; a = 2 * a; }
+        else { ans += mult * p; mult *= (1 - p); a = 2 * a - b; }
+    }
+    printf("%.6f\n", ans);
+}
+```
+
+### C5. Many-way Penney
+
+**Gambler argument.**
+- Before each letter, a new gambler arrives for every pattern P_j. They bet $1 at fair odds (payout k) that the next letter is P_j's next letter, and keep doubling up.
+- The casino's net gain is a martingale.
+- When pattern P_i finishes the game, the P_j-gamblers still alive are exactly those whose bets so far spell a prefix of P_j that equals a suffix of P_i. The one who started L letters ago holds k^L.
+
+**Linear system.**
+- Define C(P_i, P_j) = Σ k^L over all L where the length-L suffix of P_i equals the length-L prefix of P_j.
+- Optional stopping for the P_j-gamblers: Σ_i q_i · C(P_i, P_j) = E[T] for every j. Here q_i = P(P_i wins) and E[T] is the expected number of letters.
+- Together with Σ q_i = 1 this gives n + 1 linear equations in n + 1 unknowns.
+
+**Overlaps.** Compute the prefix function of `P_j + sep + P_i`. The border chain from the end lists every such L. Cost: O(|P_i| + |P_j|) per pair.
+
+**Solve.** Gaussian elimination mod 998244353. O(n²·|P| + n³) in total.
+
+**Check.** For HH vs TTT: C(HH,HH) = 2 + 4 = 6, C(TTT,TTT) = 2 + 4 + 8 = 14, and the cross terms are 0. So 6q₁ = 14q₂ = E and q₁ + q₂ = 1, which gives q₁ = 7/10 and E = 21/5. Random pattern sets were checked against an exact Markov-chain solve.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+const long long M = 998244353;
+long long pw(long long b, long long e) { long long r = 1; b %= M; while (e) { if (e & 1) r = r * b % M; b = b * b % M; e >>= 1; } return r; }
+// sum of k^L over all L where the length-L suffix of s equals the length-L prefix of t
+long long corr(const string& s, const string& t, long long k) {
+    string z = t + '\x01' + s; int m = z.size(); vector<int> pi(m, 0);
+    for (int i = 1; i < m; i++) { int j = pi[i - 1]; while (j && z[i] != z[j]) j = pi[j - 1]; if (z[i] == z[j]) j++; pi[i] = j; }
+    long long r = 0; for (int L = pi[m - 1]; L > 0; L = pi[L - 1]) r = (r + pw(k, L)) % M;
+    return r;
+}
+int main() {
+    int n; long long k; cin >> n >> k; vector<string> P(n); for (auto& s : P) cin >> s;
+    // unknowns q_1..q_n, E :  sum_i q_i C(P_i,P_j) - E = 0 for each j;  sum_i q_i = 1
+    int N = n + 1; vector<vector<long long>> A(N, vector<long long>(N + 1, 0));
+    for (int j = 0; j < n; j++) { for (int i = 0; i < n; i++) A[j][i] = corr(P[i], P[j], k); A[j][n] = M - 1; }
+    for (int i = 0; i < n; i++) A[n][i] = 1; A[n][N] = 1;
+    for (int c = 0; c < N; c++) { int piv = c; while (!A[piv][c]) piv++; swap(A[piv], A[c]);
+        long long inv = pw(A[c][c], M - 2); for (auto& v : A[c]) v = v * inv % M;
+        for (int r = 0; r < N; r++) if (r != c && A[r][c]) { long long f = A[r][c]; for (int x = 0; x <= N; x++) A[r][x] = ((A[r][x] - f * A[c][x]) % M + M) % M; } }
+    for (int i = 0; i < n; i++) printf("%lld\n", A[i][N]);
+}
+```
+
+### C6. Longest Run
+
+**Tail sum.** E[L] = Σ_{k=1}^{n} P(L ≥ k) = Σ_k (1 − g_k(n)), where g_k(i) = P(every run of H among the first i tosses is shorter than k).
+
+**Recurrence.** Classify by the length j of the final run of H:
+- If j < i: the last j tosses are H (probability pʲ), preceded by a T (1 − p), preceded by a valid string of length i − j − 1.
+- If j = i: all i tosses are H. This is allowed only if i < k.
+- So g_k(i) = (1 − p)·Σ_{j=0}^{k−1} pʲ·g_k(i − 1 − j) + [i < k]·pⁱ.
+
+**Speed.** Keep a sliding window S = Σ_{j<k} pʲ·g(i − 1 − j). Update it as S ← p·S + g(i − 1) − pᵏ·g(i − 1 − k), which is O(1) per step. That is O(n) per k and O(n²) = 2.5·10⁷ in total.
+
+**Check.** n = 3, p = ½ gives 11/8. Brute force over all 2ⁿ strings (n ≤ 10) agreed.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    int n; double p; cin >> n >> p;
+    double E = 0;
+    for (int k = 1; k <= n; k++) {                    // E = sum_k P(longest >= k) = sum_k (1 - P(all runs < k))
+        vector<double> g(n + 1); g[0] = 1;
+        double S = 0;                                 // S = sum_{j=0}^{k-1} p^j g[i-1-j]
+        double pk = pow(p, k);
+        for (int i = 1; i <= n; i++) {
+            S = S * p + g[i - 1];                     // shift window: add j = 0 term
+            if (i - 1 - k >= 0) S -= pk * g[i - 1 - k];
+            g[i] = (1 - p) * S + (i < k ? pow(p, i) : 0);   // last run of H has length j; or all H
+        }
+        E += 1 - g[n];
+    }
+    printf("%.6f\n", E);
+}
+```
+
+---
+
+## Paper 2 — Relay
+
+**R1 = 20.**
+- Casino argument: before each toss a new gambler bets $1 on HTHT, doubling on every correct letter.
+- Every bet is fair, so E[money paid out] = E[money taken in] = E[T].
+- When HTHT completes, the gamblers still alive are those whose letters so far form a prefix of HTHT that is also a suffix of HTHT: HT (holding 2² = 4) and HTHT (holding 2⁴ = 16).
+- E[T] = 4 + 16 = **20**.
+
+**R2 = 41.**
+- n = 20/4 = 5.
+- Derangements: D₅ = 5!(1 − 1 + 1/2! − 1/3! + 1/4! − 1/5!) = 120 − 120 + 60 − 20 + 5 − 1 = 44.
+- P = 44/120 = 11/30 (gcd 4), so p + q = **41**.
+
+**R3 = 720.**
+- n = 41 − 36 = 5.
+- All different: 6 choices for the first die, 5 for the second, …, 2 for the fifth: 6·5·4·3·2 = **720**.
+
+**R4 = 30.**
+- 720 = 2⁴·3²·5, so the number of divisors is (4+1)(2+1)(1+1) = **30**.
+
+**R5 = 7.**
+- k = 30/10 = 3.
+- After the first toss, track r = the length of the current run of equal faces.
+- Each toss either extends the run (probability ½) or starts a new run of length 1 (probability ½).
+- Let E_r = the expected number of further tosses from run length r, with E₃ = 0:
+  - E₂ = 1 + ½·E₃ + ½·E₁ = 1 + ½E₁
+  - E₁ = 1 + ½E₂ + ½E₁
+- So ½E₁ = 1 + ½(1 + ½E₁) = 3/2 + ¼E₁, which gives ¼E₁ = 3/2 and E₁ = 6.
+- Adding the first toss: 1 + 6 = **7**.
+- (The general answer is 2ᵏ − 1. The trap is "k heads in a row", which gives 2^(k+1) − 2 = 14.)
+
+**R6 = 42.**
+- A total of 7 has probability p = 6/36 = 1/6 per roll.
+- States: 0 = the last roll was not a 7 (or no roll yet); 1 = the last roll was a 7.
+  - e₀ = 1 + p·e₁ + (1 − p)·e₀
+  - e₁ = 1 + p·0 + (1 − p)·e₀
+- Substitute the second into the first: p·e₀ = 1 + p(1 + (1 − p)·e₀). So p·e₀ − p(1 − p)·e₀ = 1 + p, i.e. p²·e₀ = 1 + p.
+- e₀ = (1 + p)/p² = (7/6)·36 = **42**.
+
+**R7 = 14.**
+- n = 42/6 = 7. There are C(7,3) = 35 triangles.
+- A triangle misses the centre exactly when its three vertices lie within a half-circle. For odd n no two vertices are diametrically opposite, so this is unambiguous.
+- Count the bad triangles by their first vertex v, going clockwise: the other two must lie among the next (n − 1)/2 = 3 vertices, so C(3,2) = 3 choices. Each bad triangle has exactly one such first vertex.
+- Bad = 7·3 = 21, so good = 35 − 21 = **14**.
+
+**R8 = 429.**
+- T/2 = 7, and C₇ = C(14,7)/8 = 3432/8 = **429**.
+
+**R9 = 7129.**
+- n = 429 mod 10 = 9.
+- The i-th value is a record exactly when it is the largest of the first i values; by symmetry that has probability 1/i.
+- By linearity, E = H₉ = 1 + 1/2 + … + 1/9 = 7129/2520, so p = **7129**.
+
+**R10 = 10.**
+- m = 7129 mod 100 = 29. The primes ≤ 29 are 2, 3, 5, 7, 11, 13, 17, 19, 23, 29: **10**.
+
+**R11 = 55.**
+- a = 10 − 7 = 3 and b = 10/2 = 5. By Paper 3 Q8 below, E[T | stop at +5] = 55/3.
+- 3 × 55/3 = **55**.
+
+**R12 = 147.**
+- k = 55 mod 7 = 6.
+- With j faces already seen, each roll shows a new face with probability (6 − j)/6, so that stage lasts 6/(6 − j) rolls on average.
+- Total = 6/6 + 6/5 + 6/4 + 6/3 + 6/2 + 6/1 = 6·H₆ = 14.7, and 10 × 14.7 = **147**.
+
+---
+
+## Paper 3 — Written
+
+### Q1 (a) = 20
+- Casino argument, as in R1. The gamblers alive at the end are those whose played letters are both a prefix and a suffix of HTHT: L = 2 (HT) and L = 4.
+- E = 2² + 2⁴ = **20**.
+
+### Q1 (b) = 15
+- **States** are the longest ending of the tosses so far that is still the start of one of the patterns: ∅, H, T, HT, TH, HTH, THT.
+- **Transitions:**
+
+  | State | Toss H | Toss T |
+  |---|---|---|
+  | H | H | HT |
+  | HT | HTH | T |
+  | HTH | H | done (HTHT) |
+  | T | TH | T |
+  | TH | H | THT |
+  | THT | done (THTH) | T |
+
+  - Why HT + T → T: HTT has no ending that starts HTHT except "T", which starts THTH.
+  - Why HTH + H → H: the only useful ending of HTHH is H.
+- **Symmetry.** Swapping H and T swaps the two patterns, so e_H = e_T = a, e_HT = e_TH = b, and e_HTH = e_THT = c.
+- **Equations** (each toss costs 1):
+  - a = 1 + ½a + ½b
+  - b = 1 + ½c + ½a
+  - c = 1 + ½·0 + ½a
+- **Solve:**
+  - From the first: ½a = 1 + ½b, so a = 2 + b.
+  - Substitute c into the second: b = 1 + ½(1 + ½a) + ½a = 3/2 + ¾a.
+  - Then a = 2 + 3/2 + ¾a, so ¼a = 7/2 and a = 14.
+- e_∅ = 1 + a = **15**. (Not 20/2: the two patterns share their "middle".)
+
+### Q2 (a) = 11/16
+- n pieces form a polygon exactly when every piece is shorter than ½ (the polygon inequality).
+- A particular piece is ≥ ½ with probability (1/2)^(n−1): all n − 1 cut points must avoid a half-length region.
+- At most one piece can be ≥ ½, so these events are disjoint and P(fail) = n·(1/2)^(n−1).
+- n = 5: P = 1 − 5/16 = **11/16**.
+
+### Q2 (b) = 25/48
+- **Representation.** Let E₁, …, E_n be iid Exp(1) and S = their sum. The n pieces have the same joint law as (E₁/S, …, E_n/S), and this vector is independent of S.
+- **Sorting.** Write the sorted exponentials in decreasing order: E_(1) ≥ … ≥ E_(n). By memorylessness, the gaps between consecutive order statistics are independent exponentials, and E[E_(1)] = 1/1 + 1/2 + … + 1/n = H_n.
+- **Longest piece.** It equals E_(1)/S. By independence, E[E_(1)] = E[E_(1)/S]·E[S], so E[longest] = H_n/n.
+- n = 4: (1/4)(1 + 1/2 + 1/3 + 1/4) = (1/4)(25/12) = **25/48**.
+
+### Q3 (a) = 30 minutes
+- By memorylessness, the time back to the previous bus and the time forward to the next bus are independent Exp(λ), each with mean 1/λ.
+- The gap containing you has mean 2/λ = 2/4 h = **30 min**.
+- This is the inspection paradox: long gaps are more likely to contain you, so the gap you see is length-biased. Its density is λ²x·e^(−λx).
+
+### Q3 (b) = 7.5
+- Thinning: VIP calls form a Poisson(1.5/h) process and non-VIP calls a Poisson(3.5/h) process, and the two are **independent**.
+- So given 4 VIP calls, the non-VIP count is still Poisson(3.5), and E[total] = 4 + 3.5 = **7.5**.
+
+### Q4 (a) = 3/4
+- (X, Y) is rotationally symmetric, so the probability of a wedge is its angle divided by 360°.
+- {X > 0} is the angles (−90°, 90°). {X > Y} is the angles (−135°, 45°). Their intersection is (−90°, 45°): 135°.
+- P(X > Y, X > 0) = 135/360 = 3/8, and P(X > 0) = 1/2.
+- Conditional: (3/8)/(1/2) = **3/4**.
+
+### Q4 (b) = 3/(2√π) ≈ 0.846
+- By symmetry E[max] = 3·E[X·1{X > Y, X > Z}] = 3∫ x·φ(x)·Φ(x)² dx.
+- Integrate by parts using x·φ(x) = −φ′(x): ∫ x·φ·Φ² dx = ∫ φ(x)·2Φ(x)φ(x) dx = 2∫ φ(x)²Φ(x) dx.
+- φ(x)² = e^(−x²)/(2π) = (1/(2√π))·g(x), where g is the N(0, ½) density.
+- ∫ g(x)Φ(x) dx = P(Z ≤ W) for independent Z ~ N(0,1) and W ~ N(0,½). Z − W is symmetric about 0, so this is ½.
+- So E[max] = 3·2·(1/(2√π))·½ = **3/(2√π)**. A simulation gives 0.8456.
+
+### Q5 (a) = 49/4
+- The dice are independent, so E[ab] = E[a]·E[b] = 3.5² = **12.25**.
+
+### Q5 (b) = 617/36 ≈ 17.14
+- Let m ≤ M be the two faces.
+  - Keep both: payoff mM.
+  - Reroll the smaller die: expected payoff 3.5·M. (Rerolling the larger die is never better.)
+- Reroll exactly when m < 3.5, i.e. m ≤ 3.
+- The 27 ordered pairs with min ≤ 3 have Σ max = 112, contributing 3.5 × 112 = 392.
+- The 9 pairs with both faces in {4, 5, 6} contribute (4 + 5 + 6)² = 225.
+- E = (392 + 225)/36 = **617/36**.
+
+### Q6 = H₁₀₀ − 1/100 ≈ 5.1774
+- **Passenger 1** is misplaced unless they happen to pick seat 1: probability 99/100.
+- **Passenger j ≥ 2** (n = 100):
+  - When j boards, seats 2, …, j − 1 are all taken. Every earlier passenger either sat in their own seat or found it taken.
+  - So exactly j − 1 seats are taken, all of seats 2..j − 1 among them. That leaves exactly one taken seat among the n − j + 2 seats {1, j, j+1, …, n}.
+  - Every random choice so far treated those seats symmetrically, so that taken seat is equally likely to be any of them.
+  - P(seat j is taken) = 1/(n − j + 2).
+- **Linearity:**
+  - E = (n − 1)/n + Σ_{j=2}^{n} 1/(n − j + 2)
+  - The sum is 1/n + 1/(n−1) + … + 1/2 = H_n − 1, so E = 1 − 1/n + H_n − 1 = H_n − 1/n.
+- n = 100: H₁₀₀ ≈ 5.18738, so E ≈ **5.1774**. A simulation agrees.
+
+### Q7: final total 100, with P ≈ 0.2857
+- The final total is s + d, where s ∈ {94, …, 99} is the last total below 100 and d is the final roll.
+- A final total of 100 + j (j = 0, …, 5) needs s ≥ 94 + j followed by the exact roll: 6 − j possible values of s, each finished by probability 1/6.
+- Far from the start, the chance that the running total ever equals a given s is ≈ 1/(mean roll) = 1/3.5 = 2/7 (the renewal theorem).
+- So P(100 + j) ≈ (6 − j)·(2/7)·(1/6) = (6 − j)/21: 6/21, 5/21, …, 1/21. **100 is most likely**, with P ≈ 2/7 ≈ **0.2857**.
+- The exact dynamic program over totals gives 0.28571 to 5 decimals. The error from the "far from the start" approximation is below 10⁻¹⁰ by 100.
+
+### Q8 = 55/3
+- **Setup.** Let y = distance above −3, so y runs from 0 to N = 8 and the walk starts at y = 3.
+- P(stop at the top | at y) = h(y) = y/N (fair gambler's ruin).
+- **Conditioned walk.** Given that it stops at the top, the walk moves y → y ± 1 with probabilities h(y ± 1)/(2h(y)). This is Doob's h-transform: Bayes applied to one step.
+- **Equation.** Let m(y) = E[steps | stop at the top]:
+  - m(y) = 1 + [(y − 1)·m(y − 1) + (y + 1)·m(y + 1)]/(2y), with m(N) = 0.
+- **Guess** m(y) = (N² − y²)/3. Checking the right-hand side:
+  - (y − 1)(N² − (y − 1)²) + (y + 1)(N² − (y + 1)²) = 2yN² − 2y³ − 6y
+  - Dividing by 6y gives (N² − y² − 3)/3.
+  - Adding 1 gives (N² − y²)/3 ✓. Also m(N) = 0 ✓.
+- **Answer.** m(3) = (64 − 9)/3 = **55/3** ≈ 18.33.
+- The trap: the unconditional E[T] = 3·5 = 15.
+
+</script></section><section id="regionals"><script type="text/markdown">
+# QuantFest 2026 — Mock Regionals
+
+**Total: 240 marks · 3 h 30 min · Answers in `QuantFest_2026_Mock_Regionals_Answers.md`**
+
+Same shape as the official Regionals: three tests on one day, 1.5 h + 0.5 h + 1.5 h. The questions are predictions, not leaks. They are built from the 2025 prelims topics (ballot-type counting, expectation DP, "P(x) = a + b·P(1)" self-loops, run-length strings, uniforms), plus every family in these ledgers.
+
+| Test | Format | Questions | Marks | Time |
+|---|---|---|---|---|
+| 1 | Coding | 6 × 16 | 96 | 1 h 30 min |
+| 2 | Relay | 8 × 6 | 48 | 30 min |
+| 3 | Written (probability) | 8 × 12 | 96 | 1 h 30 min |
+
+**Instructions**
+- No calculators in Tests 2 and 3. Give exact answers.
+- Test 1: real outputs are accepted within an absolute or relative error of 1e-6. Modular outputs are taken mod 998244353.
+- Test 2: T is the answer to the previous question. Only correct answers score.
+- Test 3: show your working; partial credit is available.
+
+---
+
+## Test 1 — Coding (96 marks, 1 h 30 min)
+
+### C1. Up to k Rolls (16 marks)
+You roll a fair m-sided die (faces 1..m). After each roll you may keep the number (you are paid that many dollars and the game ends) or throw it away and roll again. You may roll at most k times; the k-th roll must be kept.
+
+Output the expected payout under optimal play.
+
+Input: m k (1 ≤ m, k ≤ 10⁶). Output: one real number.
+
+| Input | Output |
+|---|---|
+| 6 1 | 3.500000 |
+| 6 2 | 4.250000 |
+| 6 3 | 4.666667 |
+| 10 3 | 7.450000 |
+
+### C2. Square Stones (16 marks)
+A pile has n stones. Alice and Bob alternate, Alice first. A move removes a positive perfect square number of stones (1, 4, 9, …), no more than the pile holds. The player who cannot move loses.
+
+Input: t, then t lines each with n (1 ≤ t ≤ 10⁵, 1 ≤ n ≤ 10⁵). Output: the winner for each n.
+
+| Input | Output |
+|---|---|
+| 5 / 1 / 2 / 3 / 4 / 5 | Alice Bob Alice Alice Bob |
+
+### C3. Ruin, Modulo (16 marks)
+A gambler holds s dollars. Each round they win $1 with probability p = a/b and lose $1 otherwise, and play stops at $0 or $N. Output the probability of reaching $N, as P·Q⁻¹ mod 998244353.
+
+Input: a b s N (1 ≤ a < b ≤ 10⁹, 0 ≤ s ≤ N ≤ 10¹⁸). It is guaranteed the answer's denominator is not divisible by 998244353.
+
+| Input | Output |
+|---|---|
+| 1 2 1 2 | 499122177 |
+| 2 3 1 2 | 665496236 |
+| 2 3 2 5 | 96604293 |
+
+### C4. Never Below Zero (16 marks)
+Count the orderings of n up-steps (+1) and m down-steps (−1) whose running sum never goes below 0. Output mod 998244353.
+
+Input: q, then q lines each with n m (1 ≤ q ≤ 10⁵, 0 ≤ n, m ≤ 10⁶).
+
+| Input | Output |
+|---|---|
+| 4 / 2 1 / 3 3 / 5 2 / 3 4 | 2 5 14 0 |
+
+### C5. Divisor Walk (16 marks)
+Start at n. Each step, replace the current number x by a uniformly random divisor of x (1 and x itself included). Output the expected number of steps until the number is 1.
+
+Input: q, then q lines each with n (1 ≤ q ≤ 10⁵, 1 ≤ n ≤ 10⁶). Output: one real number per query.
+
+| Input | Output |
+|---|---|
+| 5 / 1 / 2 / 4 / 6 / 12 | 0.000000 2.000000 2.500000 2.666667 3.033333 |
+
+### C6. Ends of the Row (16 marks)
+n coins with values a₁ … aₙ lie in a row. Alice and Bob alternate, Alice first; each turn a player takes the coin at either end of the row. Both play to maximise their own total. Output Alice's total.
+
+Input: n, then a₁ … aₙ (1 ≤ n ≤ 5000, 1 ≤ aᵢ ≤ 10⁹).
+
+| Input | Output |
+|---|---|
+| 4 / 3 9 1 2 | 11 |
+| 3 / 1 2 3 | 4 |
+| 4 / 4 4 4 4 | 8 |
+
+---
+
+## Test 2 — Relay (48 marks, 30 min)
+
+T is the answer to the previous question.
+
+1. A fair die is rolled until the first 6. What is the expected number of rolls?
+2. A fair coin is tossed until T heads have appeared in total. What is the expected number of tosses?
+3. How many diagonals does a convex T-gon have?
+4. How many positive divisors does T have?
+5. A token walks on the T vertices of a cycle, moving to each of its two neighbours with probability ½. Starting at vertex 0, what is the expected number of steps until it first returns to 0?
+6. A gambler has $2 and bets $1 on fair coin flips until reaching $0 or $T. What is the expected number of bets?
+7. In how many ways can a 2 × (T/2) board be tiled with 1 × 2 dominoes?
+8. How many integers from 1 to 100 are divisible by T or by 7?
+
+---
+
+## Test 3 — Written (96 marks, 1 h 30 min)
+
+**W1. Tuesday (12).** A family has two children. Each child is a boy or a girl with probability ½, born on each weekday with probability 1/7, independently. You learn that at least one child is a boy born on a Tuesday. Find P(both are boys).
+
+**W2. Biased walk (5 + 7).** A walk starts at 0. Each step is +1 with probability 2/3 and −1 with probability 1/3, and it stops on first reaching −3 or +5.
+(a) Find P(it stops at +5).
+(b) Find the expected number of steps.
+
+**W3. Patterns (5 + 7).** A fair coin is tossed repeatedly.
+(a) Find the expected number of tosses until HTH first appears.
+(b) Find P(HTH appears before HHT).
+
+**W4. Paid rerolls (12).** You roll a fair die. You may reroll up to 2 more times, paying $1 per reroll; you are paid the last number rolled, minus what you paid. Find the value of the game under optimal play, and the optimal strategy.
+
+**W5. Broken stick (5 + 7).** A stick of length 1 is broken at two independent uniform points.
+(a) Find P(the three pieces form a triangle).
+(b) Find the expected length of the longest piece.
+
+**W6. Take 1, 3 or 4 (12).** A pile has 2026 stones. Alice and Bob alternate, Alice first; a move removes 1, 3 or 4 stones. The player who cannot move loses. Find every losing pile size, prove your answer, and state who wins from 2026 with a winning first move.
+
+**W7. First ace (12).** A standard 52-card deck is shuffled. Find the expected number of cards that appear before the first ace.
+
+**W8. Two uniforms (5 + 7).** X, Y are independent and uniform on [0, 1].
+(a) Find P(max(X, Y) ≤ 2·min(X, Y)).
+(b) Find E|X − Y|.
+
+</script></section><section id="answers"><script type="text/markdown">
+# QuantFest 2026 — Mock Regionals: Answers
+
+The questions are in `QuantFest_2026_Mock_Regionals.md`. Every answer was checked by exact computation, plus simulation for the probability ones. All six C++ solutions pass the samples and run in under 0.1 s at the maximum limits.
+
+| Test | Answers |
+|---|---|
+| 2 (Relay) | 6, 12, 54, 8, 8, 12, 13, 20 |
+| 3 (Written) | 1: 13/27 · 2: 224/255, 1027/85 · 3: 10, 1/3 · 4: 71/18 · 5: 1/4, 11/18 · 6: L ⇔ n mod 7 ∈ {0, 2}, Alice (take 1 or 3) · 7: 48/5 · 8: 1/2, 1/3 |
+
+---
+
+## Test 1 — Coding
+
+### C1. Up to k Rolls — Form 1
+rec(j) = expected payout when you are about to make roll j. Base case: rec(k) = (m + 1)/2, because the last roll must be kept. For j < k, rec(j) = E[max(X, rec(j+1))]: keep x exactly when x > rec(j+1). With t = ⌊rec(j+1)⌋, that expectation is (t·rec(j+1) + (t+1) + … + m)/m, an arithmetic series, so each step is O(1) and the whole thing is O(k). This is the same threshold trick as C1 "Minimise the Rank" in the first mock.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    long long m, k; cin >> m >> k;
+    double V = (m + 1) / 2.0;                              // rec(k): last roll, must keep
+    for (long long j = k - 1; j >= 1; j--) {               // rec(j) = E[max(X, rec(j+1))]
+        long long t = min<long long>(m, (long long)floor(V)); // keep x > V, i.e. x >= t+1
+        V = (t * V + (double)(m + t + 1) * (m - t) / 2) / m;
+    }
+    printf("%.6f\n", V);
+}
+```
+
+### C2. Square Stones — Form 5
+win(n) = true if the player about to move with n stones can force a win. win(0) = false (no move). win(n) = true if some square s² ≤ n has win(n − s²) = false. There are 10⁵ states with √n moves each, about 3·10⁷ operations. The losing sizes start 0, 2, 5, 7, 10, 12, 15, 17, 20, 22, 34, 39, …, with no simple pattern, so the DP is the whole solution.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    const int N = 100000; vector<char> win(N + 1, 0);           // win[n]: player to move wins
+    for (int n = 1; n <= N; n++)
+        for (int s = 1; s * s <= n && !win[n]; s++) if (!win[n - s * s]) win[n] = 1;
+    int t; cin >> t; while (t--) { int n; cin >> n; puts(win[n] ? "Alice" : "Bob"); }
+}
+```
+
+### C3. Ruin, Modulo — Form 1 with the "P(x) = a + b·P(1)" trick
+P(i) = p·P(i+1) + q·P(i−1), with P(0) = 0 and P(N) = 1. Solving this gives P(s) = (1 − rˢ)/(1 − rᴺ), where r = q/p. In the fair case r = 1 and P(s) = s/N. Compute r = (b − a)·a⁻¹ mod 998244353, then use fast powers, since N goes up to 10¹⁸. (This is the prelims "Our Random Jump" idea: write every value in terms of one unknown.)
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+const long long MOD = 998244353;
+long long pw(long long b, long long e) { long long r = 1; b %= MOD; while (e) { if (e & 1) r = r * b % MOD; b = b * b % MOD; e >>= 1; } return r; }
+int main() {
+    long long a, b, s, N; cin >> a >> b >> s >> N;
+    if (2 * a == b) { cout << s % MOD * pw(N, MOD - 2) % MOD << "\n"; return 0; }   // fair: s/N
+    long long r = (b - a) % MOD * pw(a, MOD - 2) % MOD;                               // r = q/p
+    long long num = (1 - pw(r, s) + MOD) % MOD, den = (1 - pw(r, N) + MOD) % MOD;
+    cout << num * pw(den, MOD - 2) % MOD << "\n";
+}
+```
+
+### C4. Never Below Zero — reflection
+Of all C(n+m, m) orderings, the bad ones touch −1. Reflect each bad path after its first touch of −1: this is a bijection onto paths with n+1 downs, of which there are C(n+m, m−1). Answer: C(n+m, m) − C(n+m, m−1) when m ≤ n, else 0. Precompute factorials up to 2·10⁶. (This is the prelims "Stat Expo" ballot count with ratio 1.)
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+const long long MOD = 998244353; const int M = 2000001;
+long long f[M], inv[M];
+long long pw(long long b, long long e) { long long r = 1; while (e) { if (e & 1) r = r * b % MOD; b = b * b % MOD; e >>= 1; } return r; }
+long long C(int n, int k) { return k < 0 || k > n ? 0 : f[n] * inv[k] % MOD * inv[n - k] % MOD; }
+int main() {
+    f[0] = 1; for (int i = 1; i < M; i++) f[i] = f[i - 1] * i % MOD;
+    inv[M - 1] = pw(f[M - 1], MOD - 2); for (int i = M - 1; i > 0; i--) inv[i - 1] = inv[i] * i % MOD;
+    int q; scanf("%d", &q);
+    while (q--) { int n, m; scanf("%d %d", &n, &m);
+        printf("%lld\n", m > n ? 0 : (C(n + m, m) - C(n + m, m - 1) + MOD) % MOD); }   // reflection
+}
+```
+
+### C5. Divisor Walk — Form 1 with a self-loop
+E(1) = 0. For x > 1 with d(x) divisors, E(x) = 1 + (1/d(x))·Σ_(d | x) E(d). The term d = x is E(x) itself: a self-loop. Move it to the left side:
+E(x)·(1 − 1/d(x)) = 1 + (1/d(x))·Σ_(d | x, d < x) E(d).
+Fill x = 1, 2, … in increasing order. Add each E(x) to all of its multiples, which is a harmonic sieve, O(n log n) in total. Check: E(2) = 1 + (0 + E(2))/2, so E(2) = 2. Also E(12) = 91/30.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    const int N = 1000000; vector<double> E(N + 1, 0), S(N + 1, 0); vector<int> d(N + 1, 0);
+    for (int x = 1; x <= N; x++) {
+        if (x > 1) E[x] = (1 + S[x] / (d[x] + 1)) / (1 - 1.0 / (d[x] + 1));   // self-loop solved: d(x) = d[x] + 1
+        for (int y = 2 * x; y <= N; y += x) { S[y] += E[x]; d[y]++; }         // proper divisors of y
+    }
+    int q; scanf("%d", &q); while (q--) { int n; scanf("%d", &n); printf("%.6f\n", E[n]); }
+}
+```
+
+### C6. Ends of the Row — Form 4 + Form 5
+best(l, r) = the total that the player about to move collects from a[l..r] under best play. The two totals add up to sum(l..r), so best(l, r) = sum(l..r) − min(best(l+1, r), best(l, r−1)). Base case: best(l, l) = a[l]. Answer best(1, n): O(n²) time with one rolling row.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    int n; scanf("%d", &n); vector<long long> a(n), pre(n + 1, 0);
+    for (int i = 0; i < n; i++) { scanf("%lld", &a[i]); pre[i + 1] = pre[i] + a[i]; }
+    vector<long long> dp(n, 0);                        // dp[l] = best(l, r) for the current length
+    for (int i = 0; i < n; i++) dp[i] = a[i];
+    for (int len = 2; len <= n; len++)
+        for (int l = 0; l + len - 1 < n; l++) { int r = l + len - 1;
+            dp[l] = (pre[r + 1] - pre[l]) - min(dp[l + 1], dp[l]); }   // dp[l+1]=best(l+1,r), dp[l]=best(l,r-1)
+    printf("%lld\n", dp[0]);
+}
+```
+
+---
+
+## Test 2 — Relay
+
+1. **6.** The number of rolls is geometric with success probability 1/6, so its mean is 6.
+2. **12.** Each head takes 2 tosses on average, so T = 6 heads take 2·6 = 12.
+3. **54.** A convex n-gon has n(n − 3)/2 diagonals: 12·9/2 = 54.
+4. **8.** 54 = 2·3³ has (1 + 1)(3 + 1) = 8 divisors.
+5. **8.** The stationary distribution is uniform, 1/8 on each vertex, so the expected return time is 1/(1/8) = 8.
+6. **12.** Starting from s with target N, a fair gambler's expected duration is s(N − s) = 2·(8 − 2) = 12.
+7. **13.** The 2 × n domino tilings follow Fibonacci, 1, 2, 3, 5, 8, 13 for n = 1…6, and here n = 6.
+8. **20.** Inclusion–exclusion: ⌊100/13⌋ + ⌊100/7⌋ − ⌊100/91⌋ = 7 + 14 − 1 = 20.
+
+---
+
+## Test 3 — Written
+
+**W1. 13/27.** Count ordered (child 1, child 2) pairs; each child is one of 14 equally likely (sex, day) types. The pairs containing a Tuesday boy number 14 + 14 − 1 = 27. Of these, the pairs where both are boys number 7 + 7 − 1 = 13.
+
+**W2. (a) 224/255. (b) 1027/85.** (a) Let r = q/p = 1/2. From start distance 3 to a total span of 8, P = (1 − r³)/(1 − r⁸) = (7/8)/(255/256) = 224/255. (b) By Wald's identity, E[S_τ] = (p − q)·E[τ], so E[τ] = 3·(5P − 3(1 − P)) = 3(8P − 3) = 3·(1792 − 765)/255 = 1027/85.
+
+**W3. (a) 10. (b) 1/3.** (a) HTH matches itself with overlaps of length 1 and 3, so E = 2¹ + 2³ = 10. (b) Once H has appeared, the next toss decides it: H → HH, and HHT is then certain before HTH, because an HH run ends in HHT as soon as a T comes; T → HT, and from HT the next toss H finishes HTH, while T sends you back to the start. From the start: x = P(HTH first) = P(from H), and from H: x = ½·0 + ½·(½·1 + ½·x). So x = ¼ + x/4, and x = 1/3.
+
+**W4. 71/18, reroll on 1 or 2 every time.** With no rerolls left the value is 7/2. With one reroll left, keep x if x ≥ 7/2 − 1 = 5/2, so reroll 1 and 2: value (2·5/2 + 3 + 4 + 5 + 6)/6 = 23/6. With two rerolls left, keep x if x ≥ 23/6 − 1 = 17/6, so again reroll 1 and 2: value (2·17/6 + 18)/6 = 71/18 ≈ 3.944.
+
+**W5. (a) 1/4. (b) 11/18.** (a) The pieces form a triangle exactly when every piece is shorter than ½. Each "piece ≥ ½" event has probability 1/4, and at most one can happen, so the answer is 1 − 3/4 = 1/4. (b) For the n uniform spacings of [0, 1], E[longest] = (1/n)(1 + 1/2 + … + 1/n). With n = 3: (1/3)(11/6) = 11/18.
+
+**W6. L ⇔ n mod 7 ∈ {0, 2}. Alice wins by taking 1 or 3.** Form 5: win(n) = some move m ∈ {1, 3, 4} with m ≤ n gives win(n − m) = false. Small cases give L = 0, 2, 7, 9, 14, 16, …, which has period 7. Proof, with residues mod 7: (i) from an L-position every move goes to a W-position, since 0 − {1, 3, 4} = {6, 4, 3} and 2 − {1, 3, 4} = {1, 6, 5}, and none of these is 0 or 2. (ii) From every W-position some move reaches an L-position: 1 → 0 (take 1), 3 → 0 (take 3), 4 → 0 (take 4), 5 → 2 (take 3), 6 → 2 (take 4). 2026 ≡ 3 (mod 7), which is W. Take 1 (to 2025 ≡ 2) or take 3 (to 2023 ≡ 0).
+
+**W7. 48/5.** Linearity of expectation: each of the 48 non-aces comes before all 4 aces with probability 1/5, since it is equally likely to be anywhere among those 5 cards. So 48/5 = 9.6.
+
+**W8. (a) 1/2. (b) 1/3.** (a) The event is the region between the lines y = x/2 and y = 2x in the unit square. The two cut-off triangles each have area ½·1·½ = 1/4, so the answer is 1 − 1/2 = 1/2. (b) E|X − Y| = 2∫₀¹∫₀ˣ (x − y) dy dx = 2∫₀¹ x²/2 dx = 1/3.
+
+</script></section><section id="code"><script type="text/markdown">
+# Mock Regionals: My C++ Solutions
+
+My solutions to Test 1 (Coding) of the Mock Regionals. They used to be in `regionals_mock/`.
+
+### C1_Up_to_k_Rolls.cpp
+
+```cpp
+// Problem: C1. Up to k Rolls (QuantFest 2026 Mock Regionals, Test 1)
+// Link: ../QuantFest_2026_Mock_Regionals.md
+// You roll a fair m-sided die (faces 1..m). After each roll you may keep the number (you are paid that many dollars and the game ends) or throw it away and roll again. You may roll at most k times; the k-th roll must be kept.
+//
+// Output the expected payout under optimal play.
+//
+// Input: m k (1 ≤ m, k ≤ 10⁶). Output: one real number.
+//
+// | Input | Output |
+// |---|---|
+// | 6 1 | 3.500000 |
+// | 6 2 | 4.250000 |
+// | 6 3 | 4.666667 |
+// | 10 3 | 7.450000 |
+#include <bits/stdc++.h>
+#define ll long long
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1)
+#define py cout << "YES" << endl
+#define pn cout << "NO" << endl
+#define pll pair<ll,ll>
+#define ld double
+
+using namespace std;
+// ll rec(ll i )
+// {
+//     // this function returns the expected value of the game if i have already rolled i - 1 times
+//     // i am on the ith turn 
+//     // thereforei have k-i turns left
+//     // now i have to decide whether to keep the number or to roll again 
+//     // what is the way to decide whether to keep the number or to roll again
+//     if(i == k)
+//     {
+//         // if i am on the last turn then i would have to keep the number that i rolled
+//         // so the expected value is the average of all possible outcomes
+//         return (m + 1) / 2;
+//     }
+//     else
+//     {
+//         // if i am not on the kth turn then i have to decide whether to keep the number or to roll again 
+//         // if i keep the number then i will get the number that i rolled 
+//         // if i roll again then i will get the expected value of the next turn 
+//         // therefore i will keep the number if the number that i rolled is greater than or equal to the expected value of the next turn 
+//         // otherwise i will roll again 
+//         ll expected_value_of_next_turn = rec(i + 1);
+//         ll expected_value_of_current_turn = (m + 1) / 2;
+//         return max(expected_value_of_current_turn, expected_value_of_next_turn);
+//     }
+// }
+void solve()
+{
+    ll m , k ; 
+    cin >> m >> k ;
+    vector <ld> dp(k + 1, 0);
+    for(ll i = k; i >= 1; i--)
+    {
+        if(i == k)
+        {
+            dp[i] = (m + 1) / 2.0;
+            continue;
+        }
+        else
+        {
+            ld sol = 0.0 ; 
+            // first place where the max switches
+            ld exp = dp[i + 1];
+            ll fst = ceil(exp);
+            // 1 to fst - 1 we will roll again
+            sol += (fst - 1) * dp[i + 1];
+            // fst to m we will keep the number
+            sol += (m - fst + 1) * (fst + m) / 2.0;
+            sol /= m;
+            dp[i] = sol;
+            
+
+        }
+    }
+    cout << fixed << setprecision(6) << dp[1] << endl;  
+}
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+
+    solve();
+}
+```
+
+### C2_Square_Stones.cpp
+
+```cpp
+// Problem: C2. Square Stones (QuantFest 2026 Mock Regionals, Test 1)
+// Link: ../QuantFest_2026_Mock_Regionals.md
+// A pile has n stones. Alice and Bob alternate, Alice first. A move removes a positive perfect square number of stones (1, 4, 9, …), no more than the pile holds. The player who cannot move loses.
+//
+// Input: t, then t lines each with n (1 ≤ t ≤ 10⁵, 1 ≤ n ≤ 10⁵). Output: the winner for each n.
+//
+// | Input | Output |
+// |---|---|
+// | 5 / 1 / 2 / 3 / 4 / 5 | Alice Bob Alice Alice Bob |
+#include <bits/stdc++.h>
+#define ll long long
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1)
+#define py cout << "YES" << endl
+#define pn cout << "NO" << endl
+#define pll pair<ll,ll>
+
+using namespace std;
+                     
+// ll rec(ll i)
+// {
+//     // this function returns the winner of the game if there are i stones left in the pile
+//     // if i is a perfect square then the player whose turn it is can take all the stones and win the game
+//     // if i is not a perfect square then the player whose turn it is can take a perfect square number of stones and leave the opponent with a perfect square number of stones and win the game
+//     // therefore if i is a perfect square then the player whose turn
+//     if(i == 0)
+//     {
+//         // if there are no stones left then the player whose turn it is loses the game
+//         return 0;
+//     }
+//     else
+//     {
+//         if(dp[i] != -1) return dp[i];           // cache check
+//         // if there are stones left then the player whose turn it is can take a perfect square number of stones and leave the opponent with a perfect square number of stones and win the game
+//         for(ll j = 1; j * j <= i; j++)
+//         {
+//             if(rec(i - j * j) == 0)
+//             {
+//                 return dp[i] = 1;               // save and return
+//             }
+//         }
+//         return dp[i] = 0;                       // save and return
+//     }
+// }
+bool dp[1000010];  
+void solve()
+{
+    ll n ; 
+    cin >> n ; 
+    if(dp[n] == 1)
+    {
+        cout << "Alice" << endl ; 
+    }
+    else
+    {
+        cout << "Bob" << endl ; 
+    }
+}
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+    for(ll i = 0 ; i <= 100000 ; i++)
+    {
+        if(i == 0)
+        {
+            dp[i] = 0;
+            continue;
+        }
+        bool ans = 0 ;
+        // this state would be a winning state if there is a perfect square number of stones tha can be taken to leave the opponent in a losing state
+        for(ll j = 1 ; j * j <= i ; j++)
+        {
+            if(dp[i - j * j] == 0)
+            {
+                ans = 1;
+                break;
+            }
+        }
+        dp[i] = ans;
+    }
+
+    ll t ; 
+    cin >> t ;
+    while(t--)
+    {
+        solve() ; 
+    }
+}
+```
+
+### C3_Ruin_Modulo.cpp
+
+```cpp
+// Problem: C3. Ruin, Modulo (QuantFest 2026 Mock Regionals, Test 1)
+// Link: ../QuantFest_2026_Mock_Regionals.md
+// A gambler holds s dollars. Each round they win $1 with probability p = a/b and lose $1 otherwise, and play stops at $0 or $N. Output the probability of reaching $N, as P·Q⁻¹ mod 998244353.
+//
+// Input: a b s N (1 ≤ a < b ≤ 10⁹, 0 ≤ s ≤ N ≤ 10¹⁸). It is guaranteed the answer's denominator is not divisible by 998244353.
+//
+// | Input | Output |
+// |---|---|
+// | 1 2 1 2 | 499122177 |
+// | 2 3 1 2 | 665496236 |
+// | 2 3 2 5 | 96604293 |
+#include <bits/stdc++.h>
+#define ll unsigned long long
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1)
+#define py cout << "YES" << endl
+#define pn cout << "NO" << endl
+#define pll pair<ll,ll>
+
+using namespace std;
+// answer is 1 - (q/p) raise to i / ( 1 - (q/p) raise to N
+ll madd(ll a , ll b)
+{
+    return (a%MOD1 + b%MOD1) % MOD1;
+}
+ll msub(ll a , ll b)
+{
+    return (a%MOD1 - b%MOD1 + MOD1) % MOD1;
+}
+ll mmul(ll a , ll b)
+{
+    return (a%MOD1 * b%MOD1) % MOD1;
+}
+ll mpow(ll a , ll b)
+{
+    ll res = 1;
+    while(b)
+    {
+        if(b&1) res = mmul(res, a);
+        a = mmul(a, a);
+        b >>= 1;
+    }
+    return res;
+}
+ll minv(ll a)
+{
+    return mpow(a, MOD1-2);
+}
+ll mdiv(ll a , ll b)
+{
+    return mmul(a, minv(b));
+}
+void solve()
+{
+    ll n , a, b, s;
+    cin >> a >> b >> s >> n;
+    if(s == 0) { cout << 0 << endl; return; }
+    if(s == n) { cout << 1 << endl; return; }
+    ll p = mdiv(a, b);
+    ll q = msub(1, p);
+    ll r = mdiv(q, p);
+    ll rN = mpow(r, n);
+    ll rS = mpow(r, s);
+    ll ans = mdiv(msub(1, rS), msub(1, rN));
+    cout << ans << endl;
+    // similiary expected value of the number of rounds is s * (N - s) / (b - a)
+
+    
+
+}
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+
+    solve();
+}
+```
+
+### C4_Never_Below_Zero.cpp
+
+```cpp
+// Problem: C4. Never Below Zero (QuantFest 2026 Mock Regionals, Test 1)
+// Link: ../QuantFest_2026_Mock_Regionals.md
+// Count the orderings of n up-steps (+1) and m down-steps (−1) whose running sum never goes below 0. Output mod 998244353.
+//
+// Input: q, then q lines each with n m (1 ≤ q ≤ 10⁵, 0 ≤ n, m ≤ 10⁶).
+//
+// | Input | Output |
+// |---|---|
+// | 4 / 2 1 / 3 3 / 5 2 / 3 4 | 2 5 14 0 |
+#include <bits/stdc++.h>
+#define ll long long
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1)
+#define py cout << "YES" << endl
+#define pn cout << "NO" << endl
+#define pll pair<ll,ll>
+
+using namespace std;
+ll madd(ll a , ll b)
+{
+    return (a%MOD1 + b%MOD1) % MOD1;
+}
+ll msub(ll a , ll b)
+{
+    return (a%MOD1 - b%MOD1 + MOD1) % MOD1;
+}
+ll mmul(ll a , ll b)
+{
+    return (a%MOD1 * b%MOD1) % MOD1;
+}
+ll mpow(ll a , ll b)
+{
+    ll res = 1;
+    while(b)
+    {
+        if(b&1) res = mmul(res, a);
+        a = mmul(a, a);
+        b >>= 1;
+    }
+    return res;
+}
+ll minv(ll a)
+{
+    return mpow(a, MOD1-2);
+}
+ll mdiv(ll a , ll b)
+{
+    return mmul(a, minv(b));
+}
+ll fact[1000001];
+ll invfact[1000001];
+void precompute()
+{
+    fact[0] = 1;
+    for(ll i = 1; i <= 1000000; i++)
+    {
+        fact[i] = mmul(fact[i-1], i);
+    }
+    invfact[1000000] = minv(fact[1000000]);
+    for(ll i = 999999; i >= 0; i--)
+    {
+        invfact[i] = mmul(invfact[i+1], i+1);
+    }
+}
+ll nCr(ll n, ll r)
+{
+    if(r > n || r < 0) return 0;
+    return mmul(fact[n], mmul(invfact[r], invfact[n-r]));
+}
+void solve()
+{
+    ll n, m;
+    cin >> n >> m;
+    if(n < m) 
+    {
+        cout << 0 << endl;
+        return;
+    }
+    ll ans = mmul(nCr(n+m, n), mdiv(n-m+1, n+1));
+    cout << ans << endl;
+
+}
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+    precompute();
+    ll t ; 
+    cin >> t;
+    while(t--)
+    {
+        solve() ; 
+    }
+
+}
+```
+
+### C5_Divisor_Walk.cpp
+
+```cpp
+// Problem: C5. Divisor Walk (QuantFest 2026 Mock Regionals, Test 1)
+// Link: ../QuantFest_2026_Mock_Regionals.md
+// Start at n. Each step, replace the current number x by a uniformly random divisor of x (1 and x itself included). Output the expected number of steps until the number is 1.
+//
+// Input: q, then q lines each with n (1 ≤ q ≤ 10⁵, 1 ≤ n ≤ 10⁶). Output: one real number per query.
+//
+// | Input | Output |
+// |---|---|
+// | 5 / 1 / 2 / 4 / 6 / 12 | 0.000000 2.000000 2.500000 2.666667 3.033333 |
+#include <bits/stdc++.h>
+#define ll long long
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1)
+#define py cout << "YES" << endl
+#define pn cout << "NO" << endl
+#define pll pair<ll,ll>
+#define ld long double
+using namespace std;
+vector <ll> div[1000001];
+void precompute()
+{
+    for(ll i = 1; i <= 1000000; i++)
+    {
+        for(ll j = i; j <= 1000000; j += i)
+        {
+            div[j].push_back(i);
+        }
+    }
+}
+// ll rec(ll i )
+// {
+//     // expected value of the number of steps to reach 1 from i is 1 + sum over all divisors of i of (expected value of the number of steps to reach 1 from that divisor) / (number of divisors of i)
+//     vector <ll> divisors;
+//     for(ll j = 1; j * j <= i; j++)
+//     {
+//         if(i % j == 0)
+//         {
+//             divisors.push_back(j);
+//             if(j != i / j)
+//                 divisors.push_back(i / j);
+//         }
+//     }
+//     for(auto d : divisors)
+//     {
+//         if(d == i) continue;
+//         return 1 + rec(d) / divisors.size();
+//     }
+//     return 0;
+
+
+// }
+void solve()
+{
+    ll n;
+    cin >> n;
+    vector <ld> dp(n + 1, 0);
+    for(ll i = 1; i <= n; i++)
+    {
+        if(i == 1) { dp[i] = 0; continue; }
+        ld sum = 0;
+        for(auto d : div[i])
+        {
+            if(d == i) continue;
+            sum += dp[d];
+        }
+        dp[i] = 1 + sum / (div[i].size());
+        
+    }
+    cout << fixed << setprecision(6) << dp[n] << endl;
+
+}
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+    precompute();
+    ll t ; 
+    cin >> t;
+    while(t--)
+    {
+        solve() ;
+    }
+}
+```
+
+### C6_Ends_of_the_Row.cpp
+
+```cpp
+// Problem: C6. Ends of the Row (QuantFest 2026 Mock Regionals, Test 1)
+// Link: ../QuantFest_2026_Mock_Regionals.md
+// n coins with values a₁ … aₙ lie in a row. Alice and Bob alternate, Alice first; each turn a player takes the coin at either end of the row. Both play to maximise their own total. Output Alice's total.
+//
+// Input: n, then a₁ … aₙ (1 ≤ n ≤ 5000, 1 ≤ aᵢ ≤ 10⁹).
+//
+// | Input | Output |
+// |---|---|
+// | 4 / 3 9 1 2 | 11 |
+// | 3 / 1 2 3 | 4 |
+// | 4 / 4 4 4 4 | 8 |
+#include <bits/stdc++.h>
+#define ll long long
+#define endl "\n"
+#define fr first
+#define sc second
+#define MOD 1000000007
+#define MOD1 998244353
+#define INF 1e18
+#define mp make_pair
+#define PI acos(-1)
+#define py cout << "YES" << endl
+#define pn cout << "NO" << endl
+#define pll pair<ll,ll>
+
+using namespace std;
+
+void solve()
+{
+
+}
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+
+    solve();
+}
+```
+</script></section>
+</div>
+<script>document.querySelectorAll('script[type="text/markdown"]').forEach(s=>{s.insertAdjacentHTML('afterend',marked.parse(s.textContent))})</script>
