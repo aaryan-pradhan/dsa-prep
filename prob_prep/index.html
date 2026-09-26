@@ -62,7 +62,7 @@ pre{background:var(--card);border:1px solid var(--rule);border-radius:6px;paddin
 </style>
 <div class="wrap">
 <h1>Quant Prep</h1>
-<p class="sub">QuantProf revision ledgers · 7 pages · 196 problems.</p>
+<p class="sub">QuantProf revision ledgers · 8 pages · 261 problems.</p>
 <nav class="toc">
 <a href="#forms">The DP template</a>
 <a href="#brainteasers">Brainteasers</a>
@@ -72,6 +72,7 @@ pre{background:var(--card);border:1px solid var(--rule);border-radius:6px;paddin
 <a href="#martingales">Martingales</a>
 <a href="#betting">Betting Games</a>
 <a href="#games">Two Player Games</a>
+<a href="#companies">Companies</a>
 </nav>
 <input id="q" type="search" placeholder="Filter sections / problems…" aria-label="Filter">
 <h2 id="forms">The DP template (Form → Level → Choice → Check → Move)</h2>
@@ -178,6 +179,8 @@ T rec(level, state...) {
 <div class="sec"><a href="games.html#wl">3 · Winning / losing states</a><ul><li>300 marbles</li><li>Divisors II</li></ul></div>
 <div class="sec"><a href="games.html#end">4 · Endgame analysis</a><ul><li>Moving king</li></ul></div>
 <div class="sec"><a href="games.html#adhoc">5 · Ad-hoc</a><ul><li>Three piles</li><li>Moving the piece</li></ul></div>
+<h2 id="companies">Companies</h2>
+<div class="sec"><a href="jane_street.html">Jane Street</a><ul><li>Gold Thief</li><li>Least Multiple Of 15</li><li>Line Switch</li><li>Game Of Discarding Cards</li><li>3 Bus Stops</li><li>Strange Party</li><li>Truth</li><li>Count Regions I</li><li>Rational Number</li><li>3 Consecutive Heads II</li><li>Increasing Birthdays</li><li>Grid Arrangement IV</li><li>Bulbs In A Grid</li><li>1 Leftward Jump</li><li>Constrained Subsets II</li><li>Encoding Bits</li><li>1 Dot Removed</li><li>Expected Wait Time I</li><li>Prime Sum</li><li>Bulb Factory</li><li>Color And Roll</li><li>Expected Absolute Difference</li><li>Largest 3</li><li>Prime Dice</li><li>Non-negative Expectation</li><li>Russian Roulette I</li><li>Russian Roulette II</li><li>Odd Heads II</li><li>Expected Wait Time II</li><li>One Colored Face</li><li>Painted Cube I</li><li>Painted Cube II</li><li>10 Consecutive Heads</li><li>Circuit</li><li>Most Likely Terminal Sum</li><li>Expected Crossings</li><li>Local Maxima</li><li>Normal Distributions</li><li>Contiguous THTH</li><li>Expected Number Of Rectangles</li><li>Increasing Random Variables</li><li>Monochromatic Removal</li><li>Largest Envelope I</li><li>No Rocks Allowed</li><li>Double Option</li><li>Stop Or Continue I</li><li>Game Of Smaller Number</li><li>Optimal Die Choice</li><li>Unlucky Seven</li><li>Discrete Choices</li><li>Choose Your Suit</li><li>Largest Envelope II</li><li>Gold Rush III</li><li>Identify Cake Colors</li><li>Stop Or Continue II</li><li>Random And Rational</li><li>Match Fixing I</li><li>Simple Game I</li><li>Dice Game IX</li><li>Deck Choice I</li><li>Deck Choice II</li><li>Dice Placement I</li><li>Card Prediction II</li><li>Stop Or Continue IV</li><li>Five Light Bulbs</li></ul></div>
 </div>
 <script>
 q.oninput=()=>{const t=q.value.toLowerCase();document.querySelectorAll('.sec').forEach(s=>{let any=s.firstChild.textContent.toLowerCase().includes(t);s.querySelectorAll('li').forEach(l=>{const k=!t||any||l.textContent.toLowerCase().includes(t);l.hidden=!k;any||=k&&!!t});s.hidden=!any&&!!t})}

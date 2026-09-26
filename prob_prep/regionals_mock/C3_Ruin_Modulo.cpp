@@ -10,7 +10,7 @@
 // | 2 3 1 2 | 665496236 |
 // | 2 3 2 5 | 96604293 |
 #include <bits/stdc++.h>
-#define ll long long
+#define ll unsigned long long
 #define endl "\n"
 #define fr first
 #define sc second
@@ -24,9 +24,53 @@
 #define pll pair<ll,ll>
 
 using namespace std;
-
+// answer is 1 - (q/p) raise to i / ( 1 - (q/p) raise to N
+ll madd(ll a , ll b)
+{
+    return (a%MOD1 + b%MOD1) % MOD1;
+}
+ll msub(ll a , ll b)
+{
+    return (a%MOD1 - b%MOD1 + MOD1) % MOD1;
+}
+ll mmul(ll a , ll b)
+{
+    return (a%MOD1 * b%MOD1) % MOD1;
+}
+ll mpow(ll a , ll b)
+{
+    ll res = 1;
+    while(b)
+    {
+        if(b&1) res = mmul(res, a);
+        a = mmul(a, a);
+        b >>= 1;
+    }
+    return res;
+}
+ll minv(ll a)
+{
+    return mpow(a, MOD1-2);
+}
+ll mdiv(ll a , ll b)
+{
+    return mmul(a, minv(b));
+}
 void solve()
 {
+    ll n , a, b, s;
+    cin >> a >> b >> s >> n;
+    if(s == 0) { cout << 0 << endl; return; }
+    if(s == n) { cout << 1 << endl; return; }
+    ll p = mdiv(a, b);
+    ll q = msub(1, p);
+    ll r = mdiv(q, p);
+    ll rN = mpow(r, n);
+    ll rS = mpow(r, s);
+    ll ans = mdiv(msub(1, rS), msub(1, rN));
+    cout << ans << endl;
+    // similiary expected value of the number of rounds is s * (N - s) / (b - a)
+
     
 
 }

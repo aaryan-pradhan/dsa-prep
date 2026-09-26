@@ -20,11 +20,59 @@
 #define py cout << "YES" << endl
 #define pn cout << "NO" << endl
 #define pll pair<ll,ll>
-
+#define ld long double
 using namespace std;
+vector <ll> div[1000001];
+void precompute()
+{
+    for(ll i = 1; i <= 1000000; i++)
+    {
+        for(ll j = i; j <= 1000000; j += i)
+        {
+            div[j].push_back(i);
+        }
+    }
+}
+// ll rec(ll i )
+// {
+//     // expected value of the number of steps to reach 1 from i is 1 + sum over all divisors of i of (expected value of the number of steps to reach 1 from that divisor) / (number of divisors of i)
+//     vector <ll> divisors;
+//     for(ll j = 1; j * j <= i; j++)
+//     {
+//         if(i % j == 0)
+//         {
+//             divisors.push_back(j);
+//             if(j != i / j)
+//                 divisors.push_back(i / j);
+//         }
+//     }
+//     for(auto d : divisors)
+//     {
+//         if(d == i) continue;
+//         return 1 + rec(d) / divisors.size();
+//     }
+//     return 0;
 
+
+// }
 void solve()
 {
+    ll n;
+    cin >> n;
+    vector <ld> dp(n + 1, 0);
+    for(ll i = 1; i <= n; i++)
+    {
+        if(i == 1) { dp[i] = 0; continue; }
+        ld sum = 0;
+        for(auto d : div[i])
+        {
+            if(d == i) continue;
+            sum += dp[d];
+        }
+        dp[i] = 1 + sum / (div[i].size());
+        
+    }
+    cout << fixed << setprecision(6) << dp[n] << endl;
 
 }
 
@@ -33,6 +81,11 @@ signed main()
     ios_base::sync_with_stdio(false);
     cin.tie(0);
     cout.tie(0);
-
-    solve();
+    precompute();
+    ll t ; 
+    cin >> t;
+    while(t--)
+    {
+        solve() ;
+    }
 }
