@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Probability Cheat Sheet</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>
+function fits(c){ return c.scrollWidth <= c.clientWidth + 1; }
+function moveLast(src, dst){
+  const last = src.lastElementChild;
+  if (last.tagName === 'UL' && last.children.length > 1) {
+    const key = last.dataset.id || last.dataset.part;
+    let t = dst.firstElementChild;
+    if (!(t && t.tagName === 'UL' && t.dataset.part === key)) { t = document.createElement('ul'); t.dataset.part = key; dst.prepend(t); }
+    t.prepend(last.lastElementChild);
+  } else dst.prepend(last);
+}
+function layout(items){
+  const cs = [...document.querySelectorAll('.cols')];
+  cs[0].replaceChildren(...items.map(n => n.cloneNode(true)));
+  cs.slice(1).forEach(c => c.replaceChildren());
+  for (let i = 0; i < cs.length - 1; i++) {
+    while (!fits(cs[i]) && cs[i].children.length) moveLast(cs[i], cs[i + 1]);
+    while (cs[i].lastElementChild && cs[i].lastElementChild.tagName === 'H2') cs[i + 1].prepend(cs[i].lastElementChild);
+  }
+  return fits(cs[cs.length - 1]);
+}
+document.addEventListener("DOMContentLoaded", async function () {
+  renderMathInElement(document.body, {
+    delimiters: [{left: "\\(", right: "\\)", display: false}],
+    macros: {"\\E": "\\mathbb{E}", "\\V": "\\operatorname{Var}", "\\Cov": "\\operatorname{Cov}", "\\U": "\\mathrm{U}", "\\N": "\\mathcal{N}", "\\Bin": "\\operatorname{Bin}", "\\Po": "\\operatorname{Po}", "\\Ex": "\\operatorname{Exp}", "\\Geo": "\\operatorname{Geo}"},
+    throwOnError: false
+  });
+  await document.fonts.ready;
+  const c1 = document.getElementById('c1');
+  [...c1.querySelectorAll('ul')].forEach((u, i) => u.dataset.id = 'u' + i);
+  const items = [...c1.children].map(n => n.cloneNode(true));
+  let best = 5;
+  for (let f = 8.0; f >= 5; f -= 0.05) {
+    document.body.style.fontSize = f.toFixed(2) + 'pt';
+    if (layout(items)) { best = f; break; }
+  }
+  document.body.dataset.fit = best.toFixed(2);
+});
+</script>
+<style>
+@page { size: A4; margin: 3mm; }
+:root { --acc:#16357f; --rule:#c9ced8; --tint:#eef2fb; --warm:#fdf3e7; }
+* { box-sizing: border-box; }
+html, body { background:#fff; color:#111; margin:0; }
+body { font: 6.5pt/1.2 "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", "Helvetica Neue", Arial, sans-serif; }
+.sheet { width:204mm; height:290.5mm; margin:0 auto; display:flex; flex-direction:column; overflow:hidden; background:#fff; }
+.sheet + .sheet { break-before:page; }
+@media screen { body { background:#e9ebef; padding:12px 0; } .sheet { box-shadow:0 0 0 3mm #fff, 0 1px 8px 3mm rgba(0,0,0,.2); margin-bottom:14mm; } }
+header { display:flex; justify-content:space-between; align-items:baseline; border-bottom:1pt solid var(--acc); margin-bottom:.8mm; }
+header h1 { font-size:1.3em; margin:0; color:var(--acc); }
+header span { color:#444; }
+.cols { flex:1; min-height:0; overflow:hidden; column-fill:auto; columns:4; column-gap:1.8mm; column-rule:.35pt solid var(--rule); }
+h2 { font-size:1.08em; margin:1mm 0 .35mm; padding:.2mm .8mm; background:var(--acc); color:#fff; break-after:avoid; border-radius:.4mm; }
+h3 { font-size:1em; margin:.6mm 0 .2mm; color:var(--acc); border-bottom:.4pt solid var(--rule); break-after:avoid; }
+p { margin:0 0 .3mm; }
+ul { margin:0 0 .3mm; padding-left:0; list-style:none; }
+li { margin:0 0 .25mm; padding-left:1.5mm; text-indent:-1.5mm; }
+li::before { content:"• "; color:var(--acc); font-weight:700; }
+b { color:#000; }
+.katex { font-size:.95em; }
+.box { background:var(--tint); border:.4pt solid #b8c4e6; border-radius:.5mm; padding:.35mm .7mm; margin:.3mm 0 .5mm; }
+.warn { background:var(--warm); border:.4pt solid #e7c79a; border-radius:.5mm; padding:.35mm .7mm; margin:.3mm 0 .5mm; }
+table { border-collapse:collapse; width:100%; margin:.3mm 0 .5mm; }
+td, th { border:.3pt solid var(--rule); padding:.1mm .4mm; white-space:nowrap; vertical-align:middle; }
+th { background:var(--tint); color:var(--acc); text-align:left; }
+</style>
+</head>
+<body>
+<div class="sheet" id="s1">
+<header><h1>Probability · Distributions · Expectation · Puzzles</h1><span>\(q=1-p\) · \(\U=\U[0,1]\) · \(H_n=\sum_{k\le n}\frac1k\) · \(F_1=F_2=1\) · \(C_n=\frac1{n+1}\binom{2n}n\) · \(\varphi,\Phi\) std normal pdf/cdf · \(x_+=\max(x,0)\)</span></header>
+<div class="cols" id="c1">
+
+<h2>1 · Break the problem down (in this order)</h2>
+<ul>
+<li><b>Name it:</b> write "\(X=\)… \(\sim\)…". "Completely random / at rate" ⇒ Poisson process; "no spot favoured", random point/time/cut ⇒ uniform; sums/heights/returns ⇒ normal; "until first" ⇒ geometric; "until \(r\)th" ⇒ NegBin.</li>
+<li><b>Count / \(\E\) of a count</b> ⇒ indicators, \(\E=\sum P\) (dependence irrelevant). <b>Equal chances</b> ⇒ symmetry / bijection (swap, reverse, complement, \(x\mapsto c-x\)); "which of \(k\) is first/largest" \(=\frac1k\).</li>
+<li><b>"Until" / repeated rounds</b> ⇒ states + first-step: \(r(s)=\sum_{s'}p_{ss'}[c+r(s')]\) (prob \(c=0\), time \(c=1\), best = max, game = not). Same rules every turn ⇒ drop the turn index; deadline ⇒ keep it. State = only what the stop-check needs (run length, last roll, distance, parity).</li>
+<li><b>DP forms:</b> \(i\to\)end · ending at \(i\) · pair \((i,j)\) · interval \((l,r)\) · game win\((s)=\exists\) move to losing.</li>
+<li><b>Self-loop</b> \(x=c+qx\Rightarrow x=\frac c{1-q}\). <b>A before B</b> (per round \(a,b\), rest "nothing"): \(P=\frac a{a+b}\), rounds \(\sim\Geo(a+b)\). <b>Alternating</b> (hit \(p_1\), then \(p_2\)): starter wins \(\frac{p_1}{1-q_1q_2}\); equal \(p\): \(\frac1{2-p}\).</li>
+<li><b>Conditioned "until"</b> (given no 5 before the 6, etc.): \(\E[X|A]=\frac{\E[X\mathbf1_A]}{P(A)}\); recurse both. "Given A came before B": time to first of A∪B is \(\Geo(a+b)\) independent of which won.</li>
+<li><b>Max/min</b> ⇒ CDF: \(P(\max\le x)=\prod F_i\), \(P(\min&gt;x)=\prod(1-F_i)\). <b>\(\E\) of nonneg integer</b> ⇒ \(\sum_{k\ge1}P(N\ge k)\).</li>
+<li><b>Stuck?</b> \(n=1,2,3\), guess, prove; complement; extreme case; invariant.</li>
+<li><b>Wording → tool:</b> "expected number of" → indicators §4 · "before" → A-before-B / Penney §9 · "in a row / pattern" → Conway §9 · "reaches ± / ruin" → §10 · "returns / long run" → Kac §11 · "random point, cut, time" → §6 · "at rate, arrive" → §7 · "may stop / optimal" → backward §13 · "who wins" → P/N §14 · "can it ever" → invariant §15 · "worst case, minimum tries" → information bound §15 · "given that" → shrink the space §3.</li>
+</ul>
+
+<h2>2 · Counting</h2>
+<ul>
+<li>ordered/rep \(n^r\) · ordered \(\frac{n!}{(n-r)!}\) · subsets \(\binom nr\) · words \(\frac{n!}{\prod k_i!}\) (order of taking from stacks = word of stack labels) · circle \((n-1)!\), necklace \(\frac{(n-1)!}2\).</li>
+<li><b>Stars &amp; bars</b> \(x_1+\dots+x_k=n\): \(\ge0\) \(\binom{n+k-1}{k-1}\); \(\ge1\) \(\binom{n-1}{k-1}\); \(\ge a_i\): \(n\to n-\sum a_i\); \(\le n\): add slack. Non-decreasing length \(r\) from \(m\) values \(\binom{m+r-1}r\); strictly increasing \(\binom mr\).</li>
+<li><b>Runs:</b> \(R\) items into \(k\) nonempty blocks \(\binom{R-1}{k-1}\). Lattice path \(a\) R, \(b\) U with exactly \(t\) turns: \(t+1\) alternating blocks, start R or U.</li>
+<li><b>Gaps:</b> \(k\) of \(n\) in a row, none adjacent \(\binom{n-k+1}k\); circle \(\frac n{n-k}\binom{n-k}k\). Together ⇒ glue (block × internal order); apart ⇒ complement or insert into gaps.</li>
+<li><b>PIE</b> \(|\bigcup A_i|=\sum(-1)^{k+1}\sum_{|S|=k}|A_S|\); symmetric: \(\sum_k(-1)^{k+1}\binom nk|A_{1..k}|\). Pairs adjacent (\(m\) couples, \(2m\) seats row): \(|A_{1..k}|=2^k(2m-k)!\). Onto \(n\to k\): \(\sum_j(-1)^j\binom kj(k-j)^n\). Exactly 2 of 3: \(\sum|A_{ij}|-3|A_{123}|\); ≥2: \(-2|A_{123}|\). Divisible by some of \(\{a,b,c\}\): intersections = lcm.</li>
+<li><b>Derangements</b> \(D_n=n!\sum_k\frac{(-1)^k}{k!}\approx\frac{n!}e\), \(D_n=(n-1)(D_{n-1}+D_{n-2})\): 1,0,1,2,9,44,265,1854. Exactly \(k\) fixed: \(\binom nkD_{n-k}\).</li>
+<li><b>Identities:</b> Vandermonde \(\sum\binom mk\binom n{r-k}=\binom{m+n}r\) ⇒ \(\sum\binom nk^2=\binom{2n}n\), \(\sum\binom ai\binom b{i+1}=\binom{a+b}{b-1}\); hockey \(\sum_{j\le n}\binom jr=\binom{n+1}{r+1}\); \(\sum k\binom nk=n2^{n-1}\); \(\sum_{\text{odd}}=\sum_{\text{even}}=2^{n-1}\); \(\frac1{k+1}\binom nk=\frac1{n+1}\binom{n+1}{k+1}\). Largest antichain of subsets \(\binom n{\lfloor n/2\rfloor}\).</li>
+<li><b>Conjugate trick:</b> \((a+\sqrt b)^n+(a-\sqrt b)^n\in\mathbb Z\); if \(|a-\sqrt b|&lt;1\): \((a+\sqrt b)^n\) is just below an integer (decimals \(.999\ldots\), \(n\) even).</li>
+<li><b>Paths/walks:</b> \((0,0)\to(a,b)\) \(\binom{a+b}a\); \(\pm1\) walk \(0\to d\) in \(n\): \(\binom n{(n+d)/2}\). <b>Reflection:</b> paths touching \(m\) ↔ paths ending at \(2m-\)end. Never below 0 (\(u\ge d\)): \(\binom{u+d}d-\binom{u+d}{d-1}\). <b>Ballot</b> A always ahead \(\frac{a-b}{a+b}\). Catalan \(C_n\): 1,1,2,5,14,42,132,429 (brackets, Dyck, triangulations, binary trees). Two walkers from opposite corners of \(n\times n\) (up/right vs down/left): meet w.p. \(\binom{2n}n/4^n\).</li>
+<li><b>Recurrences:</b> jumps of 1 or 2 to \(n\): \(F_{n+1}\); jumps \(\ge2\): \(F_{n-1}\); odd jumps: \(F_n\) (trick: subtract the \(n-1\) line). Bits, no "11": \(F_{n+2}\); on a ring of \(n\): \(L_n=F_{n-1}+F_{n+1}\) (1,3,4,7,11,18,29,47). \(m\)-ary no "00": \(b_n=(m-1)(b_{n-1}+b_{n-2})\). Roots \(r\ne s\): \(Ar^n+Bs^n\); double \((A+Bn)r^n\).</li>
+<li><b>Geometry counts:</b> \(n\)-gon diagonals \(\frac{n(n-3)}2\), interior crossings \(\binom n4\); regions: \(n\) lines \(1+n+\binom n2\), \(n\) circles \(n^2-n+2\), \(n\) planes \(\binom n0+\dots+\binom n3\), chords of \(n\) circle points \(1+\binom n2+\binom n4\). Regular \(n\)-gon two random segments meet (share vertex or cross): \(\frac{n\binom{n-1}2+\binom n4}{\binom{\binom n2}2}\).</li>
+<li><b>Permutation shapes:</b> exactly one descent \(2^n-n-1\); bitonic (up then down) / "place smallest at an end" \(2^{n-1}\); increasing around a circle (either way) \(\frac2{(n-1)!}\) prob.</li>
+<li><b>Parity grids:</b> \(m\times n\) 0/1 with all row/col sums even: \(2^{(m-1)(n-1)}\) (last row/col forced). 1..9 in \(3\times3\), all lines odd ⇔ odds form a "cross": \(\frac9{\binom95}\).</li>
+<li><b>Number theory:</b> \(d(\prod p^a)=\prod(a+1)\), odd ⇔ square; # odd divisors odd ⇔ square or 2·square; random divisor ⇒ exponents independent uniform on \(0..a\); \(v_p(n!)=\sum_i\lfloor n/p^i\rfloor\); #digits \(=\lfloor\log_{10}N\rfloor+1\), \(\log_{10}n!\approx n\log_{10}\frac ne+\frac12\log_{10}(2\pi n)\); closest factor pair: largest divisor \(\le\sqrt N\). Divisible by 3/9: digit sum; 11: alternating sum; 4/8: last 2/3 digits; 5: last digit.</li>
+<li><b>Sum over a set</b> = size × average (each digit in each position equally often; pair \(x\) with complement \(x'\)).</li>
+<li><b>Grids:</b> squares in \(n\times n\) \(\sum k^2\); rectangles \(\binom{n+1}2^2\); spanning trees of \(K_n\): \(n^{n-2}\). <b>Partitions</b> of set into \(k\) blocks \(S(n,k)\) (onto \(=k!S\)); Bell 1,1,2,5,15,52,203; integer partitions 1,1,2,3,5,7,11,15,22,30,42. <b>Burnside</b> necklaces (\(k\) colours, \(n\) beads, rotations): \(\frac1n\sum_{d|n}\varphi(d)k^{n/d}\).</li>
+<li><b>Number facts:</b> Josephus (every 2nd): \(n=2^m+L\Rightarrow\) survivor \(2L+1\); coin problem \(a,b\) coprime: largest non-representable \(ab-a-b\); Pick \(A=I+\frac B2-1\); \(a^{p-1}\equiv1\ (p)\); \(\varphi(n)=n\prod(1-\frac1p)\); last digits: work mod \(10^k\), cycles of powers.</li>
+</ul>
+
+<h2>3 · Probability rules</h2>
+<ul>
+<li>Bayes: posterior \(\propto\) prior × likelihood (equal priors cancel). Total prob over first step / hidden type / which coin.</li>
+<li><b>Equally likely space:</b> count faces not coins (one side H ⇒ two-headed \(\frac{2k}{2k+m}\)); random cube then random face up ⇒ every small face equally likely; revealer's rule matters (Monty \(\frac23\); \(n\) doors, 1 opened: switch \(\frac{n-1}{n(n-2)}\)); "≥1 boy" \(\frac13\), "older boy" \(\frac12\); "boy born Tue" \(\frac{2k-1}{4k-1}\) (\(k=7\)).</li>
+<li><b>Given counts</b> (\(h\) H in \(n\)): all \(\binom nh\) arrangements equal ⇒ PIE over block start positions. <b>Given first ace at \(k\)</b>: before = uniform non-aces, after = uniform order.</li>
+<li><b>"Last one decides":</b> any sum where one term is uniform mod \(m\): \(P(m\mid S)=\frac1m\); one fair coin among biased: \(P(\text{odd heads})=\frac12\); \(n\) coins \(P(\text{even})=\frac{1+\prod(q_i-p_i)}2\).</li>
+<li><b>Rate constant:</b> \(P(\text{none in }\alpha t)=P(\text{none in }t)^{\alpha}\).</li>
+<li><b>Simpson:</b> better in every group, worse overall — possible (different weights).</li>
+</ul>
+
+<h2>4 · Expectation &amp; variance</h2>
+<ul>
+<li>\(\E X=\sum_{k\ge1}P(X\ge k)\); \(\E X=\int_0^\infty P(X&gt;t)dt\); \(\E X^2=\sum(2k-1)P(X\ge k)\). Law of total exp. \(\E X=\E[\E(X|Y)]\).</li>
+<li><b>Discrete max/min</b> of \(n\) iid on \(1..m\): \(P(\max\le k)=(\frac km)^n\), \(P(\min\ge k)=(\frac{m-k+1}m)^n\), \(\E\min=\sum_k(\frac{m-k+1}m)^n\).</li>
+<li>\(\max+\min=X+Y\); \(\max=\frac{X+Y+|X-Y|}2\). \(\E|X-Y|\), iid uniform \(1..m\): \(\frac{m^2-1}{3m}\) (\(P(|X-Y|=d)=\frac{2(m-d)}{m^2}\)).</li>
+<li>\(\E[XY]=\E X\E Y\) if indep.; product of indep. factors: \(\E\prod=\prod\E\) (stock \(\times u\) w.p. \(p\), \(\times d\): \(S_0(pu+qd)^n\)). Squared distance of random steps: \(\E|\sum v_i|^2=\sum\E|v_i|^2\) when \(\E v_i=0\). Centre coordinates first (area², determinant ⇒ \(\E=0\) by row swap).</li>
+<li>\(\V=\E X^2-(\E X)^2\); \(\Cov\) bilinear, \(\V\sum=\sum\V+2\sum_{i&lt;j}\Cov\); counts \(\sum I_i\): \(\V=\sum p_i(1-p_i)+\sum_{i\ne j}(p_{ij}-p_ip_j)\) (fixed points: 1). \(\V X=\E\V(X|Y)+\V\E(X|Y)\); random sum \(\V S_N=\E N\,\V X+\V N(\E X)^2\).</li>
+<li><b>Wald</b> \(\E S_T=\E T\cdot\E X\). <b>Swap trick:</b> 2nd-last roll before sum first exceeds \(N\) has the law of one roll.</li>
+<li><b>Waiting for all</b> of exclusive per-trial events \(p_i\): \(\E T=\sum_{J\ne\emptyset}\frac{(-1)^{|J|+1}}{\sum_{J}p_j}\) (two: \(\frac1{p_1}+\frac1{p_2}-\frac1{p_1+p_2}\)).</li>
+<li><b>Coupons</b> (\(n\) equally likely): all \(nH_n\); \(k\) specified \(nH_k\); first \(k\) distinct \(n(H_n-H_{n-k})\); \(m\) draws: \(\E\)distinct \(n(1-(1-\frac1n)^m)\), \(P(\text{all})=\frac{\text{onto}(m,n)}{n^m}\). First repeat on \(m\)-die: \(\E=\sum_{k=0}^m\frac{m!}{(m-k)!\,m^k}\approx\sqrt{\pi m/2}+\frac23\).</li>
+<li><b>Special cards</b> (\(K\) specials among \(N\), random order): \(K\) specials cut others into \(K+1\) gaps of mean \(\frac{N-K}{K+1}\); position of \(j\)th special \(\frac{j(N+1)}{K+1}\); each non-special precedes all specials w.p. \(\frac1{K+1}\). Multi-stage stop rules: apply gap lemma per stage on the remaining deck.</li>
+<li><b>Races:</b> first to \(k\) wins vs \(m\): \(P(\Bin(k+m-1,p)\ge k)\); first-head times \(A\sim\Geo(p_1),B\sim\Geo(p_2)\): \(P(A&lt;B)=\frac{p_1q_2}{1-q_1q_2}\), \(\min\sim\Geo(1-q_1q_2)\); fair coins \(P(A&lt;B&lt;C)=\frac1{21}\); you strictly first among \(n\) fair flippers: \(\sum_k2^{-nk}=\frac1{2^n-1}\).</li>
+<li>Markov \(P(X\ge a)\le\frac{\E X}a\); Chebyshev \(\le\frac{\sigma^2}{a^2}\); Jensen convex \(\E g(X)\ge g(\E X)\).</li>
+<li><b>Balls → bins</b> (\(m\) into \(n\)): bin empty \((1-\frac1n)^m\); \(\E\)empty \(n(1-\frac1n)^m\); \(\E\)colliding pairs \(\frac{\binom m2}n\); birthday \(P(\text{some match})\approx1-e^{-m^2/2n}\) (23 of 365 \(&gt;\frac12\)); rare events \(P(\text{none})\approx e^{-\sum p_i}\) (Poisson paradigm).</li>
+<li><b>Symmetric conditioning:</b> iid \(X_i\), given \(\sum=s\): \(\E[X_1|\cdot]=\frac sn\). \(\E\)#pairs with a property \(=\binom n2p\). Dice: \(\E\max\) of \(n\) \(m\)-dice \(=m-\sum_{k=1}^{m-1}(\frac km)^n\) (2d6: \(\frac{161}{36}\), min \(\frac{91}{36}\)); \(\V\)(sum of \(n\) dice) \(=\frac{35n}{12}\).</li>
+<li><b>Sampling w/o replacement</b> \(n\) of \(N\) values: \(\E\)sum \(=n\bar x\), \(\V=n\sigma^2\frac{N-n}{N-1}\). Multinomial \(\Cov(N_i,N_j)=-np_ip_j\).</li>
+</ul>
+
+<h2>5 · Distributions</h2>
+<table>
+<tr><th></th><th>\(P(k)\) / \(f(x)\)</th><th>\(\E\)</th><th>\(\V\)</th><th>MGF</th></tr>
+<tr><td>\(\Bin(n,p)\)</td><td>\(\binom nkp^kq^{n-k}\)</td><td>\(np\)</td><td>\(npq\)</td><td>\((q+pe^t)^n\)</td></tr>
+<tr><td>\(\Geo(p)\)</td><td>\(q^{k-1}p\)</td><td>\(\frac1p\)</td><td>\(\frac q{p^2}\)</td><td>\(\frac{pe^t}{1-qe^t}\)</td></tr>
+<tr><td>NegBin\((r,p)\)</td><td>\(\binom{k-1}{r-1}p^rq^{k-r}\)</td><td>\(\frac rp\)</td><td>\(\frac{rq}{p^2}\)</td><td>\((\cdot)^r\)</td></tr>
+<tr><td>\(\Po(\lambda)\)</td><td>\(e^{-\lambda}\frac{\lambda^k}{k!}\)</td><td>\(\lambda\)</td><td>\(\lambda\)</td><td>\(e^{\lambda(e^t-1)}\)</td></tr>
+<tr><td>\(\{1..n\}\)</td><td>\(\frac1n\)</td><td>\(\frac{n+1}2\)</td><td>\(\frac{n^2-1}{12}\)</td><td></td></tr>
+<tr><td>\(\U[a,b]\)</td><td>\(\frac1{b-a}\)</td><td>\(\frac{a+b}2\)</td><td>\(\frac{(b-a)^2}{12}\)</td><td>\(\frac{e^{tb}-e^{ta}}{t(b-a)}\)</td></tr>
+<tr><td>\(\Ex(\lambda)\)</td><td>\(\lambda e^{-\lambda x}\)</td><td>\(\frac1\lambda\)</td><td>\(\frac1{\lambda^2}\)</td><td>\(\frac\lambda{\lambda-t}\)</td></tr>
+<tr><td>arrival \(T_k\)</td><td>\(\frac{\lambda^kt^{k-1}e^{-\lambda t}}{(k-1)!}\)</td><td>\(\frac k\lambda\)</td><td>\(\frac k{\lambda^2}\)</td><td>\((\frac\lambda{\lambda-t})^k\)</td></tr>
+<tr><td>\(\N(\mu,\sigma^2)\)</td><td>\(\frac1{\sigma\sqrt{2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}\)</td><td>\(\mu\)</td><td>\(\sigma^2\)</td><td>\(e^{\mu t+\frac12\sigma^2t^2}\)</td></tr>
+</table>
+<ul>
+<li><b>Links:</b> \(\Bin(n,p)\approx\Po(np)\) (\(n\) big, \(p\) small); \(\approx\N(np,npq)\) (±½); sum of indep. Po / Bin (same \(p\)) / normal stays in family (parameters add); \(T_k\) = sum of \(k\) iid Exp, \(P(T_k\le t)=P(\Po(\lambda t)\ge k)\); \(\lfloor\Ex\rfloor\) is geometric; \(-\frac1\lambda\ln U\sim\Ex(\lambda)\); \(F^{-1}(U)\sim F\), \(F(X)\sim\U\).</li>
+<li><b>Bin:</b> mode \(\lfloor(n+1)p\rfloor\); \(P(\text{even})=\frac{1+(q-p)^n}2\); \(\E X^2=npq+n^2p^2\); \(\E[X(n-X)]=n(n-1)pq\). <b>Po:</b> \(\E[X(X-1)]=\lambda^2\); \(P(\text{even})=\frac{1+e^{-2\lambda}}2\); given \(X+Y=n\): \(X\sim\Bin(n,\frac{\lambda_1}{\lambda_1+\lambda_2})\).</li>
+<li><b>Tails:</b> \(P(\Geo&gt;k)=q^k\) (trials), \(P(\Ex&gt;t)=e^{-\lambda t}\); failures-before-success version has mean \(\frac qp\). <b>Memoryless:</b> only Geo, Exp: \(P(X&gt;s+t|X&gt;s)=P(X&gt;t)\); \(\E[X|X&gt;a]=a+\E X\).</li>
+<li><b>Density toolbox:</b> \(f=F'\); \(P(a\le X\le b)=\int_a^bf\); \(\E g(X)=\int gf\); \(Y=g(X)\): find \(P(Y\le y)\) then differentiate (monotone: \(f_Y=f_X|\frac{dx}{dy}|\)); max of \(n\) iid: \(F^n\), density \(nF^{n-1}f\); min: \(1-(1-F)^n\), density \(n(1-F)^{n-1}f\); \(k\)th smallest density \(\frac{n!}{(k-1)!(n-k)!}F^{k-1}(1-F)^{n-k}f\).</li>
+<li><b>Joint:</b> indep. ⇔ \(f(x,y)=f_X f_Y\); marginal \(f_X=\int f\,dy\); conditional \(f(x|y)=\frac{f(x,y)}{f_Y(y)}\); \(P(A)=\int P(A|x)f(x)dx\); \(X|X&lt;Y\): density \(\propto f(x)P(Y&gt;x)\). Sum: \(f_{X+Y}(z)=\int f_X(x)f_Y(z-x)dx\) (U+U triangle, Exp+Exp \(\lambda^2ze^{-\lambda z}\)); ratio \(\U/\U\): \(\frac12\) on \([0,1]\), \(\frac1{2z^2}\) beyond. Polar: \(dx\,dy=r\,dr\,d\theta\).</li>
+<li><b>Handy conditionals:</b> \(\E[\Bin|\ge1]=\frac{np}{1-q^n}\); \(\E[\Po|\ge1]=\frac\lambda{1-e^{-\lambda}}\); \(\E\frac1{1+\Po(\lambda)}=\frac{1-e^{-\lambda}}\lambda\); \(\E\frac1{1+\Bin(n,p)}=\frac{1-q^{n+1}}{(n+1)p}\); \(P(\Geo\text{ even})=\frac q{1+q}\); \(\E\max\) of 2 iid \(\Geo(p)\) \(=\frac2p-\frac1{1-q^2}\). Order stat ↔ binomial: \(P(U_{(k)}\le x)=P(\Bin(n,x)\ge k)\).</li>
+</ul>
+
+<h2>6 · Uniform</h2>
+<ul>
+<li>\(\E U^k=\frac1{k+1}\), \(\V U=\frac1{12}\). \(n\) iid: \(\E U_{(k)}=\frac k{n+1}\) (\(n\) points cut \([0,1]\) into \(n+1\) exchangeable gaps), max \(\frac n{n+1}\), min \(\frac1{n+1}\), range \(\frac{n-1}{n+1}\); \(\V U_{(k)}=\frac{k(n+1-k)}{(n+1)^2(n+2)}\); given max \(=m\), rest iid \(\U[0,m]\).</li>
+<li><b>Two:</b> \(\E\max=\frac23\), \(\E\min=\frac13\), \(\E|U-V|=\frac13\) (on \([0,L]\): \(\frac L3\)), \(\E(U-V)^2=\frac16\); \(P(|U-V|\le t)=1-(1-t)^2\); \(P(U+V\le t)=\frac{t^2}2\) (\(t\le1\)); \(P(UV\le c)=c-c\ln c\); \(P(1\le\frac VU\le2)=\frac14\); \(P(\max\le2\min)=\frac12\); \(\max(U,1-U)\sim\U[\frac12,1]\); \(\E\max(U,c)=\frac{1+c^2}2\); \(\E[U|U&gt;a]=\frac{1+a}2\).</li>
+<li><b>Two points in \((a,b)\)</b> straddle \(c\): \(2\frac{(c-a)(b-c)}{(b-a)^2}\). Coin diameter \(d\) inside square cell \(s\): \((\frac{s-d}s)^2\). \(a_k\sim\U[0,k]\) ordered: volume of ordered region / box volume.</li>
+<li><b>Stick into \(n\) pieces</b> (\(n-1\) cuts): exchangeable, each mean \(\frac1n\); \(P(\text{given }k\text{ pieces all}&gt;x)=(1-kx)_+^{n-1}\); \(\E\)longest \(\frac{H_n}n\) (3 pieces \(\frac{11}{18}\)), shortest \(\frac1{n^2}\); polygon possible \(1-\frac n{2^{n-1}}\) (triangle \(\frac14\)); one cut: shorter \(\sim\U[0,\frac12]\), longer \(\sim\U[\frac12,1]\).</li>
+<li><b>Circle, \(n\) points:</b> all in some semicircle \(\frac n{2^{n-1}}\) (3 pts: obtuse \(\frac34\), acute/contains centre \(\frac14\)); \(\E\)#points until not in a semicircle \(=1+\sum_{n\ge1}\frac n{2^{n-1}}=5\); 4 points: 3 pairings, 1 crosses ⇒ two random chords cross \(\frac13\); arcs all \(\ge a\): \((1-na)^{n-1}\). Discrete \(N\) points on circle, obtuse: count by first vertex clockwise.</li>
+<li><b>Sums:</b> \(P(U_1+\dots+U_n\le t)=\frac{t^n}{n!}\) (\(t\le1\)) ⇒ #\(U\) to exceed 1: \(P(N&gt;n)=\frac1{n!}\), \(\E N=e\), \(\E\)final sum \(\frac e2\) (Wald). <b>Repeated uniform cuts:</b> keep \(U\) fraction until \(&lt;1\) from \(L\): \(\E\)#cuts \(=1+\ln L\) (\(-\ln U\sim\Ex(1)\)).</li>
+<li><b>Only order matters</b> ⇒ discrete: 4 iid points, segments \(P_1P_2\), \(P_3P_4\) overlap \(\frac23\); \(k\) of \(n\) points owned by one person: positions uniform over \(\binom nk\).</li>
+<li><b>Shapes:</b> uniform in disc: \(P(R\le r)=r^2\), \(\E R=\frac23\); sphere surface: each coord \(\U[-1,1]\), \(\V=\frac13\); in triangle height \(h\): \(P(D&gt;t)=(1-\frac th)^2\), \(\E D=\frac h3\).</li>
+<li><b>Geometry constants:</b> two random points on circle (circumference \(L\)) short-arc distance \(\E=\frac L4\); random chord (2 random points, radius \(r\)) \(\E=\frac{4r}\pi\); Buffon needle \(\ell\le d\): \(\frac{2\ell}{\pi d}\); \(ax^2+bx+c\) with \(a,b,c\sim\U\) real roots \(\frac{5+3\ln4}{36}\); random triangle in triangle \(\E\)area \(\frac1{12}\).</li>
+</ul>
+
+<h2>7 · Poisson process &amp; exponential</h2>
+<ul>
+<li>Rate \(\lambda\): \(N(t)\sim\Po(\lambda t)\), disjoint intervals independent, gaps iid \(\Ex(\lambda)\). \(P(\text{none in }t)=e^{-\lambda t}\); first arrival density \(\lambda e^{-\lambda t}\); time of \(k\)th: table.</li>
+<li><b>Merge:</b> rates add; next event is type \(i\) w.p. \(\frac{\lambda_i}{\sum\lambda}\) (independent of time). <b>Thin</b> (each kept w.p. \(p\)): kept \(\Po(p\lambda t)\) and dropped \(\Po(q\lambda t)\) <i>independent</i> (knowing buyers says nothing about browsers).</li>
+<li><b>Poissonize:</b> \(\Po(\lambda)\) items into \(m\) equal bins ⇒ independent \(\Po(\frac\lambda m)\): all bins hit \((1-e^{-\lambda/m})^m\). Fixed \(n\) balls into \(n\) bins all hit: \(\frac{n!}{n^n}\).</li>
+<li><b>Given \(N(T)=n\)</b>: arrival times = sorted iid \(\U[0,T]\): \(k\)th at \(\frac{kT}{n+1}\) on average.</li>
+<li><b>Toggle/parity:</b> light toggled at rate \(\lambda\) for \(t\): \(P(\text{even})=\frac{1+e^{-2\lambda t}}2\).</li>
+<li><b>Exp races:</b> \(\min_i\Ex(\lambda_i)\sim\Ex(\sum\lambda_i)\), independent of which is min; \(P(X_1&lt;X_2)=\frac{\lambda_1}{\lambda_1+\lambda_2}\); \(\E\max\) of \(n\) iid \(=\frac{H_n}\lambda\) (spacings \(\Ex(k\lambda)\)); quantile: \(P(T&lt;t)=\alpha\Rightarrow t=-\frac{\ln(1-\alpha)}\lambda\); median \(\frac{\ln2}\lambda\).</li>
+<li><b>Inspection paradox:</b> interval containing a random time has mean \(\frac{\E G^2}{\E G}\) (Poisson: \(\frac2\lambda\), both sides \(\Ex\)); wait \(=\frac{\E G^2}{2\E G}\). Fixed gaps \(g\): wait \(\U[0,g]\), mean \(\frac g2\). Gaps \(a\) w.p. \(1-\epsilon\), \(b\) w.p. \(\epsilon\): \(\frac{(1-\epsilon)a^2+\epsilon b^2}{2((1-\epsilon)a+\epsilon b)}\).</li>
+<li><b>Window each cycle</b> (board only during fraction \(w\) of period \(T\)): \(\E\)wait \(=\frac{(1-w)^2T}{2}\).</li>
+<li><b>Renewal:</b> running die total hits \(n\) w.p. \(\to\frac1\mu=\frac27\); overshoot of first total \(\ge N\): \(P(N+j)\approx\frac{m-j}{m\mu}\) (\(j=0..m-1\)); stop at first odd sum with fair \(m\)-die (\(m\) even): \(P(s)\) grows by \(\frac{m+1}m\) per odd step up to \(m-1\), then falls ⇒ mode \(m-1\).</li>
+</ul>
+
+<h2>8 · Normal</h2>
+<ul>
+<li>Standardise \(Z=\frac{X-\mu}\sigma\); \(P(a\le X\le b)=\Phi(\frac{b-\mu}\sigma)-\Phi(\frac{a-\mu}\sigma)\); \(\Phi(-z)=1-\Phi(z)\). Indep. \(aX+bY\sim\N(a\mu_1+b\mu_2,a^2\sigma_1^2+b^2\sigma_2^2)\) (difference: variances <i>add</i>); \(\bar X\sim\N(\mu,\frac{\sigma^2}n)\); CLT \(S_n\approx\N(n\mu,n\sigma^2)\), integer ⇒ ±½.</li>
+<li><b>Moments</b> (\(X\sim\N(0,\sigma^2)\)): odd \(=0\); \(\E X^2=\sigma^2\), \(\E X^4=3\sigma^4\), \(\E X^{2m}=(2m-1)!!\sigma^{2m}\); \(\V X^2=2\sigma^4\); \(\E|X|=\sigma\sqrt{2/\pi}\); \(\E X^2\) general \(=\sigma^2+\mu^2\).</li>
+<li><b>Exponential moments:</b> \(\E e^{tX}=e^{\mu t+\sigma^2t^2/2}\) (lognormal mean \(e^{\mu+\sigma^2/2}\), \(\V=(e^{\sigma^2}-1)e^{2\mu+\sigma^2}\)); <b>tilt</b> \(\E[e^{tX}\mathbf1_{X&gt;a}]=e^{\mu t+\sigma^2t^2/2}\,\Phi\!\big(\frac{\mu+\sigma^2t-a}\sigma\big)\).</li>
+<li><b>Truncation:</b> \(\E[Z|Z&gt;a]=\frac{\varphi(a)}{1-\Phi(a)}\); \(\E(Z-a)_+=\varphi(a)-a(1-\Phi(a))\); \(\E\max(Z,c)=c\Phi(c)+\varphi(c)\).</li>
+<li><b>Two iid \(\N(\mu,\sigma^2)\):</b> \(\E|X-Y|=\frac{2\sigma}{\sqrt\pi}\), \(\E\max=\mu+\frac\sigma{\sqrt\pi}\); 3 iid: \(\E\max=\mu+\frac{3\sigma}{2\sqrt\pi}\). Joint density indep.: \(\frac1{2\pi\sigma_1\sigma_2}e^{-\frac{(x-\mu_1)^2}{2\sigma_1^2}-\frac{(y-\mu_2)^2}{2\sigma_2^2}}\).</li>
+<li><b>Conditioning on a sum:</b> \(\E[X_1|X_1+X_2=s]=\mu_1+\frac{\sigma_1^2}{\sigma_1^2+\sigma_2^2}(s-\mu_1-\mu_2)\). Bivariate corr. \(\rho\): \(Y=\mu_Y+\rho\frac{\sigma_Y}{\sigma_X}(X-\mu_X)+\sigma_Y\sqrt{1-\rho^2}Z'\) ⇒ \(\E[Y|X]\) linear, \(\V(Y|X)=\sigma_Y^2(1-\rho^2)\).</li>
+<li><b>Rotation invariance:</b> iid \(\N(0,1)\) pair has uniform angle ⇒ wedge probability \(=\frac{\text{angle}}{2\pi}\); \(P(X,Y&gt;0)=\frac14+\frac{\arcsin\rho}{2\pi}\) (\(\rho=\frac12\): \(\frac13\)); \(R^2=X^2+Y^2\sim\Ex(\frac12)\); \(P(X&gt;Y|X&gt;0)=\frac34\). Stein: \(\E[Zg(Z)]=\E g'(Z)\).</li>
+</ul>
+
+<h2>9 · Coins, dice, patterns</h2>
+<div class="box"><b>Conway (any pattern):</b> \(\E T=\sum_{L:\,\text{prefix}_L=\text{suffix}_L}\frac1{P(\text{prefix}_L)}\); fair coin \(\sum2^L\): HH 6, HT 4, HHH 14, HTH 10, THH 8, HTHT 20. <b>Penney</b> \(AB=\sum2^L\) over \(\text{suf}_L(A)=\text{pre}_L(B)\): \(P(A\text{ before }B)=\frac{BB-BA}{(AA-AB)+(BB-BA)}\). Any HHH…H not at the start is preceded by T ⇒ THH beats HHH w.p. \(\frac78\).</div>
+<ul>
+<li>\(k\) successes in a row: \(\E=\frac{p^{-k}-1}{q}\) (fair \(2^{k+1}-2\)); \(k\) equal in a row on \(m\)-die: \(\frac{m^k-1}{m-1}\); a specific face twice in a row \(\frac{1+p}{p^2}\).</li>
+<li>First HH at toss \(n\): \(\frac{F_{n-1}}{2^n}\); no HH in \(n\): \(\frac{F_{n+2}}{2^n}\); ends on even toss \(\frac35\). Toss game "HT, who tosses T wins": states prev H/not: \(x=\frac23\), starter \(\frac49\).</li>
+<li><b>Exactly a run of \(k\)</b> in \(n\): fix start, neighbours T, rest free, PIE for 2 runs. \(\E\)#runs \(=1+2pq(n-1)\); \(\E\)#HT \(=\frac{n-1}4\); #HT−#TH \(=[\text{first H}]-[\text{last H}]\).</li>
+<li>\(n+1\) vs \(n\) fair coins, more heads: \(\frac12\). Heads × tails in \(n\): \(\E=\frac{n(n-1)}4\).</li>
+<li><b>Dice sums:</b> 2 dice \(P(S=s)=\frac{6-|s-7|}{36}\), \(P(\max=k)=\frac{2k-1}{36}\); #ways \(k\) dice sum \(s\): \(\sum_j(-1)^j\binom kj\binom{s-6j-1}{k-1}\); sorted \(n\) rolls \(\binom{n+5}5/6^n\). Top-3 of \(n\) dice \(=18\) ⇔ \(\ge3\) sixes: \(P(\Bin(n,\frac16)\ge3)\).</li>
+<li><b>Roll until 6:</b> \(\E\)rolls 6, sum 21 (Wald); sum even \(\frac47\) (\(p=\frac16+\frac13p+\frac12(1-p)\)); given no 5 before the 6: time to first of \(\{5,6\}\) is \(\Geo(\frac13)\) whichever wins ⇒ 3. Counts of faces before first 6: ignore irrelevant faces ⇒ smaller fair die.</li>
+<li><b>Roll until different</b> (\(m\)-die): \(\E\)sum \(=\mu\frac{2m-1}{m-1}\); roll until repeat: first-repeat formula §4. Consecutive rolls within 1 (die): 3 symmetric states \(i\leftrightarrow7-i\).</li>
+<li><b>Painted \(n^3\) cube:</b> corners 8 (3 faces), edges \(12(n-2)\) (2), faces \(6(n-2)^2\) (1), inner \((n-2)^3\); red small faces \(6n^2\) of \(6n^3\) ⇒ random cube rolled shows red \(\frac1n\); \(\E\)#red faces \(\frac6n\).</li>
+<li><b>Series / tennis:</b> best-of-\((2n-1)\): \(\sum_{k=0}^{n-1}\binom{n-1+k}kp^nq^k\); game from 0-0: \(p^4(1+4q+10q^2)+20p^3q^3\frac{p^2}{p^2+q^2}\); from deuce/30-30 \(\frac{p^2}{p^2+q^2}\). Craps win \(\frac{244}{495}\). De Méré: ≥1 six in 4 vs double six in 24.</li>
+<li>\(\E\)flips for \(n\) heads total \(\frac np\); \(\E\)#HH (overlapping) in \(n\) \(\frac{n-1}4\); longest run in \(n\) \(\approx\log_2n\); \(k\)th success exactly at trial \(t\): NegBin.</li>
+</ul>
+
+<h2>10 · Random walks &amp; gambler's ruin</h2>
+<div class="box">Start \(s\), stop at 0 or \(N\); up \(p\), down \(q\), \(r=\frac qp\).
+<b>\(P(\text{hit }N)\):</b> fair \(\frac sN\); biased \(\frac{1-r^s}{1-r^N}\). <b>\(\E T\):</b> fair \(s(N-s)\); biased \(\frac{N\,P(N)-s}{p-q}\). <b>Conditioned on hitting \(N\)</b> (fair): \(\E T=\frac{N^2-s^2}3\); on 0: \(\frac{s(2N-s)}3\). Step sizes \(\pm1\) with stay prob \(c\): \(\E T\div(1-c)\). <b>One barrier</b> (+\(k\) above): \(P=\min(1,(p/q)^k)\), \(\E T=\frac k{p-q}\) (\(p&gt;q\)); fair: \(P=1\), \(\E T=\infty\). Targets \(-a,+b\): replace \(s\to a\), \(N\to a+b\).</div>
+<ul>
+<li><b>Martingales</b> (fair game stays fair when stopped): \(S_n\) (fair), \(S_n-n\mu\), \(S_n^2-n\sigma^2\), \(r^{S_n}\), \(e^{\theta S_n}\) with \(\E e^{\theta X}=1\), fraction of red cards left. OST valid if stopped process bounded or \(\E T&lt;\infty\) with bounded steps. 2-D walk leaving disc \(R\): \(\E T=\E|S_T|^2\approx R^2\).</li>
+<li><b>Casino trick</b> gives Conway; <b>remaining-fraction</b> martingale ⇒ any stopping rule for "next card red" wins \(\frac12\); "next two same colour" = "last two", \(\frac{n-1}{2n-1}\).</li>
+<li>\(P(S_{2n}=0)=\binom{2n}n4^{-n}\) \(=P(\)no return to 0 in \(2n)\); first return at \(2n\): \(\frac{C_{n-1}}{2^{2n-1}}\); \(P(\max_{k\le n}S_k\ge m)=2P(S_n&gt;m)+P(S_n=m)\).</li>
+<li><b>Walk on graph</b> (uniform neighbour): \(\pi_v=\frac{\deg v}{2|E|}\), return to \(v\): \(\frac{2|E|}{\deg v}\); path \(0..N\) end to end \(N^2\); from \(k\) to end \(N^2-k^2\); cycle \(n\), distance \(k\): \(k(n-k)\); \(K_n\) to a given vertex \(n-1\); cube to opposite corner 10; tree child→parent \(2\cdot|\text{subtree}|-1\); commute \(=2|E|R_{\text{eff}}\). Lump states by distance (icosahedron, tetrahedron, cube).</li>
+<li>Back at start after \(n\) steps on \(K_m\): \(\frac1m+(1-\frac1m)(\frac{-1}{m-1})^n\).</li>
+</ul>
+
+<h2>11 · Markov chains</h2>
+<ul>
+<li>\(n\)-step: \(P^n\); path prob = start × product of transitions. Absorption \(a_i=\sum_jp_{ij}a_j\) (\(a=1\) at target, 0 at other absorbers); time \(t_i=1+\sum_jp_{ij}t_j\).</li>
+<li>Stationary \(\pi P=\pi\), \(\sum\pi=1\); detailed balance \(\pi_ip_{ij}=\pi_jp_{ji}\); doubly stochastic ⇒ uniform. <b>Kac:</b> \(\E\)return time to \(i\) \(=\frac1{\pi_i}\) (\(k\) bulbs, random one toggled: \(2^k\)).</li>
+<li>Two-state (leave 1 w.p. \(a\), leave 2 w.p. \(b\)): \(\pi=(\frac b{a+b},\frac a{a+b})\), \(p^{(n)}_{11}=\frac{b+a(1-a-b)^n}{a+b}\), hit 1 from 2: \(\frac1b\).</li>
+<li>If the next-step law is the same from every state ⇒ iid ⇒ geometric wait. Transient/recurrent: closed class = recurrent (finite chain).</li>
+<li><b>Absorbing chain matrix:</b> \(N=(I-Q)^{-1}\) (\(N_{ij}\) = visits to \(j\)); times \(N\mathbf1\); absorption \(NR\).</li>
+</ul>
+
+<h2>12 · Random permutations &amp; structures</h2>
+<ul>
+<li>Fixed points: mean 1, var 1, \(P(k)\to\frac{e^{-1}}{k!}\); #\(k\)-cycles \(\frac1k\) (2-cycles \(\frac12\)); #cycles \(H_n\); given element in cycle of length \(k\): \(\frac1n\); records \(H_n\); inversions \(\frac{n(n-1)}4\); local maxima \(\frac{n+1}3\) (interior \(\frac13\), end \(\frac12\)); longest zigzag \(\frac{2n+2}3\) (interior turns \(\frac23\)).</li>
+<li><b>Suffix minima</b> (car clusters: car leads iff slower than all ahead) \(H_n\). Random matching of \(n\) left–\(n\) right points: crossings \(\frac12\binom n2\).</li>
+<li><b>Random-order removal game</b> (pick uniform remaining item, remove it and everything below/its multiples): \(\E\)#picks \(=\sum_v\frac1{\#\{v\text{ and its ancestors}\}}\) (tree: \(\sum\frac1{\text{depth}}\); numbers \(1..n\), remove multiples: \(\sum_k\frac1{\lfloor n/k\rfloor}\)).</li>
+<li><b>Front person reinserted uniformly at the back \(n-1\) slots</b>; last person reaches front: sum of geometric waits \(\sum_{k=1}^{n-1}\frac{n}{k}=nH_{n-1}\).</li>
+<li><b>Pólya urn</b> (add same colour; free throws with make prob = made/taken): from \((1,1)\) after \(n\) draws the count is uniform on \(0..n\); draw = current fraction (martingale). Laplace succession \(\frac{k+1}{n+2}\).</li>
+<li><b>Relabel symmetry:</b> any rule treating colours alike ⇒ each of \(c\) colours last w.p. \(\frac1c\) (monochromatic removal). Boarding pass: last seat \(\frac12\).</li>
+<li><b>Random pairing</b> of \(2n\) ends: \(\E\)#loops \(\sum_{k=1}^n\frac1{2k-1}\); two given noodles same loop \(\frac23\). Random graph \(G(n,p)\): \(\E\)#\(K_k\) \(=\binom nkp^{\binom k2}\). \(v\) vertical, \(h\) horizontal lines: \((v+1)(h+1)\) cells; \(v\sim\Bin(n,\frac12)\), \(h=n-v\): \(\E=(\frac n2+1)^2-\frac n4\). Marbles: pair drawn together on some move \(\frac{\#\text{moves}}{\binom N2}\).</li>
+</ul>
+
+<h2>13 · Stopping, betting, strategy</h2>
+<ul>
+<li><b>Fair price</b> = \(\E\)payout. <b>Finite horizon:</b> \(V_1=\E X\), \(V_k=\E\max(X,V_{k-1})\): die 3.5, 4.25, \(\frac{14}3\), \(\frac{89}{18}\); \(m\)-die keep \(x&gt;V\): \(V'=\frac{\lfloor V\rfloor V+\sum_{x&gt;V}x}m\); uniform \(v'=\frac{1+v^2}2\).</li>
+<li><b>Infinite rerolls, cost \(c\):</b> \(V=-c+\E\max(X,V)\), guess threshold, check (die, \(c=1\): keep 4–6, \(V=4\)); uniform: \(V=1-\sqrt{2c}\).</li>
+<li><b>Accumulate or bust:</b> each roll busts w.p. \(q\), else adds mean \(\mu\): stop at \(s\ge\frac{(1-q)\mu}q\); value \(\approx s^*(1-q)^{s^*/\mu}\). Extra life ⇒ never stop while you hold it.</li>
+<li><b>Reroll-with-penalty</b>: value of reroll after \(r\) \(=\frac1m\sum_s\text{payoff}(r,s)\); keep \(r\) iff \(r\ge\) that.</li>
+<li><b>Hunt then harvest</b> (\(M\) moves, \(m\)-die, roll until face \(\ge n\) then take every move): \(\frac{n+m}2\big(M-\frac m{m-n+1}\big)\), maximise over \(n\).</li>
+<li><b>Slot filling</b> (digits into places): backwards; put in bigger slot iff above mean of remaining.</li>
+<li><b>Compare two actions</b> as functions of \(x\), solve the inequality (pay \(c\) to double vs keep: \(\frac{\min(2x-1,m)}m-c&gt;\frac{x-1}m\)).</li>
+<li><b>Secretary:</b> skip \(\frac ne\), then first best-so-far: \(P\to\frac1e\); \(n\) small: maximise \(\frac rn\sum_{k=r}^{n-1}\frac1k\).</li>
+<li><b>Guess colours</b> (\(n\)R, \(n\)B, bet majority): \(\E\)correct \(=n+\frac12\big(\frac{4^n}{\binom{2n}n}-1\big)\). Choose-a-suit races: wait one card, take its suit.</li>
+<li><b>Information:</b> pick the most likely hypothesis per observation; impossible values reveal (X/2X: odd ⇒ small, above max ⇒ big; win \(\frac34\) for \(X\sim\{1..N\}\)); X/2X/3X wanting 3X: not a multiple of 3 ⇒ switch; consecutive envelopes \(x+1..3\): keep 2nd iff it rose, \(\E=x+\frac73\). Unknown majority (9:1 or 1:9): eat one, guess its flavour for the rest.</li>
+<li><b>2×2 zero-sum</b> \(\begin{smallmatrix}a&amp;b\\c&amp;d\end{smallmatrix}\), no saddle: row plays top w.p. \(\frac{d-c}{a-b-c+d}\), value \(\frac{ad-bc}{a-b-c+d}\). Drop dominated strategies first (RPS without rock: \(\frac13\)).</li>
+<li><b>Adversary picks your worst</b> ⇒ equalise: payouts \(i\) w.p. \(p_i\): \(p_i\propto\frac1i\), loss \(\frac1{\sum 1/i}\); integer deck (\(D\) cards, pays \(i\) if named \(i\) drawn): \(k_i\le\lfloor M/i\rfloor\), smallest \(M\) with \(\sum_i\lfloor M/i\rfloor\ge D\), loss \(\frac MD\).</li>
+<li><b>Location games:</b> best response sits adjacent on the richer side ⇒ leader balances sides (\(\sum_{x\le a}x\approx\sum_{x&gt;a}x\), i.e. \(a^2\approx\sum\)). Circle, 3 players: 2nd opposite 1st, 3rd uniform: P1 \(\frac38\). Larger-pays-smaller: optimum \(b\approx\frac N3\), \(\E=\frac{b(2N+1-3b)}{2N}\).</li>
+<li><b>Keep-or-redraw duel</b> (uniform): cutoff \(t\) solves \(F(t)=\) value of redraw ⇒ \(t^2+t-1=0\), \(t=\frac{\sqrt5-1}2\).</li>
+<li><b>Pass games:</b> mover's value \(r\); passing gives \(-r\) ⇒ accept \(k\ge-r\), solve \(r\) self-consistently.</li>
+<li><b>Kelly</b> (odds \(b\):1): \(f^*=p-\frac qb\). Bold play in fair game: \(P(\text{reach goal})=\frac{\text{wealth}}{\text{goal}}\).</li>
+</ul>
+
+<h2>14 · Two-player games</h2>
+<ul>
+<li>P-position (loser to move): every move → N; N: some move → P. Tabulate small \(n\), spot period. Take \(1..k\): lose ⇔ \((k+1)\mid n\); take \(\{1,3,4\}\): lose ⇔ \(n\bmod7\in\{0,2\}\); take ≤ half: lose ⇔ \(n=2^j-1\); subtract a proper divisor: odd loses; Nim: XOR \(=0\) loses; king to corner: (even, even) loses.</li>
+<li><b>Mirror</b> (centre, diameter, equal halves of a line, reflected row). <b>Pairing</b>: \(mn\) odd board, piece to unvisited neighbour ⇒ 2nd player wins. <b>Strategy stealing / waiting move</b>. <b>Fixed number of moves</b> (each move +1 pile: moves \(=\) total − #piles) ⇒ parity decides. Coin row: \(b(l,r)=\text{sum}(l..r)-\min(b(l+1,r),b(l,r-1))\).</li>
+<li><b>Sprague–Grundy:</b> \(g(s)=\text{mex}\{g(s')\}\); sum of games: XOR of \(g\); lose ⇔ 0. Misère Nim: as Nim unless all heaps ≤1 (then odd #heaps loses). Symmetric strategy stealing ⇒ first player can't lose (Chomp, Hex).</li>
+</ul>
+
+<h2>15 · Puzzle toolkit</h2>
+<ul>
+<li><b>Double counting:</b> sum of all pair sums \(=(n-1)\times\) total; splitting \(n\) into piles scoring \(xy\) always totals \(\binom n2\).</li>
+<li><b>Invariants:</b> parity of sum; alternating sum; \(\prod(x+1)\) for \(a,b\to ab+a+b\) (final \(\prod(x_i+1)-1\)); \(|a-b|\): sum parity fixed; black−white sum under neighbour ±; \(\sum\text{pos}^2\) monovariant; perimeter never grows (infection needs \(\ge n\) cells).</li>
+<li><b>Pigeonhole:</b> \(2^n-1\) nonempty subsets vs \(\le n\cdot\max\) sums ⇒ two disjoint equal-sum subsets; 5 lattice points ⇒ integer midpoint (4 parity classes); friends counts \(0\) and \(n-1\) can't coexist.</li>
+<li><b>Colouring:</b> chessboard (domino covers 1B1W; each step flips colour); \((i+j)\bmod k\) for \(1\times k\) tiles.</li>
+<li><b>Mod-2 linear algebra:</b> toggles commute and cancel ⇒ \(k\) moves give \(\le2^k\) states (\(&lt;2^{\text{cells}}\) ⇒ not always solvable); row/col add: need target \(=r_i+c_j\).</li>
+<li><b>Divisibility/integers:</b> fractions of a crowd ⇒ lcm divides; iterate \(x\mapsto ax+b\) \(n\) times: \(a^nx+b\frac{a^n-1}{a-1}\), then minimise over integers; \(|\frac ab-\frac12|\le\varepsilon\): even \(b\) always, odd \(b\) needs \(\frac1{2b}\le\varepsilon\). Pile doubling \((x,N-x)\): \(x\mapsto2x\bmod N\), empty ⇔ \(N=2^j\). \(p^p\) square ⇔ \(p\) even or square. Self-referential "at most \(n-1\) true": \(T=100-T\).</li>
+<li><b>Hats:</b> parity bets (half say even, half odd ⇒ one half all right); 3 players: speak iff the two seen match ⇒ \(\frac34\); \(2^k-1\) players (Hamming): \(\frac{n}{n+1}\).</li>
+<li><b>Weighing:</b> take \(k\) coins from box \(k\): deficit names box; balance: \(3^w\ge\)#outcomes. <b>Eggs:</b> \(e\) eggs, \(d\) drops cover \(f(d,e)=\sum_{k=1}^e\binom dk\) floors (2 eggs: \(\frac{d(d+1)}2\ge\) floors). <b>Horses</b> 25 by fives, top 3: 7 races (5 heats, winners, one race of candidates). <b>Transport</b> (eat 1/mile per load, capacity \(C\)): cost/mile \(=\lceil\text{stock}/C\rceil\), drop to next level after spending \(C\).</li>
+<li><b>Information content:</b> #messages \(=\prod\)(choices per part) ⇒ \(\lfloor\log_2\rfloor\) bits (piece broken on day \(1..D\) or never: \((D+1)^n\)).</li>
+<li><b>Queues:</b> your expected spot among \(m\) randomly ordered \(=\frac{m+1}2\).</li>
+<li><b>Extremal / induction:</b> closest pair shoot each other (odd \(n\) ⇒ someone dry); gas cans: some can reaches the next, merge; add a line, flip one side.</li>
+</ul>
+
+<h2>16 · Sums, integrals, approximations</h2>
+<ul>
+<li>\(\sum_{k=0}^{n-1}x^k=\frac{1-x^n}{1-x}\); \(\sum_{k\ge1}kx^{k-1}=\frac1{(1-x)^2}\); \(\sum k^2x^{k-1}=\frac{1+x}{(1-x)^3}\); \(\sum_{k\ge0}\binom{k+r}rx^k=\frac1{(1-x)^{r+1}}\); \(\sum_{k\ge1}\frac{x^k}k=-\ln(1-x)\); \(\sum\frac{x^k}{k!}=e^x\).</li>
+<li>\(\sum k=\frac{n(n+1)}2\), \(\sum k^2=\frac{n(n+1)(2n+1)}6\), \(\sum k^3=(\sum k)^2\); \(\sum\frac1{k(k+1)}=\frac n{n+1}\); \(\sum\frac1{k^2}=\frac{\pi^2}6\); \(\sum\frac{(-1)^{k+1}}k=\ln2\).</li>
+<li>\(\int_0^1x^a(1-x)^b=\frac{a!\,b!}{(a+b+1)!}\); \(\int_0^\infty x^ne^{-\lambda x}=\frac{n!}{\lambda^{n+1}}\); \(\int e^{-ax^2+bx}=\sqrt{\frac\pi a}e^{b^2/4a}\); \(\int\ln x=x\ln x-x\); \(\int_0^1x^a\ln x=-\frac1{(a+1)^2}\). Simplex \(\{x_i\ge0,\sum\le t\}\): \(\frac{t^n}{n!}\). Region probability: draw it, integrate inner variable over its allowed range.</li>
+<li>\(H_n\approx\ln n+0.5772\); \(n!\approx\sqrt{2\pi n}(\frac ne)^n\); \(\binom{2n}n\approx\frac{4^n}{\sqrt{\pi n}}\); \((1-\frac xn)^n\approx e^{-x}\); \(P(\text{no repeat in }k\text{ of }m)\approx e^{-k^2/2m}\).</li>
+</ul>
+
+<div class="warn"><b>Traps:</b> "\(k\) heads in a row" \(2^{k+1}-2\) vs "\(k\) equal" \(2^k-1\) · "until" includes the last trial, "before" doesn't · strict vs ties (discrete max/min) · \(\V(X-Y)=\V X+\V Y\) · fixed-total split is dependent, Poisson thinning is not · conditioning on which end is hit changes durations · paths are not equally likely unless each step is · respin vs no respin (\(\frac{p}{1-q^2}\)-type vs uniform position) · \(\E\frac1X\ne\frac1{\E X}\).</div>
+</div>
+</div>
+<div class="sheet" id="s2"><div class="cols" id="c2"></div></div>
+</body>
+</html>

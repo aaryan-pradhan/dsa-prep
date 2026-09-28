@@ -104,19 +104,44 @@ Revision pages for the QuantProf course (quantprof.org, "curing the weak
 mind" course). One self-contained HTML page per course **section**
 (Brainteasers, Two Player Games, Combinatorics, Probability, Betting Games,
 Markov Chains, Martingales), chapters as headings inside. Source lives in
-`prob_prep/`; each page is published as a private claude.ai artifact. No
+`prob_prep/course/`; each page is published as a private claude.ai artifact. No
 `data.js`, no `ledger.css`, not linked from `LEDGER.html`. The mindset-only
 "Getting Started" section is a short principles box on the first page, not
 a page of its own.
 
+### Company ledger
+A prob ledger page for one QuantProf company playlist (Jane Street, Optiver,
+…), in `prob_prep/companies/` as `<company>.html` (e.g. `jane_street.html`),
+linking `../viz.js` and `../prob.html#form…`; widgets go in the
+page's own `vizPage()` script (generic `sim` / `dptable` / `curve` come from
+`viz.js`), like every other prob page; `prob.html` links it under a
+Companies group. The one
+exception to "one page per course section": the Playlists
+section gets one page *per company*. Chapters are the seven section topics
+from `prob_prep/prob.html` (Brainteasers, Combinatorics, Probability,
+Markov Chains, Martingales, Betting Games, Two Player Games), not
+QuantProf's Levels. A problem goes in the chapter of its **Key idea** (the
+one fact its proof rests on); ties go to the earlier section in course
+order. Each problem appears once — no cross-listing. Every playlist
+problem is covered, solved or not; QuantProf's own solution is read for
+each one (for the Course gap check), but the page's proof is still written
+from scratch. Same Prob entry shape
+as every other prob page.
+
 ### Prob entry
 One problem in a prob ledger page. Shape:
 
-1. **Statement** — short, simple notation.
-2. **Key idea** — hidden until clicked. The one fact the solution rests on.
-3. **Solution** — hidden until clicked. Euclid-style numbered proof: one
-   fact per line, reason in brackets, ends with ∎.
-4. **⚠ Course gap** — only when QuantProf's own argument is incomplete or
+1. **Statement** — the setup, then a separate **Question:** line.
+2. **Key idea** — the one fact the solution rests on.
+3. **Picture** — the idea in plain words, plus an interactive `viz.js`
+   widget (`data-viz`).
+4. **Solution** — Setup (every symbol defined) → Claim → numbered steps,
+   one fact each, with a **Why:** → Conclusion ∎. Inline SVG figures sit
+   at the end of the step they illustrate. Recursion/probability-process
+   problems open with the **Form** link to `../prob.html#forms` and run
+   LEVEL → CHOICE → CHECK → MOVE → MEMORYLESS → SOLVE (games: Form 5
+   win(state), then PATTERN → PROVE). C++ `rec` only for acyclic states.
+5. **⚠ Course gap** — only when QuantProf's own argument is incomplete or
    wrong. The page's proof is written from scratch; the course solution is
    never the standard.
 

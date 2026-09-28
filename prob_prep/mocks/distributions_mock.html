@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Distributions Mock</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<script defer src="../viz.js"></script>
+<style>
+:root{
+  --bg:#f6f7f9; --ink:#171b24; --muted:#5a6273; --rule:#d9dee6; --card:#ffffff;
+  --accent:#2346a0; --gap:#8a4b00; --gapbg:#fdf1de; --idea:#eef2fb;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
+    --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
+  --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
+}
+body{background:var(--bg);color:var(--ink);font:20px/1.75 "MesloLGS Nerd Font Propo","MesloLGS NF","MesloLGS Nerd Font",ui-monospace,monospace;padding-inline:16px;padding-block:24px 64px}
+.wrap{max-width:52rem;margin:0 auto}
+h1,h2,h3{font-family:"MesloLGS Nerd Font Propo","MesloLGS NF","MesloLGS Nerd Font",ui-monospace,monospace;font-weight:700;text-wrap:balance;line-height:1.2}
+h1{font-size:2.4rem;margin:0 0 .25rem}
+h2{font-size:1.7rem;margin:3rem 0 .75rem;padding-top:1rem;border-top:1px solid var(--rule)}
+h3{font-size:1.2rem;margin:0 0 .4rem}
+.sub{color:var(--muted);margin:0 0 1.25rem}
+.bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1rem}
+button{font:inherit;font-size:.9rem;color:var(--accent);background:transparent;border:1px solid var(--rule);border-radius:6px;padding:.3rem .8rem;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav.toc{font-size:.92rem;columns:2 14rem;column-gap:2rem;margin:0 0 1rem;padding:0}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:.1rem 0;break-inside:avoid}
+nav.toc a:hover{color:var(--accent)}
+a{color:var(--accent)}
+.idea{background:var(--idea);border-radius:8px;padding:.8rem 1rem;margin:.5rem 0 1.25rem}
+.idea p,.idea ol,.idea ul{margin:.3rem 0}
+.prob{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:1rem 1.1rem;margin:1rem 0}
+.prob > p{margin:.2rem 0 .6rem}
+.ans{font-weight:600}
+.sec{border-top:1px solid var(--rule);padding:.45rem 0}
+.sh{color:var(--accent);font-weight:600;font-size:.95rem;margin:0}
+.sec > *:not(.sh){margin-top:.5rem}
+ol.pf{padding-left:1.6rem;margin:.4rem 0}
+ol.pf li{margin:.2rem 0}
+.why{color:var(--muted);font-size:.85em;white-space:nowrap}
+.qed{float:right;color:var(--muted)}
+.claim{margin:.3rem 0}
+.gap{background:var(--gapbg);color:var(--gap);border-radius:6px;padding:.5rem .8rem;font-size:.92rem}
+table{border-collapse:collapse;font-size:.92rem}
+.tw{overflow-x:auto}
+td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+details > summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.95rem;margin:.4rem 0}
+</style>
+<script>
+function vizPage(V) {
+  const U = Math.random;
+  const nrm = () => Math.sqrt(-2 * Math.log(1 - U())) * Math.cos(2 * Math.PI * U());  // standard normal (Box–Muller)
+  const expo = r => -Math.log(1 - U()) / r;                                            // Exp(rate r)
+  const pois = (r, t) => { let k = 0, s = expo(r); while (s < t) { k++; s += expo(r); } return k; };  // arrivals in [0, t]
+  const f2 = x => x.toFixed(2);
+  V.fns.a1 = show => { const u = U(), v = Math.max(u, 1 - u); return { v, show: `Snap at ${f2(u)} → longer piece <b>${f2(v)}</b>` }; };
+  V.fns.a2 = show => { const t = 100 + 100 * U(); let prev = 0, s = 0; while (s <= t) { prev = s; s += expo(.1); }
+    return { v: s - prev, show: `Arrive at ${f2(t)}; buses at ${f2(prev)} and ${f2(s)} → gap <b>${f2(s - prev)}</b> min` }; };
+  V.fns.a3 = show => { let b, n; do { const c = pois(10, 1); b = 0; for (let i = 0; i < c; i++) if (U() < .3) b++; n = c - b; } while (b !== 5);
+    return { v: n, show: `An hour with 5 buyers: <b>${n}</b> browsers` }; };
+  V.fns.a4 = show => { const m = 170 + 6 * nrm(), w = 160 + 8 * nrm(), ok = w > m; return { v: +ok, show: `Man ${f2(m)}, woman ${f2(w)} ${ok ? '→ <b>she is taller</b> ✓' : '✗'}` }; };
+  V.fns.a5 = show => { const a = 60 * U(), b = 60 * U(), v = Math.abs(a - b); return { v, show: `Arrivals 12:${f2(a)}, 12:${f2(b)} → first waits <b>${f2(v)}</b> min` }; };
+  V.fns.a6 = show => { const x = 2 * nrm(), p = x * x; return { v: (p - 4) ** 2, show: `Move ${f2(x)} → payoff <b>${f2(p)}</b> (mean 4)` }; };
+  V.fns.a7 = show => { const n = pois(1, 3); return { v: +(n % 2 === 0), show: `<b>${n}</b> toggles in 3 min → ${n % 2 ? 'on ✗' : '<b>off</b> ✓'}` }; };
+  V.fns.a8 = show => { const b = [U(), U(), U(), U()].map(x => 100 * x).sort((x, y) => y - x); return { v: b[1], show: `Bids ${b.map(f2).join(', ')} → winner pays <b>${f2(b[1])}</b>` }; };
+  V.fns.b1 = show => { let s = 0, r = []; while (s <= 1) { const u = U(); s += u; r.push(f2(u)); } return { v: s, show: `${r.join(' + ')} = <b>${f2(s)}</b> kg` }; };
+  V.fns.b2 = show => { let t; do { t = []; let s = expo(3); while (s < 1) { t.push(s); s += expo(3); } } while (t.length !== 3);
+    return { v: 60 * t[0], show: `Buses at ${t.map(x => f2(60 * x)).join(', ')} min → first at <b>${f2(60 * t[0])}</b>` }; };
+  V.fns.b3 = show => { const a = 10 * nrm(), b = 10 * nrm(), v = Math.max(a, b); return { v, show: `PnLs ${f2(a)}, ${f2(b)} → you get <b>${f2(v)}</b>` }; };
+  V.fns.b4 = show => { const [x, y] = [U(), U()].sort((p, q) => p - q), p = [x, y - x, 1 - y], v = Math.max(...p); return { v, show: `Pieces ${p.map(f2).join(', ')} → biggest <b>${f2(v)}</b> m` }; };
+  V.fns.c1 = show => { const x = nrm(), y = .5 * x + Math.sqrt(.75) * nrm(), ok = x > 0 && y > 0; return { v: +ok, show: `Returns ${f2(x)}, ${f2(y)} ${ok ? '→ <b>both up</b> ✓' : '✗'}` }; };
+  V.fns.c2 = show => { const n = pois(6, 1), s = new Set(); for (let i = 0; i < n; i++) s.add(U() * 6 | 0); const ok = s.size === 6;
+    return { v: +ok, show: `<b>${n}</b> trades, ${s.size} of 6 stocks touched ${ok ? '✓' : '✗'}` }; };
+}
+</script>
+<div class="wrap">
+
+<h1>Distributions Mock</h1>
+<p class="sub">24 marks · Uniform · Poisson · Normal only · 14 questions whose distribution is hidden in the story · Section A fundamentals (8 × 1), B standard tricks (4 × 2), C contest level (2 × 4) · every answer checked by simulation.</p>
+<p class="sub">Rules: no calculator; leave answers exact (e, π, Φ allowed). Target 60 min. Before every question a blue box explains the distribution and properties it uses; read it, try the question, then open the folded solution.</p>
+<nav class="toc">
+<a href="#m-a">A · Fundamentals (8 marks)</a>
+<a href="#m-poisson">Background · Poisson process</a>
+<a href="#m-b">B · Standard tricks (8 marks)</a>
+<a href="#m-c">C · Contest level (8 marks)</a>
+<a href="#m-key">Answer key</a>
+</nav>
+
+<h2 id="m-a">A · Fundamentals (8 × 1 mark)</h2>
+
+<div class="idea" id="bg-A1"><p><b>Before A1 · The uniform distribution</b></p>
+<p><b>Picture.</b> Throw a dart at a segment [a, b] so that no spot is favoured. That landing point X is <i>Uniform[a, b]</i>.</p>
+<ul>
+<li><b>Density is flat:</b> \(f(x) = \tfrac{1}{b-a}\) on [a, b], 0 outside. Flat means "every spot equally likely".</li>
+<li><b>Probability = length share:</b> \(P(c \le X \le d) = \tfrac{d-c}{b-a}\). For Uniform[0, 1] this is just the length d − c. This is the one fact you use constantly.</li>
+<li><b>CDF is a straight line:</b> \(P(X \le x) = x\) on [0, 1]. Conversely, any variable whose CDF is a straight line on an interval is uniform there.</li>
+<li><b>Mean = midpoint</b> \(\tfrac{a+b}{2}\) (balance point of a flat bar). <b>Variance</b> \(\tfrac{(b-a)^2}{12}\); for [0, 1]: E[X²] = ∫x² dx = 1/3, so Var = 1/3 − 1/4 = 1/12.</li>
+<li><b>Symmetry:</b> if U ~ Uniform[0, 1], so is 1 − U (flip the segment).</li>
+</ul>
+<p><b>Method for any function of U</b> (like a max or a "longer piece"): compute \(P(\text{thing} \le x)\) as a length, then read off the distribution. If that CDF turns out linear, the thing is itself uniform.</p></div>
+<div class="prob"><h3>A1 · Snapped Ruler <span class="why">1 mark</span></h3>
+<p class="stmt">A 1-metre ruler is snapped at a uniformly random point. You keep the longer piece.</p><p class="stmt"><b>Question:</b> what is its expected length?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>max(U, 1 − U) is itself uniform on [½, 1].</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Fold the ruler at the middle.</b> The snap point folds onto a uniform point of [½, 1]; that is the longer piece.</p><div class="viz" data-viz="sim" data-p='{"fn": "a1", "exact": 0.75, "exactLabel": "3/4", "what": "average longer piece", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> U ~ Uniform[0, 1] is the snap point; L = max(U, 1 − U).</p><p class="claim"><b>Claim.</b> <span class="ans">3/4 m</span>.</p><ol class="pf"><li>For ½ ≤ x ≤ 1: \(P(L \le x) = P(1 - x \le U \le x) = 2x - 1\).<span class="r"><b>Why:</b> both pieces ≤ x iff U is within x of each end.</span></li><li>So L ~ Uniform[½, 1] and \(E[L] = \tfrac34\).<span class="r"><b>Why:</b> the CDF 2x − 1 is linear on [½, 1].</span></li></ol><p><b>Answer.</b> <span class="ans">3/4 m</span>. ∎</p></div>
+</details></div>
+
+<div class="idea" id="m-poisson"><p><b>Before A2 · The Poisson process and the exponential distribution</b> (also used in A3, A7, B2, C2)</p>
+<p><b>Picture.</b> Events (buses, customers, toggles) are dots on a time line, dropped "completely at random" at an average rate of λ per unit time.</p>
+<p><b>Definition.</b> A Poisson process of rate λ is a random set of times with:</p>
+<ol>
+<li><b>Independent increments:</b> counts in non-overlapping time intervals are independent.</li>
+<li><b>Poisson counts:</b> the number N(s, s+t] of events in any interval of length t is Poisson(λt): \(P(N = k) = e^{-\lambda t}\tfrac{(\lambda t)^k}{k!}\), mean λt, variance λt.</li>
+</ol>
+<p><b>Where the Poisson count comes from.</b> Chop [0, t] into n tiny slots, each holding an event with chance λt/n, independently. The count is Binomial(n, λt/n) → Poisson(λt) as n → ∞. So "many tiny independent chances" = Poisson.</p>
+<p><b>Link to the exponential.</b> Let T₁ be the time of the first event. Then T₁ &gt; t ⟺ no event in [0, t], so</p>
+<p>\(P(T_1 &gt; t) = P(N(0, t] = 0) = e^{-\lambda t}\), i.e. \(T_1 \sim \text{Exp}(\lambda)\): density \(\lambda e^{-\lambda t}\), mean \(1/\lambda\), variance \(1/\lambda^2\).</p>
+<p>By independent increments the process restarts after every event, so the gaps \(T_1, T_2 - T_1, T_3 - T_2, …\) are i.i.d. Exp(λ). Conversely, i.i.d. Exp(λ) gaps build a Poisson process. <b>Poisson counts ⟺ exponential gaps</b>: two descriptions of the same dots.</p>
+<p><b>Memoryless.</b> \(P(T &gt; s + t \mid T &gt; s) = \tfrac{e^{-\lambda(s+t)}}{e^{-\lambda s}} = e^{-\lambda t} = P(T &gt; t)\). However long you have waited, the remaining wait is still Exp(λ). The exponential is the only continuous distribution with this property.</p>
+<p><b>Toolkit used below.</b></p>
+<ul>
+<li><b>k-th event:</b> \(T_k\) = sum of k gaps, mean k/λ, variance k/λ² (Gamma(k, λ)).</li>
+<li><b>Merging:</b> independent processes of rates λ₁, λ₂ together form a Poisson process of rate λ₁ + λ₂; the next event is from the first with chance λ₁/(λ₁ + λ₂).</li>
+<li><b>Thinning (A3, C2):</b> keep each event independently with chance p → kept and dropped events are <i>independent</i> Poisson processes of rates pλ and (1 − p)λ.</li>
+<li><b>Conditioning (B2):</b> given exactly n events in [0, T], their times are n i.i.d. Uniform[0, T] points, sorted.</li>
+<li><b>Time reversal (A2):</b> looking backward from any fixed time, the time since the last event is also Exp(λ), independent of the future.</li>
+</ul>
+</div>
+
+<div class="prob"><h3>A2 · The Bus You Just Missed <span class="why">1 mark</span></h3>
+<p class="stmt">Buses arrive at a stop at completely random times (independent of each other and of the past), on average one every 10 minutes. You turn up at a random moment.</p><p class="stmt"><b>Question:</b> what is the expected time between the bus that came just before you and the bus you catch?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>"Completely random" = Poisson process, rate 1/10. Looking forward and backward from your arrival, both waits are Exp(mean 10) and independent: 20, not 10 (inspection paradox).</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>You are more likely to land in a long gap.</b> A gap twice as long catches you twice as often.</p><div class="viz" data-viz="sim" data-p='{"fn": "a2", "exact": 20, "exactLabel": "20 min", "what": "average gap you land in", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> Bus times form a Poisson process of rate λ = 1/10 per minute. You arrive at time t. F = time to the next bus, B = time since the last bus.</p><p class="claim"><b>Claim.</b> <span class="ans">20 min</span>.</p><ol class="pf"><li>F ~ Exp(1/10), E[F] = 10.<span class="r"><b>Why:</b> memoryless: the future after t is a fresh Poisson process.</span></li><li>B ~ Exp(1/10) (for t large), E[B] = 10, independent of F.<span class="r"><b>Why:</b> a Poisson process run backwards in time is again a Poisson process of the same rate; past and future counts are independent.</span></li><li>E[B + F] = 20.<span class="r"><b>Why:</b> linearity. Check: length-biased gap mean \(E[G^2]/E[G] = 2\cdot 10^2/10 = 20\).</span></li></ol><p><b>Answer.</b> <span class="ans">20 min</span>. ∎</p></div>
+</details></div>
+
+<div class="idea" id="bg-A3"><p><b>Before A3 · The Poisson distribution and thinning</b></p>
+<p><b>Picture.</b> Count how many things happen in a fixed window when each of a huge number of tiny moments independently has a tiny chance of an event: customers in an hour, typos on a page, goals in a match. That count N is <i>Poisson(λ)</i>, where λ = the average count.</p>
+<ul>
+<li><b>PMF:</b> \(P(N = k) = e^{-\lambda}\tfrac{\lambda^k}{k!}\), k = 0, 1, 2, … It is the limit of Binomial(n, λ/n) as n → ∞: many trials, each rarely succeeds.</li>
+<li><b>Mean = variance = λ.</b> (Binomial variance np(1 − p) → np when p is tiny.) So a Poisson count of mean 9 typically wobbles by about √9 = 3.</li>
+<li><b>Sums:</b> independent Poisson(λ₁) + Poisson(λ₂) = Poisson(λ₁ + λ₂). Two independent streams of rare events pooled together are still rare events.</li>
+</ul>
+<p><b>Thinning (the key property here).</b> Take a Poisson(λ) count and flip an independent p-coin for each event: "kept" or "dropped". Then</p>
+<ul>
+<li>kept ~ Poisson(pλ), dropped ~ Poisson((1 − p)λ), and <b>they are independent</b>.</li>
+<li><b>Why this is surprising:</b> if the total were a fixed number, say 10, then more kept means fewer dropped: strongly dependent. With a Poisson total, the total itself is random, and the two effects cancel exactly. Intuition: in the tiny-slot picture, each slot independently holds a kept event (chance pλ/n), a dropped one ((1 − p)λ/n), or nothing. Kept events and dropped events live in separate slots, so they are two separate rare-event counts.</li>
+<li><b>Consequence:</b> learning one of them tells you nothing about the other.</li>
+</ul></div>
+<div class="prob"><h3>A3 · Browsers and Buyers <span class="why">1 mark</span></h3>
+<p class="stmt">Customers walk into a shop at random, 10 per hour on average (Poisson). Each customer independently buys something with probability 0.3; the rest just browse. In a particular hour exactly 5 customers bought something.</p><p class="stmt"><b>Question:</b> what is the expected number of browsers in that hour?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>Thinning: buyers and browsers are <i>independent</i> Poisson processes (rates 3 and 7). Knowing the buyers says nothing about the browsers.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>The trap answer is 5·(7/3) ≈ 11.7.</b> That would be right if the total were fixed; here it is random, and the two streams split apart independently.</p><div class="viz" data-viz="sim" data-p='{"fn": "a3", "exact": 7, "exactLabel": "7", "what": "average browsers given 5 buyers", "N": 30000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> N ~ Poisson(10) customers; B = buyers, R = browsers, B + R = N.</p><p class="claim"><b>Claim.</b> <span class="ans">7</span>.</p><ol class="pf"><li>\(P(B = b, R = r) = e^{-10}\tfrac{10^{b+r}}{(b+r)!}\binom{b+r}{b}0.3^b0.7^r = e^{-3}\tfrac{3^b}{b!}\cdot e^{-7}\tfrac{7^r}{r!}\).<span class="r"><b>Why:</b> choose N = b + r, then which b of them buy; \(10^{b+r}0.3^b0.7^r = 3^b7^r\).</span></li><li>The joint law factors, so B ~ Poisson(3) and R ~ Poisson(7) are independent.<span class="r"><b>Why:</b> a product of a function of b and a function of r.</span></li><li>\(E[R \mid B = 5] = E[R] = 7\).<span class="r"><b>Why:</b> independence.</span></li></ol><p><b>Answer.</b> <span class="ans">7</span>. ∎</p></div>
+</details></div>
+
+<div class="idea" id="bg-A4"><p><b>Before A4 · The normal distribution</b></p>
+<p><b>Picture.</b> The bell curve. It appears whenever a quantity is the sum of many small independent effects (heights: many genes and nutrition factors; price moves: many trades). That is the Central Limit Theorem.</p>
+<ul>
+<li><b>Parameters:</b> X ~ N(μ, σ²) has mean μ (centre of the bell) and variance σ² (σ = standard deviation = width). Density \(\tfrac{1}{\sigma\sqrt{2\pi}}e^{-(x-\mu)^2/(2\sigma^2)}\).</li>
+<li><b>68–95–99.7 rule:</b> within 1σ of the mean about 68% of the time, within 2σ about 95%, within 3σ about 99.7%.</li>
+<li><b>Standardising:</b> \(Z = \tfrac{X - \mu}{\sigma}\) ~ N(0, 1). Every normal question becomes "how many σ away is this?". \(\Phi(z) = P(Z \le z)\) is the standard normal CDF.</li>
+<li><b>Symmetry:</b> the bell is symmetric about 0, so \(P(Z &gt; z) = P(Z &lt; -z) = \Phi(-z) = 1 - \Phi(z)\).</li>
+<li><b>Adding independent normals gives a normal:</b> if X ~ N(μ₁, σ₁²) and Y ~ N(μ₂, σ₂²) are independent, then X ± Y ~ N(μ₁ ± μ₂, σ₁² + σ₂²).</li>
+<li><b>Variances add even for a difference.</b> Subtracting a random thing adds uncertainty, never removes it: Var(X − Y) = Var X + Var(−Y) = Var X + Var Y. <b>Standard deviations do not add</b>: σ = √(σ₁² + σ₂²) (Pythagoras).</li>
+</ul></div>
+<div class="prob"><h3>A4 · Taller Partner <span class="why">1 mark</span></h3>
+<p class="stmt">Men's heights are N(170, 6²) cm and women's heights are N(160, 8²) cm. A man and a woman are picked independently at random.</p><p class="stmt"><b>Question:</b> what is the probability that the woman is taller? (Answer in Φ.)</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>A difference of independent normals is normal: means subtract, variances add.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>W − M ~ N(−10, 10²).</b> The woman is taller exactly when this is above 0: one SD above the mean.</p><div class="viz" data-viz="sim" data-p='{"fn": "a4", "exact": 0.1586553, "exactLabel": "Φ(−1) ≈ 0.1587", "what": "P(woman taller)", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="claim"><b>Claim.</b> <span class="ans">Φ(−1) ≈ 0.1587</span>.</p><ol class="pf"><li>\(W - M \sim N(160 - 170,\ 8^2 + 6^2) = N(-10, 100)\).<span class="r"><b>Why:</b> independent normals; Var(W − M) = Var W + Var M.</span></li><li>\(P(W - M &gt; 0) = P\big(Z &gt; \tfrac{0 - (-10)}{10}\big) = P(Z &gt; 1) = \Phi(-1)\).<span class="r"><b>Why:</b> standardise; symmetry of Z.</span></li></ol><p><b>Answer.</b> <span class="ans">Φ(−1) ≈ 0.1587</span>. ∎</p></div>
+</details></div>
+
+<div class="idea" id="bg-A5"><p><b>Before A5 · Two independent uniforms, and the tail formula</b></p>
+<ul>
+<li><b>Two independent Uniform[0, 1] points (X, Y)</b> = one dart thrown uniformly at the unit square. So <b>probability = area</b> of the region where the event happens. Draw the square, shade the region, compute the area.</li>
+<li>Example: {X &lt; Y} is the triangle above the diagonal, area ½. {|X − Y| &gt; t} is two corner triangles away from the diagonal.</li>
+<li><b>Tail formula for expectations:</b> for a variable W ≥ 0, \(E[W] = \int_0^\infty P(W &gt; t)\,dt\). Intuition: slice W's value into thin layers dt; the layer at height t is "counted" exactly when W &gt; t. So the average of W = sum of the chances of exceeding each level.</li>
+<li><b>Gap lemma:</b> n independent uniform points cut [0, 1] into n + 1 pieces. By symmetry no piece is special, and the pieces add up to 1, so each has mean \(\tfrac{1}{n+1}\).</li>
+</ul></div>
+<div class="prob"><h3>A5 · Lunch Date <span class="why">1 mark</span></h3>
+<p class="stmt">Two friends each arrive at a café at an independent, uniformly random time between 12:00 and 13:00. The first to arrive waits for the other.</p><p class="stmt"><b>Question:</b> how long, on average, does the first one wait?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>E|X − Y| for two uniforms on [0, 1] is 1/3: two random points cut [0, 1] into 3 pieces of equal mean.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Three gaps, mean ⅓ each.</b> Before the first, between them, after the second; the wait is the middle one.</p><div class="viz" data-viz="sim" data-p='{"fn": "a5", "exact": 20, "exactLabel": "20 min", "what": "average wait", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> X, Y ~ Uniform[0, 1] (in hours), independent. Wait = |X − Y|.</p><p class="claim"><b>Claim.</b> <span class="ans">20 min</span>.</p><ol class="pf"><li>\(P(|X - Y| &gt; t) = (1 - t)^2\) for 0 ≤ t ≤ 1.<span class="r"><b>Why:</b> two corner triangles of the unit square, legs 1 − t, total area \((1-t)^2\).</span></li><li>\(E|X - Y| = \int_0^1 (1-t)^2\,dt = \tfrac13\) hour.<span class="r"><b>Why:</b> E[W] = ∫ P(W &gt; t) dt for W ≥ 0.</span></li></ol><p><b>Answer.</b> <span class="ans">1/3 hour = 20 min</span>. ∎</p></div>
+</details></div>
+
+<div class="idea" id="bg-A6"><p><b>Before A6 · Moments of the normal distribution</b></p>
+<p>The k-th moment of X is E[X^k]. For Z ~ N(0, 1):</p>
+<ul>
+<li><b>Odd moments are 0:</b> E[Z] = E[Z³] = … = 0. The bell is symmetric, so every positive value z is balanced by −z, and z^k cancels (−z)^k when k is odd.</li>
+<li><b>E[Z²] = 1:</b> that is what variance 1 means (mean is 0).</li>
+<li><b>E[Z⁴] = 3.</b> Trick (Stein's identity): \(E[Z\,g(Z)] = E[g'(Z)]\), which follows from integration by parts because the density's derivative is \(-z\) times the density. Take g(z) = z³: E[Z⁴] = E[3Z²] = 3. Continuing: E[Z⁶] = 5·3 = 15, E[Z^{2m}] = 1·3·5⋯(2m − 1).</li>
+<li><b>Scaling:</b> X ~ N(0, σ²) is X = σZ, so E[X^k] = σ^k E[Z^k]. E[X²] = σ², E[X⁴] = 3σ⁴.</li>
+<li><b>Why 3 matters:</b> E[X⁴]/σ⁴ is the "kurtosis", a measure of tail heaviness. The normal's is 3; real returns usually exceed 3 (fat tails).</li>
+<li><b>Variance of anything:</b> Var(W) = E[W²] − (E[W])². For W = X², that needs the 4th moment.</li>
+</ul></div>
+<div class="prob"><h3>A6 · Squared Move <span class="why">1 mark</span></h3>
+<p class="stmt">Tomorrow's price move X has mean 0 and standard deviation 2, and is normally distributed. A contract pays X² (a variance swap in miniature).</p><p class="stmt"><b>Question:</b> what is the variance of the payoff?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>Normal fourth moment: \(E[X^4] = 3\sigma^4\). So Var(X²) = 3σ⁴ − σ⁴ = 2σ⁴.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Mean 4, but big tails.</b> The payoff is 4 on average, and its spread is √32 ≈ 5.7, larger than the mean.</p><div class="viz" data-viz="sim" data-p='{"fn": "a6", "exact": 32, "exactLabel": "32", "what": "average (payoff − 4)²", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> X = 2Z with Z ~ N(0, 1).</p><p class="claim"><b>Claim.</b> <span class="ans">32</span>.</p><ol class="pf"><li>\(E[Z^4] = 3\).<span class="r"><b>Why:</b> integrate by parts: \(E[Z^4] = E[Z^3\cdot Z] = 3E[Z^2] = 3\) (Stein: \(E[Zg(Z)] = E[g'(Z)]\)).</span></li><li>\(E[X^2] = 4\), \(E[X^4] = 16\cdot 3 = 48\).<span class="r"><b>Why:</b> X = 2Z.</span></li><li>\(\text{Var}(X^2) = 48 - 4^2 = 32\).<span class="r"><b>Why:</b> Var = E[(X²)²] − (E[X²])².</span></li></ol><p><b>Answer.</b> <span class="ans">32</span>. ∎</p></div>
+</details></div>
+
+<div class="idea" id="bg-A7"><p><b>Before A7 · Poisson counts and the exponential series</b></p>
+<ul>
+<li>"Toggles at completely random moments, on average λ per minute" = Poisson process; the number of toggles in t minutes is <b>Poisson(λt)</b> (see the primer before A2).</li>
+<li>The Poisson probabilities are just the terms of the exponential series: \(e^{\lambda} = \sum_k \tfrac{\lambda^k}{k!}\), so \(\sum_k e^{-\lambda}\tfrac{\lambda^k}{k!} = 1\).</li>
+<li><b>Generating function:</b> \(E[s^N] = \sum_k e^{-\lambda}\tfrac{(\lambda s)^k}{k!} = e^{\lambda(s-1)}\). Plugging in special values of s answers questions for free.</li>
+<li><b>s = −1 detects parity:</b> \((-1)^N\) is +1 when N is even and −1 when odd. So \(E[(-1)^N] = P(\text{even}) - P(\text{odd})\).</li>
+</ul></div>
+<div class="prob"><h3>A7 · Flickering Switch <span class="why">1 mark</span></h3>
+<p class="stmt">A light starts off. A faulty relay toggles it at random moments, on average once a minute, the moments being completely random (Poisson).</p><p class="stmt"><b>Question:</b> what is the probability that the light is off after 3 minutes?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>Off ⟺ an even number of toggles. For N ~ Poisson(λ): \(P(\text{even}) = \tfrac{1 + e^{-2\lambda}}{2}\).</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Almost a fair coin.</b> After 3 expected toggles, the parity has nearly forgotten where it started: the bias is only \(e^{-6}/2\).</p><div class="viz" data-viz="sim" data-p='{"fn": "a7", "exact": 0.5012394, "exactLabel": "(1 + e^−6)/2 ≈ 0.50124", "what": "P(off)", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> N ~ Poisson(3) toggles.</p><p class="claim"><b>Claim.</b> <span class="ans">\(\tfrac{1 + e^{-6}}{2}\)</span>.</p><ol class="pf"><li>\(P(\text{even}) - P(\text{odd}) = \sum_n e^{-3}\tfrac{3^n}{n!}(-1)^n = e^{-3}e^{-3} = e^{-6}\).<span class="r"><b>Why:</b> the exponential series at x = −3.</span></li><li>\(P(\text{even}) + P(\text{odd}) = 1\), so \(P(\text{even}) = \tfrac{1 + e^{-6}}{2}\).<span class="r"><b>Why:</b> add the two equations and halve.</span></li></ol><p><b>Answer.</b> <span class="ans">(1 + e^{−6})/2 ≈ 0.50124</span>. ∎</p></div>
+</details></div>
+
+<div class="idea" id="bg-A8"><p><b>Before A8 · Order statistics of uniforms</b></p>
+<ul>
+<li>Take n independent Uniform[0, 1] values and sort them: \(U_{(1)} &lt; U_{(2)} &lt; \dots &lt; U_{(n)}\). \(U_{(k)}\) is the k-th smallest ("k-th order statistic"). \(U_{(n)}\) is the max, \(U_{(1)}\) the min.</li>
+<li><b>Mean of the k-th smallest:</b> \(E[U_{(k)}] = \tfrac{k}{n+1}\). Intuition: the n points cut [0, 1] into n + 1 gaps; the gaps are exchangeable (you could relabel them without changing anything) and add to 1, so each averages \(\tfrac1{n+1}\). The k-th point sits k gaps from 0.</li>
+<li>Examples: max of 2 averages 2/3, min of 3 averages 1/4, median of 3 averages 1/2.</li>
+<li><b>Scaling:</b> for Uniform[0, M], multiply by M.</li>
+<li><b>Max and min CDFs:</b> \(P(U_{(n)} \le x) = x^n\) (all below x), \(P(U_{(1)} &gt; x) = (1-x)^n\) (all above x).</li>
+</ul></div>
+<div class="prob"><h3>A8 · Second-Price Auction <span class="why">1 mark</span></h3>
+<p class="stmt">Four bidders have independent values, each uniform on [0, 100]. In a second-price auction everyone bids their value; the highest bidder wins and pays the second-highest bid.</p><p class="stmt"><b>Question:</b> what is the seller's expected revenue?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>n uniform points cut [0, 1] into n + 1 gaps of equal mean, so the k-th smallest has mean k/(n + 1).</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Four bids, five equal gaps of mean 20.</b> The second-highest is the 3rd smallest: 3 gaps up, 60.</p><div class="viz" data-viz="sim" data-p='{"fn": "a8", "exact": 60, "exactLabel": "60", "what": "average revenue", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> Values \(100U_1, …, 100U_4\); \(U_{(k)}\) = k-th smallest.</p><p class="claim"><b>Claim.</b> <span class="ans">60</span>.</p><ol class="pf"><li>\(E[U_{(k)}] = \tfrac{k}{n+1}\).<span class="r"><b>Why:</b> the 5 gaps (with the ends) are exchangeable and add to 1, so each has mean 1/5.</span></li><li>Revenue = \(100\,U_{(3)}\), mean \(100\cdot\tfrac35 = 60\).<span class="r"><b>Why:</b> second-highest of 4 = 3rd smallest.</span></li></ol><p><b>Answer.</b> <span class="ans">60</span>. ∎</p></div>
+</details></div>
+
+<h2 id="m-b">B · Standard tricks (4 × 2 marks)</h2>
+
+<div class="idea" id="bg-B1"><p><b>Before B1 · Sums of uniforms, the tail formula and Wald's identity</b></p>
+<ul>
+<li><b>P(U₁ + … + Uₙ ≤ 1) = 1/n!.</b> The points \((u_1, …, u_n)\) in the unit cube with sum ≤ 1 form a corner "simplex": a triangle of area 1/2 for n = 2, a tetrahedron of volume 1/6 for n = 3, in general 1/n!. Probability = volume, because the n uniforms together are a uniform point in the cube.</li>
+<li><b>Tail formula for a count:</b> for N taking values 0, 1, 2, …, \(E[N] = \sum_{n \ge 0} P(N &gt; n)\). (N is counted once for each level n below it.)</li>
+<li><b>Wald's identity:</b> if you add i.i.d. values X₁, X₂, … and the decision to stop after step k uses only X₁..X_k (no peeking ahead), then \(E[X_1 + \dots + X_N] = E[N]\cdot E[X]\).</li>
+<li><b>Why it is not obvious:</b> the last value you add tends to be large (a big one is what pushed you over), so you might expect a bias. But whether step k happens is decided <i>before</i> seeing X_k, so each added X_k is still an average draw.</li>
+</ul></div>
+<div class="prob"><h3>B1 · Overfilled Bag <span class="why">2 marks</span></h3>
+<p class="stmt">Stones with independent weights, each uniform on [0, 1] kg, are dropped into a bag one at a time until the total weight first exceeds 1 kg.</p><p class="stmt"><b>Question:</b> what is the expected final weight of the bag?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>Number of stones N has \(P(N &gt; n) = 1/n!\), so E[N] = e. Wald's identity: E[total] = E[N]·E[stone] = e/2.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>More stones than you think.</b> On average e ≈ 2.72 stones, each averaging ½ kg even though the last one tends to be heavy.</p><div class="viz" data-viz="sim" data-p='{"fn": "b1", "exact": 1.3591409, "exactLabel": "e/2 ≈ 1.3591", "what": "average final weight", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> \(S_n = U_1 + \dots + U_n\), N = min{n : S_n &gt; 1}.</p><p class="claim"><b>Claim.</b> <span class="ans">e/2 ≈ 1.359 kg</span>.</p><ol class="pf"><li>\(P(N &gt; n) = P(S_n \le 1) = \tfrac1{n!}\).<span class="r"><b>Why:</b> \(\{S_n \le 1\}\) is the simplex \(x_i \ge 0, \sum x_i \le 1\), volume 1/n!.</span></li><li>\(E[N] = \sum_{n\ge0} P(N &gt; n) = \sum_{n \ge 0}\tfrac1{n!} = e\).<span class="r"><b>Why:</b> tail-sum formula for a count.</span></li><li>\(E[S_N] = E[N]\cdot E[U] = \tfrac e2\).<span class="r"><b>Why:</b> Wald: whether stone k is added depends only on stones 1..k−1, so \(E[U_k 1_{N \ge k}] = \tfrac12 P(N \ge k)\); sum over k.</span></li></ol><p><b>Answer.</b> <span class="ans">e/2 ≈ 1.359 kg</span>. ∎</p></div>
+</details></div>
+
+<div class="idea" id="bg-B2"><p><b>Before B2 · A Poisson process given its count: uniform points</b></p>
+<ul>
+<li>Recall (primer before A2): the gaps between events are i.i.d. Exp(λ), and the count in [0, T] is Poisson(λT).</li>
+<li><b>Key property:</b> if you are told there were exactly n events in [0, T], then their times look like n independent Uniform[0, T] points, sorted. The rate λ disappears.</li>
+<li><b>Why:</b> the chance of the events landing near times \(t_1 &lt; \dots &lt; t_n\) is \(\lambda^n e^{-\lambda T}\,dt_1\cdots dt_n\): each event contributes λ dt, and the empty stretches together contribute \(e^{-\lambda(\text{total empty length})} = e^{-\lambda T}\) roughly. This doesn't depend on where the t's are, so every arrangement is equally likely: exactly the behaviour of uniform points.</li>
+<li>Intuition: a Poisson process has no preferred moments. Once the number of events is fixed, the only thing left is "where", and nowhere is special.</li>
+<li>Then use the uniform order statistics from A8: the k-th of n points on [0, T] sits at \(\tfrac{k}{n+1}T\) on average.</li>
+</ul></div>
+<div class="prob"><h3>B2 · Three Buses in an Hour <span class="why">2 marks</span></h3>
+<p class="stmt">Buses arrive as a Poisson process (rate unknown). You are told that exactly 3 buses came between 9:00 and 10:00.</p><p class="stmt"><b>Question:</b> what is the expected time of the first of them?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>Given n arrivals in [0, T], the arrival times are n i.i.d. uniform points on [0, T] (sorted). The rate drops out.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Three uniform points, four equal gaps of 15 min.</b> The first bus is one gap in: 9:15.</p><div class="viz" data-viz="sim" data-p='{"fn": "b2", "exact": 15, "exactLabel": "15 min", "what": "average first-bus time (min after 9:00)", "N": 30000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> Arrival times \(T_1 &lt; T_2 &lt; T_3\) in [0, 1] hour, rate λ.</p><p class="claim"><b>Claim.</b> <span class="ans">9:15</span>.</p><ol class="pf"><li>The density of \((T_1, T_2, T_3) = (t_1, t_2, t_3)\) with exactly 3 arrivals is \(\lambda e^{-\lambda t_1}\cdot\lambda e^{-\lambda(t_2 - t_1)}\cdot\lambda e^{-\lambda(t_3 - t_2)}\cdot e^{-\lambda(1 - t_3)} = \lambda^3 e^{-\lambda}\).<span class="r"><b>Why:</b> three Exp(λ) gaps, then no arrival in the rest.</span></li><li>This is constant on \(t_1 &lt; t_2 &lt; t_3\), so the times are sorted i.i.d. uniforms.<span class="r"><b>Why:</b> a flat density on the ordered region is exactly the law of sorted uniforms.</span></li><li>\(E[T_1] = \tfrac1{3+1}\) hour = 15 min.<span class="r"><b>Why:</b> min of 3 uniforms, gap lemma (A8).</span></li></ol><p><b>Answer.</b> <span class="ans">9:15</span>. ∎</p></div>
+</details></div>
+
+<div class="idea" id="bg-B3"><p><b>Before B3 · Absolute value of a normal, and max as an average</b></p>
+<ul>
+<li><b>Half-normal:</b> for Z ~ N(0, 1), |Z| folds the bell onto [0, ∞). Its mean is \(E|Z| = \sqrt{2/\pi} \approx 0.80\): a typical distance from the centre is 0.8σ, a bit less than σ.</li>
+<li><b>Derivation:</b> \(E|Z| = 2\int_0^\infty z\,\tfrac{1}{\sqrt{2\pi}}e^{-z^2/2}dz = \tfrac{2}{\sqrt{2\pi}}\big[-e^{-z^2/2}\big]_0^\infty = \sqrt{2/\pi}\). The z in front is exactly the derivative of the exponent, so the integral is immediate.</li>
+<li><b>Scaling:</b> for W ~ N(0, s²), \(E|W| = s\sqrt{2/\pi}\).</li>
+<li><b>Difference of independent normals</b> (from A4): X − Y ~ N(μ₁ − μ₂, σ₁² + σ₂²).</li>
+<li><b>Max identity (any two numbers):</b> \(\max(x, y) = \tfrac{x+y}{2} + \tfrac{|x-y|}{2}\): start at the midpoint, go up half the gap. Taking expectations turns a max into an absolute value, which the half-normal handles.</li>
+</ul></div>
+<div class="prob"><h3>B3 · Hire the Better Trader <span class="why">2 marks</span></h3>
+<p class="stmt">Two traders' daily PnLs are independent, each normal with mean 0 and standard deviation 10. You get paid the larger of the two PnLs.</p><p class="stmt"><b>Question:</b> what is your expected pay?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>max(X, Y) = (X + Y)/2 + |X − Y|/2, and for W ~ N(0, s²), \(E|W| = s\sqrt{2/\pi}\).</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>The value of choice.</b> Each alone is worth 0; picking the better one is worth σ/√π ≈ 0.56σ.</p><div class="viz" data-viz="sim" data-p='{"fn": "b3", "exact": 5.6418958, "exactLabel": "10/√π ≈ 5.642", "what": "average pay", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> X, Y ~ N(0, 100) independent.</p><p class="claim"><b>Claim.</b> <span class="ans">\(10/\sqrt\pi \approx 5.642\)</span>.</p><ol class="pf"><li>\(\max(X, Y) = \tfrac{X + Y}{2} + \tfrac{|X - Y|}{2}\).<span class="r"><b>Why:</b> the average plus half the gap.</span></li><li>\(X - Y \sim N(0, 200)\), so \(E|X - Y| = \sqrt{200}\sqrt{2/\pi} = \tfrac{20}{\sqrt\pi}\).<span class="r"><b>Why:</b> \(E|Z| = 2\int_0^\infty \tfrac{z}{\sqrt{2\pi}}e^{-z^2/2}dz = \sqrt{2/\pi}\).</span></li><li>\(E[\max] = 0 + \tfrac12\cdot\tfrac{20}{\sqrt\pi} = \tfrac{10}{\sqrt\pi}\).<span class="r"><b>Why:</b> linearity; E[X + Y] = 0.</span></li></ol><p><b>Answer.</b> <span class="ans">10/√π ≈ 5.642</span>. ∎</p></div>
+</details></div>
+
+<div class="idea" id="bg-B4"><p><b>Before B4 · Uniform spacings and inclusion–exclusion</b></p>
+<ul>
+<li><b>Spacings:</b> two uniform cuts split [0, 1] into three pieces \((S_1, S_2, S_3)\) with \(S_1 + S_2 + S_3 = 1\). They are <b>uniformly spread over all ways</b> to split 1 into three non-negative parts (a triangle, the "simplex"), and exchangeable: the left, middle and right piece have the same distribution.</li>
+<li><b>Shrink trick:</b> "every piece in a chosen set K is longer than x" — reserve x of length for each piece in K; what is left is a random split of length 1 − |K|x. The triangle shrinks by the factor 1 − |K|x in each of its 2 dimensions, so the chance is \((1 - |K|x)^2\) (when that is positive).</li>
+<li><b>Inclusion–exclusion:</b> \(P(A_1 \cup A_2 \cup A_3) = \sum P(A_i) - \sum P(A_i A_j) + P(A_1A_2A_3)\). "Biggest piece &gt; x" is exactly "some piece &gt; x".</li>
+<li><b>Tail formula</b> (from A5): E[M] = ∫₀¹ P(M &gt; x) dx.</li>
+</ul></div>
+<div class="prob"><h3>B4 · Biggest Chunk <span class="why">2 marks</span></h3>
+<p class="stmt">A 1-metre chocolate bar is snapped at two independent, uniformly random points. You take the biggest piece.</p><p class="stmt"><b>Question:</b> what is its expected length?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>Inclusion–exclusion on "piece i is longer than x": for 2 uniform cuts, any k given pieces all exceed x with probability \((1 - kx)^2\).</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Shrink trick.</b> Forcing k pieces to be at least x each removes kx of length; what is left is again two uniform cuts on a bar of length 1 − kx.</p><div class="viz" data-viz="sim" data-p='{"fn": "b4", "exact": 0.6111111, "exactLabel": "11/18 ≈ 0.6111", "what": "average biggest piece", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> Pieces \(S_1, S_2, S_3\) (left, middle, right); M = max.</p><p class="claim"><b>Claim.</b> <span class="ans">11/18 m</span>.</p><ol class="pf"><li>\(P(S_i &gt; x \text{ for all } i \in K) = (1 - |K|x)_+^2\).<span class="r"><b>Why:</b> the spacings are uniform on the simplex \(s_1 + s_2 + s_3 = 1\); the region \(s_i &gt; x\) (i ∈ K) is a copy scaled by \(1 - |K|x\), and the simplex is 2-dimensional.</span></li><li>\(P(M &gt; x) = 3(1-x)^2 - 3(1-2x)_+^2 + (1-3x)_+^2\).<span class="r"><b>Why:</b> inclusion–exclusion over the 3 events \(S_i &gt; x\).</span></li><li>\(E[M] = \int_0^1 P(M &gt; x)\,dx = 3\cdot\tfrac13 - 3\cdot\tfrac16 + \tfrac19 = \tfrac{11}{18}\).<span class="r"><b>Why:</b> \(\int_0^{1/k}(1 - kx)^2dx = \tfrac1{3k}\).</span></li></ol><p><b>Answer.</b> <span class="ans">11/18 m ≈ 0.611 m</span>. ∎</p></div>
+</details></div>
+
+<h2 id="m-c">C · Contest level (2 × 4 marks)</h2>
+
+<div class="idea" id="bg-C1"><p><b>Before C1 · Correlated normals (bivariate normal)</b></p>
+<ul>
+<li><b>Correlation</b> ρ ∈ [−1, 1] measures how much two quantities move together: \(\rho = \tfrac{\text{Cov}(X, Y)}{\sigma_X\sigma_Y}\). ρ = 1: locked together, ρ = 0: unrelated, ρ = −1: mirror images.</li>
+<li><b>Jointly normal with correlation ρ</b> (both N(0, 1)) can always be built as \(Y = \rho X + \sqrt{1 - \rho^2}\,Z\) with X, Z independent N(0, 1): Y is "ρ parts X plus fresh noise". Check: Var Y = ρ² + (1 − ρ²) = 1, Cov(X, Y) = ρ.</li>
+<li>A pair of jointly normal variables is completely determined by their means, variances and correlation: match those and you have the same distribution.</li>
+<li><b>Rotation invariance:</b> two independent N(0, 1) values (Z₁, Z₂) form a random point in the plane whose density \(\tfrac{1}{2\pi}e^{-(z_1^2 + z_2^2)/2}\) depends only on the distance from the origin. So the <b>direction</b> of the point is uniform around the circle: a perfectly round cloud.</li>
+<li><b>Geometry of dot products:</b> for unit vectors a, b: a·b = cos(angle between them). "a·g &gt; 0" is a half-plane through the origin.</li>
+</ul></div>
+<div class="prob"><h3>C1 · Both Stocks Up <span class="why">4 marks</span></h3>
+<p class="stmt">Two stocks' daily returns are jointly normal, each with mean 0, and their correlation is 0.5.</p><p class="stmt"><b>Question:</b> what is the probability that both stocks go up tomorrow?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>Write both returns as projections of one rotation-invariant 2-D normal vector. "Both up" is a wedge; rotation invariance turns the probability into (wedge angle)/2π. General answer \(\tfrac14 + \tfrac{\arcsin\rho}{2\pi}\).</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Two half-planes at 60°.</b> The directions a and b have angle arccos 0.5 = 60° between them; the region where both dot products are positive is a wedge of 180° − 60° = 120°, a third of the circle.</p><div class="viz" data-viz="sim" data-p='{"fn": "c1", "exact": 0.3333333, "exactLabel": "1/3", "what": "P(both up)", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> Scale each return to variance 1. Take \(G = (Z_1, Z_2)\) i.i.d. N(0, 1); set \(X = a\cdot G\), \(Y = b\cdot G\) with unit vectors a, b, \(a\cdot b = \rho = \tfrac12\).</p><p class="claim"><b>Claim.</b> <span class="ans">1/3</span>.</p><ol class="pf"><li>(X, Y) has the right law.<span class="r"><b>Why:</b> jointly normal, mean 0, Var X = |a|² = 1, Var Y = 1, Cov(X, Y) = a·b = ρ; a bivariate normal is fixed by these.</span></li><li>The direction of G is uniform on the circle.<span class="r"><b>Why:</b> its density \(\tfrac1{2\pi}e^{-|g|^2/2}\) depends only on |g|.</span></li><li>{X &gt; 0, Y &gt; 0} = {G in the wedge where a·g &gt; 0 and b·g &gt; 0}, of angle π − θ with θ = arccos ρ = π/3.<span class="r"><b>Why:</b> each condition is a half-plane; two half-planes whose normals are θ apart meet in a wedge of angle π − θ.</span></li><li>\(P = \tfrac{\pi - \pi/3}{2\pi} = \tfrac13\).<span class="r"><b>Why:</b> uniform direction; the length of G does not matter. (General: \(\tfrac{\pi - \arccos\rho}{2\pi} = \tfrac14 + \tfrac{\arcsin\rho}{2\pi}\).)</span></li></ol><p><b>Answer.</b> <span class="ans">1/3</span>. ∎</p></div>
+</details></div>
+
+<div class="idea" id="bg-C2"><p><b>Before C2 · Poissonisation: splitting a Poisson count</b></p>
+<ul>
+<li>This is thinning (A3) with more than two bins. Take N ~ Poisson(λ) items and throw each independently into one of m bins with probabilities p₁, …, p_m.</li>
+<li><b>Property:</b> the bin counts are <b>independent</b>, with bin j ~ Poisson(p_j λ).</li>
+<li><b>Contrast with a fixed total:</b> with exactly n items, bin counts are multinomial and dependent (they must add to n; a full bin means fewer items elsewhere). Randomising the total with a Poisson removes that constraint, which is why this is called "Poissonisation": a standard trick to make occupancy problems (balls in bins, coupon collecting) easy.</li>
+<li><b>Empty bin:</b> a Poisson(μ) count is 0 with probability \(e^{-\mu}\), so a bin is non-empty with probability \(1 - e^{-\mu}\).</li>
+</ul></div>
+<div class="prob"><h3>C2 · Touch Every Stock <span class="why">4 marks</span></h3>
+<p class="stmt">A trader makes a random number of trades in a day: Poisson with mean 6. Each trade is in one of 6 stocks, chosen uniformly and independently.</p><p class="stmt"><b>Question:</b> what is the probability that every stock is traded at least once?</p>
+<details><summary>Solution</summary>
+<div class="sec"><p class="sh">Key idea</p><p>Poissonisation: splitting a Poisson(6) count 6 ways gives 6 <i>independent</i> Poisson(1) counts. Then "all ≥ 1" just multiplies. (With a fixed 6 trades it would be 6!/6⁶ ≈ 0.015; the random count makes it clean.)</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Each stock is its own Poisson(1) stream.</b> Each is non-empty with chance 1 − 1/e ≈ 0.632, independently: 0.632⁶ ≈ 0.064.</p><div class="viz" data-viz="sim" data-p='{"fn": "c2", "exact": 0.0637138, "exactLabel": "(1 − 1/e)⁶ ≈ 0.0637", "what": "P(all 6 traded)", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> N ~ Poisson(6) trades; \(N_j\) = trades in stock j, \(N_1 + \dots + N_6 = N\).</p><p class="claim"><b>Claim.</b> <span class="ans">\((1 - e^{-1})^6 \approx 0.0637\)</span>.</p><ol class="pf"><li>\(P(N_1 = n_1, …, N_6 = n_6) = e^{-6}\tfrac{6^n}{n!}\cdot\tfrac{n!}{n_1!\cdots n_6!}6^{-n} = \prod_{j=1}^6 e^{-1}\tfrac{1}{n_j!}\).<span class="r"><b>Why:</b> choose N = n = Σ n_j, then a multinomial split; \(6^n\) cancels.</span></li><li>So \(N_1, …, N_6\) are independent Poisson(1).<span class="r"><b>Why:</b> the joint law is a product of Poisson(1) pmfs.</span></li><li>\(P(\text{all } N_j \ge 1) = (1 - e^{-1})^6\).<span class="r"><b>Why:</b> independence; \(P(N_j = 0) = e^{-1}\).</span></li></ol><p><b>Answer.</b> <span class="ans">(1 − 1/e)⁶ ≈ 0.0637</span>. ∎</p></div>
+</details></div>
+
+<h2 id="m-key">Answer key</h2>
+<details><summary>Show all answers</summary>
+<div class="tw"><table>
+<tr><th>Q</th><th>Marks</th><th>Hidden distribution</th><th>Answer</th></tr>
+<tr><td>A1</td><td>1</td><td>Uniform</td><td>3/4</td></tr>
+<tr><td>A2</td><td>1</td><td>Poisson process</td><td>20 min</td></tr>
+<tr><td>A3</td><td>1</td><td>Poisson thinning</td><td>7</td></tr>
+<tr><td>A4</td><td>1</td><td>Normal difference</td><td>Φ(−1) ≈ 0.1587</td></tr>
+<tr><td>A5</td><td>1</td><td>Uniform</td><td>20 min</td></tr>
+<tr><td>A6</td><td>1</td><td>Normal 4th moment</td><td>32</td></tr>
+<tr><td>A7</td><td>1</td><td>Poisson parity</td><td>(1 + e^{−6})/2</td></tr>
+<tr><td>A8</td><td>1</td><td>Uniform order stats</td><td>60</td></tr>
+<tr><td>B1</td><td>2</td><td>Uniform sums + Wald</td><td>e/2</td></tr>
+<tr><td>B2</td><td>2</td><td>Poisson ⇄ uniform</td><td>9:15</td></tr>
+<tr><td>B3</td><td>2</td><td>Normal max</td><td>10/√π</td></tr>
+<tr><td>B4</td><td>2</td><td>Uniform spacings</td><td>11/18</td></tr>
+<tr><td>C1</td><td>4</td><td>Bivariate normal</td><td>1/3</td></tr>
+<tr><td>C2</td><td>4</td><td>Poissonisation</td><td>(1 − 1/e)⁶</td></tr>
+</table></div>
+</details>
+
+<style>.katex{font-size:1.15em}.katex-display{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}</style>
+<style>
+pre{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:.6rem .8rem;font-size:.85rem;overflow-x:auto}
+.fig{display:block;margin:.8rem auto;max-width:100%;height:auto;font-size:13px}
+.fig text{fill:var(--ink);font-family:inherit}
+.fig .m{fill:var(--muted)} .fig .a{fill:var(--accent)} .fig .g{fill:var(--gap)}
+.fig .ln{stroke:var(--ink);fill:none;stroke-width:1.5}
+.fig .mu{stroke:var(--muted);fill:none;stroke-width:1}
+.fig .ac{stroke:var(--accent);fill:none;stroke-width:2.5}
+.fig .rg{fill:var(--accent);fill-opacity:.22;stroke:var(--accent);stroke-width:1.5}
+.fig .bad{fill:var(--gap);fill-opacity:.28;stroke:var(--gap);stroke-width:1.5}
+.fig .nd{fill:var(--card);stroke:var(--ink);stroke-width:1.5}
+.fig .dot{fill:var(--ink)} .fig .adot{fill:var(--accent)}
+.fig .dsh{stroke-dasharray:5 4} .fig .gl{stroke:var(--gap);fill:none;stroke-width:2.5} .fig .ink{fill:var(--ink)} .fig .bg{fill:var(--bg);stroke:var(--rule)} .fig .thk{stroke-width:4.5;stroke-linecap:round} .fig .sol{fill:var(--ink);fill-opacity:.55;stroke:var(--ink);stroke-width:1}
+.pf li{margin:.55rem 0} .pf .r{display:block;margin-top:.15rem;font-size:.93em} .pf .r > b:first-child{color:var(--accent)} .setup{margin:.3rem 0 .5rem}
+.prob > p.stmt{margin:.35rem 0 .5rem}
+.ahp{fill:var(--ink)} .ahpa{fill:var(--accent)}
+</style>
+</div>

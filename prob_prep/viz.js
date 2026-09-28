@@ -530,7 +530,23 @@ VIZ.h = { el, txt, svg, html, btn, slider, f3, f2, shuffle };
 window.VIZ = VIZ;
 let uid = 0;
 // A page can add its own widgets/experiments: function vizPage(VIZ) { VIZ.fns.x = ...; VIZ.custom = (root, p) => ... }
+// "done" checkbox beside every problem title, remembered in this browser only.
+function doneBoxes() {
+  const page = location.pathname.split('/').pop();
+  document.querySelectorAll('.prob > h3').forEach(h => {
+    if (h.querySelector('.done')) return;
+    const c = h.cloneNode(true); c.querySelectorAll('.katex').forEach(k => { const a = k.querySelector('annotation'); k.replaceWith(a ? a.textContent : ''); });
+    const key = 'done:' + page + ':' + c.textContent.replace(/\\[()]|\s/g, '');
+    const lab = document.createElement('label'); lab.className = 'done';
+    lab.style.cssText = 'float:right;font-size:.8rem;font-weight:400;color:var(--muted);cursor:pointer;margin-left:.5rem';
+    const box = document.createElement('input'); box.type = 'checkbox'; box.style.cssText = 'accent-color:var(--accent);vertical-align:middle;margin-right:.25rem';
+    try { box.checked = localStorage.getItem(key) === '1'; } catch (e) {}
+    box.onchange = () => { try { box.checked ? localStorage.setItem(key, '1') : localStorage.removeItem(key); } catch (e) {} };
+    lab.append(box, 'done'); h.prepend(lab);
+  });
+}
 function init() {
+  doneBoxes();
   if (window.vizPage && !VIZ.pageDone) { VIZ.pageDone = 1; window.vizPage(VIZ); }
   document.querySelectorAll('.viz[data-viz]').forEach(r => {
     if (r.dataset.done) return; r.dataset.done = 1; r.dataset.uid = ++uid;

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Distributions Drill</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<script defer src="../viz.js"></script>
+<style>
+:root{
+  --bg:#f6f7f9; --ink:#171b24; --muted:#5a6273; --rule:#d9dee6; --card:#ffffff;
+  --accent:#2346a0; --gap:#8a4b00; --gapbg:#fdf1de; --idea:#eef2fb;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
+    --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0f1218; --ink:#e4e7ee; --muted:#98a1b3; --rule:#283042; --card:#161a22;
+  --accent:#93abff; --gap:#f0b35a; --gapbg:#2a2010; --idea:#1a2033;
+}
+body{background:var(--bg);color:var(--ink);font:20px/1.75 "MesloLGS Nerd Font Propo","MesloLGS NF","MesloLGS Nerd Font",ui-monospace,monospace;padding-inline:16px;padding-block:24px 64px}
+.wrap{max-width:52rem;margin:0 auto}
+h1,h2,h3{font-family:"MesloLGS Nerd Font Propo","MesloLGS NF","MesloLGS Nerd Font",ui-monospace,monospace;font-weight:700;text-wrap:balance;line-height:1.2}
+h1{font-size:2.4rem;margin:0 0 .25rem}
+h2{font-size:1.7rem;margin:3rem 0 .75rem;padding-top:1rem;border-top:1px solid var(--rule)}
+h3{font-size:1.2rem;margin:0 0 .4rem}
+.sub{color:var(--muted);margin:0 0 1.25rem}
+.bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1rem}
+button{font:inherit;font-size:.9rem;color:var(--accent);background:transparent;border:1px solid var(--rule);border-radius:6px;padding:.3rem .8rem;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav.toc{font-size:.92rem;columns:2 14rem;column-gap:2rem;margin:0 0 1rem;padding:0}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:.1rem 0;break-inside:avoid}
+nav.toc a:hover{color:var(--accent)}
+a{color:var(--accent)}
+.idea{background:var(--idea);border-radius:8px;padding:.8rem 1rem;margin:.5rem 0 1.25rem}
+.idea p,.idea ol,.idea ul{margin:.3rem 0}
+.prob{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:1rem 1.1rem;margin:1rem 0}
+.prob > p{margin:.2rem 0 .6rem}
+.ans{font-weight:600}
+.sec{border-top:1px solid var(--rule);padding:.45rem 0}
+.sh{color:var(--accent);font-weight:600;font-size:.95rem;margin:0}
+.sec > *:not(.sh){margin-top:.5rem}
+ol.pf{padding-left:1.6rem;margin:.4rem 0}
+ol.pf li{margin:.2rem 0}
+.why{color:var(--muted);font-size:.85em;white-space:nowrap}
+.qed{float:right;color:var(--muted)}
+.claim{margin:.3rem 0}
+.gap{background:var(--gapbg);color:var(--gap);border-radius:6px;padding:.5rem .8rem;font-size:.92rem}
+table{border-collapse:collapse;font-size:.92rem}
+.tw{overflow-x:auto}
+td,th{border:1px solid var(--rule);padding:.25rem .6rem;text-align:center;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+<script>
+function vizPage(V) {
+  const { shuffle } = V.h;
+  const U = Math.random;
+  const nrm = () => Math.sqrt(-2 * Math.log(1 - U())) * Math.cos(2 * Math.PI * U());  // standard normal (Box–Muller)
+  const expo = r => -Math.log(1 - U()) / r;                                            // Exp(rate r)
+  const pois = (r, t) => { let k = 0, s = expo(r); while (s < t) { k++; s += expo(r); } return k; };  // arrivals in [0, t]
+  const f2 = x => x.toFixed(2);
+  V.fns.u1 = a => [a ** 3, 3 * a * a];
+  V.fns.u2 = a => [1 - (1 - a) ** 5, 5 * (1 - a) ** 4];
+  V.fns.u3 = show => { const pick = () => U() < .5 ? (U() < .5 ? 0 : 1) : U(); const x = pick(), y = pick(), ok = Math.abs(x - y) > .5;
+    return { v: +ok, show: `x = ${f2(x)}, y = ${f2(y)}: |x − y| = ${f2(Math.abs(x - y))} ${ok ? '<b>&gt; 1/2</b> ✓' : '≤ 1/2 ✗'}` }; };
+  V.fns.u4 = show => { const x = [...Array(10)].map(U); let a = 2; for (let i = 1; i < 9; i++) if ((x[i] - x[i - 1]) * (x[i + 1] - x[i]) < 0) a++;
+    return { v: a, show: `${x.map(f2).join(' ')} → <b>${a}</b> (2 + turning points)` }; };
+  V.fns.p1 = show => { let n = 0; for (let m = 0; m < 900; m++) if (U() < 1 / 600) n++; return { v: +(n === 3), show: `900 minutes → <b>${n}</b> fish ${n === 3 ? '✓' : ''}` }; };
+  V.fns.p2 = show => { let s = 0; for (let k = 0; k < 5; k++) s += expo(.5); return { v: (s - 10) ** 2, show: `5th good idea at <b>${f2(s)}</b> h (mean 10 h)` }; };
+  V.fns.p3 = show => { const n = pois(6, 2); return { v: +(n === 10), show: `2 minutes → <b>${n}</b> messages ${n === 10 ? '✓' : ''}` }; };
+  V.fns.p4 = show => { let L = 2016, k = 0, r = []; while (L >= 1) { L *= U(); k++; r.push(L.toFixed(L < 10 ? 2 : 0)); }
+    return { v: k, show: `2016 → ${r.join(' → ')} mm: <b>${k}</b> cuts` }; };
+  V.fns.n1 = show => { let x = 0; for (let i = 0; i < 18000; i++) if (U() < 1 / 6) x++; return { v: +(x < 2900), show: `<b>${x}</b> ones in 18000 rolls ${x < 2900 ? '(&lt; 2900 ✓)' : ''}` }; };
+  V.fns.n2 = x => { const phi = Math.exp(-x * x / 10) / Math.sqrt(10 * Math.PI); return [phi, Math.exp(x) * phi / Math.exp(2.5)]; };
+  V.fns.n3 = show => { const x = 1 + 3 * nrm(), y = 1 + 3 * nrm(); return { v: x * x * y * y, show: `X = ${f2(x)}, Y = ${f2(y)} → X²Y² = <b>${f2(x * x * y * y)}</b>` }; };
+  V.fns.n4 = show => { const x = nrm(), v = x > 0 ? Math.exp(x) : 0; return { v, show: `X = ${f2(x)} → <b>${f2(v)}</b>` }; };
+}
+</script>
+<div class="wrap">
+
+<h1>Distributions</h1>
+<p class="sub">dist-02 · Uniform · Poisson · Normal · 4 real exam/contest problems each (MIT 18.600, AMC 12, HMMT, Putnam), easy → hard · statements verbatim · every answer checked by exact computation or simulation.</p>
+<p class="sub">Where Φ appears, \(\Phi(a) = \int_{-\infty}^{a} \tfrac{1}{\sqrt{2\pi}} e^{-x^2/2}\,dx\) — leave answers in Φ.</p>
+<nav class="toc">
+<a href="#d-uni">1 · Uniform</a>
+<a href="#d-poi">2 · Poisson</a>
+<a href="#d-nor">3 · Normal</a>
+<a href="#d-score">4 · Score</a>
+</nav>
+
+<h2 id="d-uni">1 · Uniform</h2>
+
+<div class="prob"><h3>U1 · Max of Three Uniforms <span class="why">Lvl 2</span></h3>
+<p class="stmt"><i>(MIT 18.600 S2011 Midterm 2 #2)</i> Let X₁, X₂, and X₃ be independent uniform random variables on [0, 1].</p><p class="stmt"><b>Question:</b> (a) Write X = max{X₁, X₂, X₃}. Compute P{X ≤ a} for a ∈ [0, 1]. (b) Compute the probability density function for X on the interval [0, 1]. (c) Compute the variance of the first variable X₁. (d) Compute the following covariance: Cov(X₁ + X₂, X₂ + X₃).</p>
+<div class="sec"><p class="sh">Key idea</p><p>A max is ≤ a iff every variable is ≤ a: multiply. Covariance is bilinear, and independent pairs contribute 0.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>All three must land below a.</b> Each does with chance a, so the chance is a³; its slope 3a² is the density.</p><div class="viz" data-viz="curve" data-p='{"fn": "u1", "xr": [0, 1], "step": 0.01, "x0": 0.7, "labels": ["P{X ≤ a} = a³", "density 3a²"], "xl": "a"}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="claim"><b>Claim.</b> <span class="ans">(a) a³ · (b) 3a² · (c) 1/12 · (d) 1/12</span>.</p><ol class="pf"><li>\(P\{X \le a\} = P\{X_1 \le a\}\,P\{X_2 \le a\}\,P\{X_3 \le a\} = a^3\).<span class="r"><b>Why:</b> max ≤ a iff all three are ≤ a; independence.</span></li><li>\(f_X(a) = \tfrac{d}{da} a^3 = 3a^2\).<span class="r"><b>Why:</b> the density is the derivative of the CDF.</span></li><li>\(\text{Var}(X_1) = E[X_1^2] - E[X_1]^2 = \tfrac13 - \tfrac14 = \tfrac1{12}\).<span class="r"><b>Why:</b> \(E[X_1^2] = \int_0^1 x^2\,dx = \tfrac13\).</span></li><li>\(\text{Cov}(X_1 + X_2, X_2 + X_3) = \text{Cov}(X_2, X_2) = \text{Var}(X_2) = \tfrac1{12}\).<span class="r"><b>Why:</b> expand bilinearly; the other three terms pair independent variables, so they are 0.</span></li></ol><p><b>Answer.</b> <span class="ans">a³, 3a², 1/12, 1/12</span>. ∎</p></div></div>
+
+<div class="prob"><h3>U2 · Min of n Uniforms <span class="why">Lvl 2</span></h3>
+<p class="stmt"><i>(MIT 18.600 F2012 Midterm 2 #3)</i> Suppose that X₁, X₂, …, Xₙ are independent uniform random variables on [0, 1].</p><p class="stmt"><b>Question:</b> (a) Write Y = min{X₁, X₂, …, Xₙ}. Compute the cumulative distribution function F_Y(a) and the density function f_Y(a) for a ∈ [0, 1]. (b) Compute P(X₁ &lt; .3) and P(max{X₁, X₂, …, Xₙ} &lt; .3). (c) Compute the expectation E[X₁ + X₂ + … + Xₙ].</p>
+<div class="sec"><p class="sh">Key idea</p><p>For a min, go through the complement: min &gt; a iff all are &gt; a, chance (1 − a)ⁿ.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>The min is small unless every variable is big.</b> Shown for n = 5: the CDF rises fast and the density piles up near 0.</p><div class="viz" data-viz="curve" data-p='{"fn": "u2", "xr": [0, 1], "step": 0.01, "x0": 0.3, "labels": ["F_Y(a) = 1 − (1 − a)⁵", "f_Y(a) = 5(1 − a)⁴"], "xl": "a"}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="claim"><b>Claim.</b> <span class="ans">(a) 1 − (1 − a)ⁿ and n(1 − a)ⁿ⁻¹ · (b) 0.3 and 0.3ⁿ · (c) n/2</span>.</p><ol class="pf"><li>\(F_Y(a) = 1 - P\{\text{all } X_i &gt; a\} = 1 - (1-a)^n\).<span class="r"><b>Why:</b> min &gt; a iff every \(X_i &gt; a\); independence.</span></li><li>\(f_Y(a) = n(1-a)^{n-1}\).<span class="r"><b>Why:</b> differentiate \(F_Y\).</span></li><li>\(P(X_1 &lt; .3) = 0.3\); \(P(\max &lt; .3) = 0.3^n\).<span class="r"><b>Why:</b> max &lt; .3 iff all are.</span></li><li>\(E[X_1 + \dots + X_n] = n \cdot \tfrac12\).<span class="r"><b>Why:</b> linearity.</span></li></ol><p><b>Answer.</b> <span class="ans">1 − (1 − a)ⁿ, n(1 − a)ⁿ⁻¹, 0.3, 0.3ⁿ, n/2</span>. ∎</p></div></div>
+
+<div class="prob"><h3>U3 · Coin-Chosen Numbers <span class="why">Lvl 4</span></h3>
+<p class="stmt"><i>(AMC 12A 2019 #20)</i> Real numbers between 0 and 1, inclusive, are chosen in the following manner. A fair coin is flipped. If it lands heads, then it is flipped again and the chosen number is 0 if the second flip is heads and 1 if the second flip is tails. On the other hand, if the first coin flip is tails, then the number is chosen uniformly at random from the closed interval [0, 1]. Two random numbers x and y are chosen independently in this manner.</p><p class="stmt"><b>Question:</b> what is the probability that |x − y| &gt; 1/2? (A) 1/3 (B) 7/16 (C) 1/2 (D) 9/16 (E) 2/3</p>
+<div class="sec"><p class="sh">Key idea</p><p>Each number is 0 (¼), 1 (¼) or uniform (½). Split into three cases: both fixed, one fixed, both uniform.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>A fixed number sits at an end.</b> Against an endpoint, a uniform number is more than ½ away half the time. Two uniforms are more than ½ apart in two corner triangles of total area ¼.</p><div class="viz" data-viz="sim" data-p='{"fn": "u3", "exact": 0.4375, "exactLabel": "7/16 = 0.4375", "what": "P(|x − y| > 1/2)", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> Each number is 0 w.p. ¼, 1 w.p. ¼, uniform on [0, 1] w.p. ½.</p><p class="claim"><b>Claim.</b> <span class="ans">7/16 (B)</span>.</p><ol class="pf"><li>Both fixed (prob ¼): succeed iff one is 0 and one is 1: \(2 \cdot \tfrac14 \cdot \tfrac14 = \tfrac18\).<span class="r"><b>Why:</b> 0 vs 0 or 1 vs 1 gives distance 0.</span></li><li>One fixed, one uniform (prob ½): succeed w.p. ½, contributing \(\tfrac14\).<span class="r"><b>Why:</b> the fixed one is 0 or 1; the uniform one lands in the far half.</span></li><li>Both uniform (prob ¼): \(P(|U - V| &gt; \tfrac12) = 2 \cdot \tfrac12\cdot\tfrac12\cdot\tfrac12 = \tfrac14\), contributing \(\tfrac1{16}\).<span class="r"><b>Why:</b> two corner triangles of the unit square, legs ½.</span></li><li>\(\tfrac18 + \tfrac14 + \tfrac1{16} = \tfrac7{16}\).<span class="r"><b>Why:</b> law of total probability over the cases.</span></li></ol><p><b>Answer.</b> <span class="ans">7/16 (B)</span>. ∎</p></div></div>
+
+<div class="prob"><h3>U4 · Zigzag Subsequence <span class="why">Lvl 7</span></h3>
+<p class="stmt"><i>(Putnam 2023 B3)</i> A sequence y₁, y₂, …, yₖ of real numbers is called <i>zigzag</i> if k = 1, or if y₂ − y₁, y₃ − y₂, …, yₖ − yₖ₋₁ are nonzero and alternate in sign. Let X₁, X₂, …, Xₙ be chosen independently from the uniform distribution on [0, 1]. Let a(X₁, X₂, …, Xₙ) be the largest value of k for which there exists an increasing sequence of integers i₁, i₂, …, iₖ such that X_{i₁}, X_{i₂}, …, X_{iₖ} is zigzag.</p><p class="stmt"><b>Question:</b> find the expected value of a(X₁, X₂, …, Xₙ) for n ≥ 2.</p>
+<div class="sec"><p class="sh">Key idea</p><p>Longest zigzag = 2 + number of turning points (interior local max/min). Indicators: each interior point turns with chance 2/3.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Keep the ends and every turn.</b> Between two turns the sequence is monotone, so nothing else can help. Shown for n = 10: E = 22/3.</p><div class="viz" data-viz="sim" data-p='{"fn": "u4", "exact": 7.3333333, "exactLabel": "22/3 ≈ 7.333", "what": "average a", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> Values are distinct w.p. 1. \(I_i = 1\) if \(X_i\) (2 ≤ i ≤ n − 1) is a local max or local min of its neighbours.</p><p class="claim"><b>Claim.</b> <span class="ans">\(\tfrac{2n+2}{3}\)</span>.</p><ol class="pf"><li>\(a \ge 2 + \sum I_i\).<span class="r"><b>Why:</b> X₁, every turning point, Xₙ alternate.</span></li><li>\(a \le 2 + \sum I_i\).<span class="r"><b>Why:</b> a zigzag peak \(y_{j-1} &lt; y_j &gt; y_{j+1}\) forces the max of the original over positions \(i_{j-1} … i_{j+1}\) to be strictly inside, so it is a local max (valleys: local min). Peaks at j and j + 2 use disjoint ranges, so the k − 2 inner terms need k − 2 distinct turning points.</span></li><li>\(P(I_i = 1) = \tfrac23\).<span class="r"><b>Why:</b> the 6 orders of \(X_{i-1}, X_i, X_{i+1}\) are equally likely; the middle is the max in 2 and the min in 2.</span></li><li>\(E[a] = 2 + (n-2)\cdot\tfrac23 = \tfrac{2n+2}{3}\).<span class="r"><b>Why:</b> linearity (the \(I_i\) need not be independent).</span></li></ol><p><b>Answer.</b> <span class="ans">\(\tfrac{2n+2}{3}\)</span>. ∎</p></div></div>
+
+<h2 id="d-poi">2 · Poisson</h2>
+
+<div class="prob"><h3>P1 · Jill Goes Fishing <span class="why">Lvl 2</span></h3>
+<p class="stmt"><i>(MIT 18.600 F2011 Midterm 1 #1)</i> Jill goes fishing. During each minute she fishes, there is a 1/600 chance that she catches a fish (independently of all other minutes). Assume that she fishes for 15 hours (900 minutes). Let N be the total number of fish she catches.</p><p class="stmt"><b>Question:</b> (a) Compute E[N] and Var[N]. (Give exact answers, not approximate ones.) (b) Compute the probability she catches exactly 3 fish. Give an exact answer. (c) Now use a Poisson random variable calculation to approximate the probability that she catches exactly 3 fish.</p>
+<div class="sec"><p class="sh">Key idea</p><p>N ~ Binomial(900, 1/600). Many trials, tiny p → Poisson with λ = np = 3/2.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Rare events over many minutes.</b> The exact binomial 0.12556 and the Poisson 0.12551 agree to 4 decimals.</p><div class="viz" data-viz="sim" data-p='{"fn": "p1", "exact": 0.12556, "exactLabel": "≈ 0.12556", "what": "P(N = 3)", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="claim"><b>Claim.</b> <span class="ans">(a) 3/2, 599/400 · (b) \(\binom{900}{3}(\tfrac1{600})^3(\tfrac{599}{600})^{897}\) · (c) \(\tfrac9{16}e^{-3/2} \approx 0.1255\)</span>.</p><ol class="pf"><li>\(E[N] = 900\cdot\tfrac1{600} = \tfrac32\), \(\text{Var}[N] = 900\cdot\tfrac1{600}\cdot\tfrac{599}{600} = \tfrac{599}{400}\).<span class="r"><b>Why:</b> binomial mean np, variance np(1 − p).</span></li><li>\(P(N=3) = \binom{900}{3}(\tfrac1{600})^3(\tfrac{599}{600})^{897} \approx 0.12556\).<span class="r"><b>Why:</b> choose the 3 lucky minutes.</span></li><li>\(P(N=3) \approx e^{-3/2}\tfrac{(3/2)^3}{3!} = \tfrac9{16}e^{-3/2} \approx 0.12551\).<span class="r"><b>Why:</b> Poisson(λ = np = 3/2).</span></li></ol><p><b>Answer.</b> <span class="ans">3/2, 599/400; ≈ 0.12556; ≈ 0.12551</span>. ∎</p></div></div>
+
+<div class="prob"><h3>P2 · Rachel's Ideas <span class="why">Lvl 3</span></h3>
+<p class="stmt"><i>(MIT 18.600 F2012 Midterm 2 #4)</i> Aspiring writer Rachel decides to lock herself in her room to think of screenplay ideas. When Rachel is thinking, the moments at which good new ideas occur to her form a Poisson process with parameter λ_G = .5/hour. The times when bad new ideas occur to her are a Poisson point process with parameter λ_B = 1.5 per hour.</p><p class="stmt"><b>Question:</b> (a) Let T be the amount of time until Rachel has her first idea (good or bad). Write down the probability density function for T. (b) Compute the probability that Rachel has exactly 3 bad ideas total during her first hour of thinking. (c) Let S be the amount of time elapsed before the fifth good idea occurs. Compute Var(S). (d) What is the probability that Rachel has no ideas at all during her first three hours of thinking?</p>
+<div class="sec"><p class="sh">Key idea</p><p>Independent Poisson processes merge (rates add). Gaps are Exp(λ), variance 1/λ²; the k-th arrival is a sum of k gaps.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>The 5th good idea = five Exp(½) gaps.</b> Each gap has mean 2 h and variance 4, so S has mean 10 h and variance 20. The sim averages (S − 10)².</p><div class="viz" data-viz="sim" data-p='{"fn": "p2", "exact": 20, "exactLabel": "Var(S) = 20", "what": "average (S − 10)²", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="claim"><b>Claim.</b> <span class="ans">(a) \(2e^{-2t}\) · (b) \(\tfrac9{16}e^{-3/2}\) · (c) 20 · (d) \(e^{-6}\)</span>.</p><ol class="pf"><li>All ideas form a Poisson process of rate 0.5 + 1.5 = 2, so \(T \sim \text{Exp}(2)\): \(f_T(t) = 2e^{-2t}\), t ≥ 0.<span class="r"><b>Why:</b> merging independent Poisson processes adds rates.</span></li><li>Bad ideas in 1 hour ~ Poisson(1.5): \(e^{-1.5}\tfrac{1.5^3}{3!} = \tfrac9{16}e^{-3/2}\).<span class="r"><b>Why:</b> count in time t is Poisson(λt).</span></li><li>\(S = G_1 + \dots + G_5\), \(G_k \sim \text{Exp}(0.5)\) independent: \(\text{Var}(S) = 5 \cdot \tfrac1{0.5^2} = 20\).<span class="r"><b>Why:</b> variances of independent gaps add.</span></li><li>Ideas in 3 hours ~ Poisson(2 · 3 = 6): \(P(0) = e^{-6}\).<span class="r"><b>Why:</b> merged rate 2.</span></li></ol><p><b>Answer.</b> <span class="ans">2e^{−2t}; (9/16)e^{−3/2}; 20; e^{−6}</span>. ∎</p></div></div>
+
+<div class="prob"><h3>P3 · Harry's Messages <span class="why">Lvl 3</span></h3>
+<p class="stmt"><i>(MIT 18.600 F2012 Final #4)</i> When Harry's cell phone is on, the times when he receives new text messages form a Poisson process with parameter λ_T = 3/minute. The times at which he receives new email messages form an independent Poisson process with parameter λ_E = 1/minute. He receives personal messages on Facebook as an independent Poisson process with rate λ_F = 2/minute.</p><p class="stmt"><b>Question:</b> (a) After catching up on existing messages one morning, Harry begins to wait for new messages to arrive. Let X be the amount of time (in minutes) that Harry has to wait to receive his first text message. Write down the probability density function for X. (b) Compute the probability that Harry receives 10 new messages total (including email, text, and Facebook) during his first two minutes of waiting. (c) Let Y be the amount of time elapsed before the third email message. Compute Var(Y). (d) What is the probability that Harry receives no messages of any kind during his first five minutes of waiting?</p>
+<div class="sec"><p class="sh">Key idea</p><p>Same toolkit as P2: merge (3 + 1 + 2 = 6/min), count ~ Poisson(λt), k-th arrival = sum of k Exp gaps.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Two minutes at rate 6 = Poisson(12).</b> Exactly 10 has chance ≈ 0.1048.</p><div class="viz" data-viz="sim" data-p='{"fn": "p3", "exact": 0.1048373, "exactLabel": "e^−12·12¹⁰/10! ≈ 0.1048", "what": "P(10 messages)", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="claim"><b>Claim.</b> <span class="ans">(a) \(3e^{-3x}\) · (b) \(e^{-12}\tfrac{12^{10}}{10!}\) · (c) 3 · (d) \(e^{-30}\)</span>.</p><ol class="pf"><li>\(X \sim \text{Exp}(3)\): \(f_X(x) = 3e^{-3x}\), x ≥ 0.<span class="r"><b>Why:</b> first arrival of a rate-3 process.</span></li><li>Total rate 6, over 2 minutes λ = 12: \(P = e^{-12}\tfrac{12^{10}}{10!} \approx 0.1048\).<span class="r"><b>Why:</b> merging adds rates.</span></li><li>\(Y\) = sum of 3 Exp(1) gaps: \(\text{Var}(Y) = 3 \cdot 1 = 3\).<span class="r"><b>Why:</b> Exp(1) has variance 1/1² = 1.</span></li><li>Poisson(6 · 5 = 30): \(P(0) = e^{-30}\).<span class="r"><b>Why:</b> no arrival in 5 minutes at rate 6.</span></li></ol><p><b>Answer.</b> <span class="ans">3e^{−3x}; e^{−12}12¹⁰/10! ≈ 0.1048; 3; e^{−30}</span>. ∎</p></div></div>
+
+<div class="prob"><h3>P4 · Cutting the String <span class="why">Lvl 7</span></h3>
+<p class="stmt"><i>(HMMT Feb 2016 Guts #29)</i> Katherine has a piece of string that is 2016 millimeters long. She cuts the string at a location chosen uniformly at random, and takes the left half. She continues this process until the remaining string is less than one millimeter long.</p><p class="stmt"><b>Question:</b> what is the expected number of cuts that she makes? <i>(Uniform in the statement, Poisson process in the solution. Find the bridge.)</i></p>
+<div class="sec"><p class="sh">Key idea</p><p>Take logs: −ln U ~ Exp(1). The log-length drops by Exp(1) steps, i.e. the arrivals of a rate-1 Poisson process, until it has dropped by ln 2016.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Multiplying by uniforms = subtracting exponentials.</b> Cuts = (arrivals in [0, ln 2016]) + 1, mean 1 + ln 2016 ≈ 8.609.</p><div class="viz" data-viz="sim" data-p='{"fn": "p4", "exact": 8.6088706, "exactLabel": "1 + ln 2016 ≈ 8.609", "what": "average cuts", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="setup"><b>Setup.</b> After k cuts the length is \(2016\,U_1U_2\cdots U_k\), \(U_i\) uniform on [0, 1]. \(E_i = -\ln U_i\).</p><p class="claim"><b>Claim.</b> <span class="ans">\(1 + \ln 2016 \approx 8.609\)</span>.</p><ol class="pf"><li>\(E_i \sim \text{Exp}(1)\).<span class="r"><b>Why:</b> \(P(E_i &gt; t) = P(U_i &lt; e^{-t}) = e^{-t}\).</span></li><li>Length after k cuts &lt; 1 ⟺ \(E_1 + \dots + E_k &gt; \ln 2016\).<span class="r"><b>Why:</b> take ln of \(2016\,U_1\cdots U_k &lt; 1\).</span></li><li>The partial sums \(E_1, E_1 + E_2, …\) are the arrival times of a rate-1 Poisson process, so cuts = (arrivals in [0, ln 2016]) + 1.<span class="r"><b>Why:</b> she stops at the first arrival past ln 2016.</span></li><li>\(E[\text{cuts}] = 1 + \ln 2016\).<span class="r"><b>Why:</b> arrivals in an interval of length ln 2016 ~ Poisson(ln 2016).</span></li></ol><p><b>Answer.</b> <span class="ans">1 + ln 2016 ≈ 8.609</span>. ∎</p></div></div>
+
+<h2 id="d-nor">3 · Normal</h2>
+
+<div class="prob"><h3>N1 · 18000 Die Rolls <span class="why">Lvl 2</span></h3>
+<p class="stmt"><i>(MIT 18.600 F2012 Midterm 2 #1)</i> Suppose that a fair die is rolled 18000 times. Each roll turns up a uniformly random member of the set {1, 2, 3, 4, 5, 6} and the rolls are independent of each other. Let X be the total number of times the die comes up 1.</p><p class="stmt"><b>Question:</b> (a) Compute Var(X). (b) Use a normal random variable approximation to estimate the probability that X &lt; 2900. You may use the function Φ(a) in your answer.</p>
+<div class="sec"><p class="sh">Key idea</p><p>Binomial(18000, 1/6) ≈ Normal(3000, 50²). 2900 is 2 SDs below the mean.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Count in standard deviations.</b> Mean 3000, SD √2500 = 50, so 2900 sits at z = −2: about 2.3% of the time.</p><div class="viz" data-viz="sim" data-p='{"fn": "n1", "exact": 0.0228, "exactLabel": "Φ(−2) ≈ 0.0228", "what": "P(X < 2900)", "N": 5000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="claim"><b>Claim.</b> <span class="ans">(a) 2500 · (b) Φ(−2) ≈ 0.0228</span>.</p><ol class="pf"><li>\(\text{Var}(X) = 18000\cdot\tfrac16\cdot\tfrac56 = 2500\).<span class="r"><b>Why:</b> binomial np(1 − p).</span></li><li>\(P(X &lt; 2900) \approx \Phi\big(\tfrac{2900 - 3000}{50}\big) = \Phi(-2) \approx 0.0228\).<span class="r"><b>Why:</b> de Moivre–Laplace; mean np = 3000. (Continuity correction gives Φ(−2.01).)</span></li></ol><p><b>Answer.</b> <span class="ans">2500; Φ(−2)</span>. ∎</p></div></div>
+
+<div class="prob"><h3>N2 · Moments of N(0, 5) <span class="why">Lvl 3</span></h3>
+<p class="stmt"><i>(MIT 18.600 S2014 Final #8)</i> Let X be a normal random variable with mean 0 and variance 5.</p><p class="stmt"><b>Question:</b> (a) Compute E[eˣ]. (b) Compute E[X⁹ + X³ − 50X + 7].</p>
+<div class="sec"><p class="sh">Key idea</p><p>MGF: \(E[e^{tX}] = e^{\sigma^2t^2/2}\). Odd moments of a mean-0 normal vanish by symmetry.</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Completing the square.</b> \(e^x\) times the N(0, 5) density is \(e^{5/2}\) times the N(5, 5) density: the curve just shifts right by σ² = 5. So the integral is \(e^{5/2}\).</p><div class="viz" data-viz="curve" data-p='{"fn": "n2", "xr": [-8, 13], "step": 0.1, "x0": 0, "labels": ["N(0, 5) density", "eˣ · density / e^{5/2} = N(5, 5)"], "xl": "x"}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="claim"><b>Claim.</b> <span class="ans">(a) \(e^{5/2}\) · (b) 7</span>.</p><ol class="pf"><li>\(E[e^X] = \int \tfrac{1}{\sqrt{10\pi}} e^{x - x^2/10}\,dx = e^{5/2}\).<span class="r"><b>Why:</b> \(x - \tfrac{x^2}{10} = \tfrac52 - \tfrac{(x-5)^2}{10}\); what remains is a N(5, 5) density, integral 1.</span></li><li>\(E[X^9] = E[X^3] = E[X] = 0\), so the answer is 7.<span class="r"><b>Why:</b> X and −X have the same law, so every odd moment equals its own negative.</span></li></ol><p><b>Answer.</b> <span class="ans">e^{5/2}; 7</span>. ∎</p></div></div>
+
+<div class="prob"><h3>N3 · Two Normals, Mean 1 <span class="why">Lvl 3</span></h3>
+<p class="stmt"><i>(MIT 18.600 F2012 Midterm 2 #6)</i> Let X and Y be independent normal random variables, each with mean 1 and variance 9.</p><p class="stmt"><b>Question:</b> (a) Let f be the joint probability density function for the pair (X, Y). Write an explicit formula for f. (b) Compute E[X²] and E[X²Y²].</p>
+<div class="sec"><p class="sh">Key idea</p><p>Independent → joint density and E[product] both factor. \(E[X^2] = \text{Var} + \text{mean}^2\).</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>E[X²Y²] = E[X²]·E[Y²] = 10 · 10.</b> The sim averages X²Y² directly.</p><div class="viz" data-viz="sim" data-p='{"fn": "n3", "exact": 100, "exactLabel": "100", "what": "average X²Y²", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="claim"><b>Claim.</b> <span class="ans">(a) \(\tfrac{1}{18\pi}e^{-((x-1)^2 + (y-1)^2)/18}\) · (b) 10, 100</span>.</p><ol class="pf"><li>\(f(x, y) = \tfrac{1}{3\sqrt{2\pi}}e^{-(x-1)^2/18}\cdot\tfrac{1}{3\sqrt{2\pi}}e^{-(y-1)^2/18} = \tfrac{1}{18\pi}e^{-((x-1)^2 + (y-1)^2)/18}\).<span class="r"><b>Why:</b> independence; N(μ, σ²) density is \(\tfrac{1}{\sigma\sqrt{2\pi}}e^{-(x-\mu)^2/(2\sigma^2)}\) with σ = 3.</span></li><li>\(E[X^2] = 9 + 1^2 = 10\).<span class="r"><b>Why:</b> \(\text{Var}(X) = E[X^2] - E[X]^2\).</span></li><li>\(E[X^2Y^2] = E[X^2]\,E[Y^2] = 100\).<span class="r"><b>Why:</b> X², Y² are independent.</span></li></ol><p><b>Answer.</b> <span class="ans">\(\tfrac{1}{18\pi}e^{-((x-1)^2 + (y-1)^2)/18}\); 10; 100</span>. ∎</p></div></div>
+
+<div class="prob"><h3>N4 · Half an MGF <span class="why">Lvl 5</span></h3>
+<p class="stmt"><i>(MIT 18.600 F2012 Final #9)</i> Let X be a normal random variable with mean 0 and variance 1.</p><p class="stmt"><b>Question:</b> (a) Compute E[eˣ]. (b) Compute \(E[e^X 1_{X&gt;0}]\). (c) Compute E[X² + 2X − 5].</p>
+<div class="sec"><p class="sh">Key idea</p><p>Same square completion as N2, but only over x &gt; 0: the shifted density N(1, 1) is integrated over x &gt; 0, which is P(Z &gt; −1) = Φ(1).</p></div>
+<div class="sec"><p class="sh">Picture</p><p><b>Tilt, then cut.</b> \(e^x\varphi(x) = e^{1/2}\varphi(x-1)\); keeping x &gt; 0 keeps the part of N(1, 1) above 0.</p><div class="viz" data-viz="sim" data-p='{"fn": "n4", "exact": 1.3870703, "exactLabel": "e^{1/2}Φ(1) ≈ 1.3871", "what": "average eˣ·1{X > 0}", "N": 100000}'></div></div>
+<div class="sec"><p class="sh">Solution</p><p class="claim"><b>Claim.</b> <span class="ans">(a) \(e^{1/2}\) · (b) \(e^{1/2}\Phi(1) \approx 1.3871\) · (c) −4</span>.</p><ol class="pf"><li>\(E[e^X] = e^{1/2}\).<span class="r"><b>Why:</b> N2's formula with σ² = 1.</span></li><li>\(E[e^X 1_{X&gt;0}] = \int_0^\infty e^x\tfrac{1}{\sqrt{2\pi}}e^{-x^2/2}\,dx = e^{1/2}\int_0^\infty \tfrac{1}{\sqrt{2\pi}}e^{-(x-1)^2/2}\,dx\).<span class="r"><b>Why:</b> \(x - \tfrac{x^2}{2} = \tfrac12 - \tfrac{(x-1)^2}{2}\).</span></li><li>\(= e^{1/2}P(Z &gt; -1) = e^{1/2}\Phi(1)\).<span class="r"><b>Why:</b> substitute z = x − 1; symmetry \(P(Z &gt; -1) = \Phi(1)\).</span></li><li>\(E[X^2 + 2X - 5] = 1 + 0 - 5 = -4\).<span class="r"><b>Why:</b> linearity; E[X²] = Var = 1.</span></li></ol><p><b>Answer.</b> <span class="ans">e^{1/2}; e^{1/2}Φ(1); −4</span>. ∎</p></div></div>
+
+<h2 id="d-score">4 · Score</h2>
+<div class="tw"><table>
+<tr><th>Block</th><th>Q done</th><th>✓</th><th>Stuck-on (tool name)</th></tr>
+<tr><td>Uniform</td><td>/4</td><td></td><td></td></tr>
+<tr><td>Poisson</td><td>/4</td><td></td><td></td></tr>
+<tr><td>Normal</td><td>/4</td><td></td><td></td></tr>
+</table></div>
+
+<style>.katex{font-size:1.15em}.katex-display{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}</style>
+<style>
+pre{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:.6rem .8rem;font-size:.85rem;overflow-x:auto}
+.fig{display:block;margin:.8rem auto;max-width:100%;height:auto;font-size:13px}
+.fig text{fill:var(--ink);font-family:inherit}
+.fig .m{fill:var(--muted)} .fig .a{fill:var(--accent)} .fig .g{fill:var(--gap)}
+.fig .ln{stroke:var(--ink);fill:none;stroke-width:1.5}
+.fig .mu{stroke:var(--muted);fill:none;stroke-width:1}
+.fig .ac{stroke:var(--accent);fill:none;stroke-width:2.5}
+.fig .rg{fill:var(--accent);fill-opacity:.22;stroke:var(--accent);stroke-width:1.5}
+.fig .bad{fill:var(--gap);fill-opacity:.28;stroke:var(--gap);stroke-width:1.5}
+.fig .nd{fill:var(--card);stroke:var(--ink);stroke-width:1.5}
+.fig .dot{fill:var(--ink)} .fig .adot{fill:var(--accent)}
+.fig .dsh{stroke-dasharray:5 4} .fig .gl{stroke:var(--gap);fill:none;stroke-width:2.5} .fig .ink{fill:var(--ink)} .fig .bg{fill:var(--bg);stroke:var(--rule)} .fig .thk{stroke-width:4.5;stroke-linecap:round} .fig .sol{fill:var(--ink);fill-opacity:.55;stroke:var(--ink);stroke-width:1}
+.pf li{margin:.55rem 0} .pf .r{display:block;margin-top:.15rem;font-size:.93em} .pf .r > b:first-child{color:var(--accent)} .setup{margin:.3rem 0 .5rem}
+.prob > p.stmt{margin:.35rem 0 .5rem}
+.ahp{fill:var(--ink)} .ahpa{fill:var(--accent)}
+</style>
+</div>

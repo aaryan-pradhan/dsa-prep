@@ -15,6 +15,7 @@ heaps/, linked_list/, ...    # other topic folders
 LEDGER.html                  # master recall reference
 ledger/                      # shared ledger CSS and JavaScript
 docs/adr/                    # architecture decisions
+prob_prep/                   # quant probability prep (open prob_prep/prob.html)
 ```
 
 Every solution follows this shape:
@@ -38,6 +39,22 @@ problems by topic and pattern; shared styles and data live in `ledger/`.
 
 The pages have no build step and can be opened directly from the repository.
 See `CONTEXT.md` for the ledger vocabulary and entry format.
+
+## Prob prep
+
+`prob_prep/` holds quant-interview probability revision pages (QuantProf
+course), separate from the DSA ledgers. Open `prob_prep/prob.html` — it links
+every page. No build step.
+
+```
+prob_prep/
+├── prob.html        # index: DP template + links to every page
+├── viz.js           # shared widgets (sim / dptable / curve)
+├── cheatsheet.html  # one-page probability cheat sheet (+ .pdf)
+├── course/          # one page per QuantProf section
+├── companies/       # one page per company playlist
+└── mocks/           # mock papers and drills
+```
 
 ## Compile and run
 
